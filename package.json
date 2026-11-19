@@ -1,0 +1,27 @@
+{
+  "name": "van-kinh-chinese-learning",
+  "version": "1.0.0",
+  "private": true,
+  "description": "云径 · Vân Kính - Nền tảng học tiếng Trung cho người Việt (NestJS + Next.js + PostgreSQL SQL thuần)",
+  "packageManager": "yarn@1.22.22",
+  "scripts": {
+    "env": "node -e \"const fs=require('fs');[['.env.example','.env'],['server/.env.example','server/.env'],['user-client/.env.example','user-client/.env.local']].forEach(([s,d])=>{if(fs.existsSync(d)){console.log('Skipped (exists):',d)}else{fs.copyFileSync(s,d);console.log('Created:',d)}})\"",
+    "env:force": "node -e \"const fs=require('fs');[['.env.example','.env'],['server/.env.example','server/.env'],['user-client/.env.example','user-client/.env.local']].forEach(([s,d])=>{fs.copyFileSync(s,d);console.log('Updated:',d)})\"",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres",
+    "db:init": "yarn --cwd server db:init",
+    "db:generate": "yarn --cwd server db:generate",
+    "db:reset": "yarn --cwd server db:reset",
+    "db:seed": "yarn --cwd server db:seed",
+    "db:dump": "yarn --cwd server db:dump",
+    "server:install": "yarn --cwd server install",
+    "server:dev": "yarn --cwd server dev",
+    "server:build": "yarn --cwd server build",
+    "server:start": "yarn --cwd server start:prod",
+    "client:install": "yarn --cwd user-client install",
+    "client:dev": "yarn --cwd user-client dev",
+    "client:build": "yarn --cwd user-client build",
+    "client:start": "yarn --cwd user-client start"
+  }
+}

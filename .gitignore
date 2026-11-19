@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+.yarn-local/
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Build outputs
+server/dist/
+user-client/.next/
+user-client/out/
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.production
+server/.env
+user-client/.env
+user-client/.env.local
+
+# Uploaded media (local storage)
+server/uploads/*
+!server/uploads/.gitkeep
+
+# Database dump snapshots (local backups)
+server/db/dumps/*.sql
+!server/db/dumps/.gitkeep
+
+# Logs & Coverage
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+coverage/
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
