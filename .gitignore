@@ -53,8 +53,12 @@ Thumbs.db
 .agents/skills/impeccable/
 .agents/skills/transitions-dev/
 .agents/skills/transitions-polish/
+.agents/skills/svg-logo-designer/
 
 # Playwright
 e2e/.auth/
 test-results/
 playwright-report/
+
+# design-taste-frontend working files (screenshots, direction sheet)
+.taste-skill/

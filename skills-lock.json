@@ -1,6 +1,13 @@
 {
   "version": 2,
   "skills": {
+    "SVG Logo Designer": {
+      "source": "rknall/claude-skills",
+      "commit": "ca7fbd0e07f824b119030f323da3409bc779f9bc",
+      "sourceType": "github",
+      "skillPath": "svg-logo-designer/SKILL.md",
+      "computedHash": "e418b0b698948259a10a537a46e81b61ae385dd508889c267c2b3b7acd6680cc"
+    },
     "impeccable": {
       "source": "pbakaus/impeccable",
       "commit": "b49177d32788f2dc585c42831d845dacf1ebed2c",

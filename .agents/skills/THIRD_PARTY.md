@@ -23,6 +23,7 @@ yarn skills:install
 |---|---|---|
 | `transitions-dev`, `transitions-polish` | [Jakubantalik/transitions.dev](https://transitions.dev) | Its license allows use in products but forbids republishing the collection; a public repo would republish it. |
 | `impeccable` | [pbakaus/impeccable](https://github.com/pbakaus/impeccable) | Installed copy ships without a license file; kept out until verified. |
+| `svg-logo-designer` | [rknall/claude-skills](https://github.com/rknall/claude-skills) | No open-source license ("provided as-is for use with Claude Code"). Instructions only, no scripts; skillspector static scan: 0/100, SAFE. |
 
 `yarn skills:update` updates them to the latest upstream commit.
 

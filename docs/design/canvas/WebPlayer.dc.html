@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Vân Kính – Trình phát bài giảng</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&amp;family=Noto+Serif+SC:wght@600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}
+.han{font-family:'Noto Serif SC',serif}
+.layout{display:flex;flex-wrap:wrap}
+.main{flex:999 1 640px;min-width:0}
+.side{flex:1 1 340px;min-width:0;border-left:1px solid #D1D7DC}
+.lrow{display:flex;gap:12px;padding:12px 16px;font-size:14px;line-height:1.4}
+.lrow input{width:18px;height:18px;accent-color:#1C1D1F;margin:2px 0 0}
+.vocab{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:700px){.side{border-left:0}.vocab{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</helmet>
+<div style="background: #FFFFFF; color: #1C1D1F; font-family: 'Be Vietnam Pro', system-ui, sans-serif; width: 100%">
+  <header style="background: #1C1D1F; color: #FFFFFF; height: 56px; padding: 0 20px; display: flex; align-items: center; gap: 16px">
+    <a href="WebHome.dc.html" aria-label="Vân Kính, trang chủ" style="display: flex; align-items: center; gap: 8px"><svg width="28" height="28" viewBox="0 0 64 64" aria-hidden="true"><defs><clipPath id="lg1"><circle cx="32" cy="32" r="30"></circle></clipPath></defs><g clip-path="url(#lg1)"><rect width="64" height="64" fill="#E0553E"></rect><path d="M0 44 L13 37 L22 41 L33 34 L46 40 L64 33 V64 H0 Z" fill="#B8402C"></path><path d="M14 64 C 22 59, 34 57, 34 52 C 34 47.5, 27.5 46.5, 27.5 43 C 27.5 40, 31.4 38.5, 31.6 35.5 H33 C 33.2 38.5, 32.2 40.5, 32.2 43 C 32.2 45.5, 44 47.5, 44 52.5 C 44 57.5, 40 60, 44 64 Z" fill="#FFFFFF"></path><path d="M18 30 H46 A5.5 5.5 0 0 0 44.5 19.6 A8 8 0 0 0 29.5 16.5 A6.5 6.5 0 0 0 18 30 Z" fill="#FFFFFF"></path></g></svg><span style="font-size: 17px; font-weight: 800; letter-spacing: -0.035em">Vân Kính</span></a>
+    <span style="width: 1px; height: 24px; background: #3E4143"></span>
+    <span style="font-size: 15px; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">HSK 1: nền tảng giao tiếp và 150 từ vựng</span>
+    <span style="font-size: 13px; white-space: nowrap">Tiến độ 6 / 15</span>
+  </header>
+  <div class="layout">
+    <main class="main">
+      <div style="aspect-ratio: 16 / 9; background: #000000; color: #FFFFFF; position: relative; display: flex; align-items: center; justify-content: center">
+        <p style="position: absolute; left: 20px; top: 16px; margin: 0; font-size: 14px">[Video bài giảng]</p>
+        <button aria-label="Phát" style="width: 72px; height: 72px; border-radius: 36px; border: 0; background: #FFFFFF; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l12 7-12 7z" fill="#1C1D1F"></path></svg></button>
+        <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 44px; background: rgba(0,0,0,0.6); display: flex; align-items: center; gap: 14px; padding: 0 16px; font-size: 13px"><span>04:12 / 12:00</span><div style="flex: 1 1 auto; height: 4px; background: #6A6F73"><div style="width: 35%; height: 4px; background: #C2321C"></div></div><span>1x</span><span>Phụ đề pinyin</span></div>
+      </div>
+      <div role="tablist" aria-label="Nội dung bài" style="display: flex; gap: 28px; padding: 0 24px; border-bottom: 1px solid #D1D7DC; font-size: 16px; font-weight: 700">
+        <button role="tab" aria-selected="true" style="border: 0; background: none; padding: 16px 0 12px; font: inherit; box-shadow: inset 0 -2px 0 #1C1D1F; cursor: pointer">Từ vựng</button>
+        <button role="tab" aria-selected="false" style="border: 0; background: none; padding: 16px 0 12px; font: inherit; color: #6A6F73; cursor: pointer">Tài liệu</button>
+        <button role="tab" aria-selected="false" style="border: 0; background: none; padding: 16px 0 12px; font: inherit; color: #6A6F73; cursor: pointer">Ghi chú</button>
+        <button role="tab" aria-selected="false" style="border: 0; background: none; padding: 16px 0 12px; font: inherit; color: #6A6F73; cursor: pointer">Hỏi đáp</button>
+      </div>
+      <div style="padding: 24px; display: flex; flex-direction: column; gap: 16px">
+        <h1 style="margin: 0; font-size: 24px; font-weight: 800">Bài 1: Xin chào <span class="han">你好</span></h1>
+        <div class="vocab">
+          <div style="border: 1px solid #D1D7DC; padding: 16px; display: flex; flex-direction: column; gap: 4px"><span class="han" style="font-size: 40px">你</span><b>nǐ</b><span style="font-size: 14px">bạn</span></div>
+          <div style="border: 1px solid #D1D7DC; padding: 16px; display: flex; flex-direction: column; gap: 4px"><span class="han" style="font-size: 40px">好</span><b>hǎo</b><span style="font-size: 14px">tốt, khoẻ</span></div>
+          <div style="border: 1px solid #D1D7DC; padding: 16px; display: flex; flex-direction: column; gap: 4px"><span class="han" style="font-size: 40px">我</span><b>wǒ</b><span style="font-size: 14px">tôi</span></div>
+          <div style="border: 1px solid #D1D7DC; padding: 16px; display: flex; flex-direction: column; gap: 4px"><span class="han" style="font-size: 40px">是</span><b>shì</b><span style="font-size: 14px">là</span></div>
+        </div>
+        <a href="#" style="align-self: flex-start; height: 44px; padding: 0 16px; border-radius: 4px; box-shadow: inset 0 0 0 1px #1C1D1F; font-weight: 700; font-size: 15px; display: flex; align-items: center">Ôn 4 từ bằng flashcard</a>
+      </div>
+    </main>
+    <aside class="side" aria-label="Nội dung khoá học">
+      <h2 style="margin: 0; padding: 16px; font-size: 16px; font-weight: 800; border-bottom: 1px solid #D1D7DC">Nội dung khoá học</h2>
+      <div style="background: #F7F9FA; padding: 14px 16px; border-bottom: 1px solid #D1D7DC"><p style="margin: 0; font-size: 15px; font-weight: 700">Phần 1: Phát âm và chào hỏi</p><p style="margin: 2px 0 0; font-size: 12px; color: #6A6F73">2 / 3 · 38 phút</p></div>
+      <label class="lrow" style="background: #E4ECF8"><input type="checkbox" checked=""><span style="display: flex; flex-direction: column"><span style="font-weight: 600">1. Xin chào 你好</span><span style="font-size: 12px; color: #6A6F73">12 phút · đang xem</span></span></label>
+      <label class="lrow"><input type="checkbox" checked=""><span style="display: flex; flex-direction: column"><span>2. Bốn thanh điệu</span><span style="font-size: 12px; color: #6A6F73">14 phút</span></span></label>
+      <label class="lrow"><input type="checkbox"><span style="display: flex; flex-direction: column"><span>3. Thanh mẫu, vận mẫu</span><span style="font-size: 12px; color: #6A6F73">12 phút</span></span></label>
+      <div style="background: #F7F9FA; padding: 14px 16px; border-top: 1px solid #D1D7DC; border-bottom: 1px solid #D1D7DC"><p style="margin: 0; font-size: 15px; font-weight: 700">Phần 2: Giới thiệu bản thân</p><p style="margin: 2px 0 0; font-size: 12px; color: #6A6F73">0 / [n]</p></div>
+      <div style="background: #F7F9FA; padding: 14px 16px; border-bottom: 1px solid #D1D7DC"><p style="margin: 0; font-size: 15px; font-weight: 700">Phần 3: Luyện đề HSK 1</p><p style="margin: 2px 0 0; font-size: 12px; color: #6A6F73">0 / [n]</p></div>
+    </aside>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1150}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

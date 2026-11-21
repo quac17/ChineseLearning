@@ -53,7 +53,8 @@ before starting the task:
 | Backend endpoint / module | `nestjs-module` |
 | Schema, seed, migration | `raw-sql-migration` |
 | Frontend page / component | `nextjs-page` |
-| Visual design, restyle | `vankinh-ui` + `design-taste-frontend` (+ `impeccable`, `transitions-dev`, `transitions-polish` if installed) |
+| Visual design, restyle (approved design: `docs/design/`) | `vankinh-ui` first, then `design-taste-frontend` (+ `impeccable`, `transitions-dev`, `transitions-polish` if installed) |
+| Logo, brand assets (`docs/brand/BRAND.md`) | `svg-logo-designer` (installed on demand) |
 | Video, documents, access | `video-access` |
 | Prices, checkout, PayOS | `payment-integration` |
 | End-to-end tests | `e2e-playwright` |
