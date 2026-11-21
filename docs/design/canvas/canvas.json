@@ -1,0 +1,26 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-11-21T15:10:00Z"},
+  "title": "Vân Kính – Redesign UI",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 1440, "h": 2600, "title": "Hệ thống thiết kế – màu, chữ, pattern", "is_interactive": true},
+    "WebHome.dc.html": {"x": 0, "y": 3000, "w": 1440, "h": 3300,"title": "Web – Trang chủ", "expand": "fill"},
+    "WebCourse.dc.html": {"x": 1520, "y": 3000, "w": 1440, "h": 2000, "title": "Web – Chi tiết khoá học", "expand": "fill"},
+    "WebPlayer.dc.html": {"x": 3040, "y": 3000, "w": 1440, "h": 1150, "title": "Web – Trình phát bài giảng", "expand": "fill"},
+    "AppHome.dc.html": {"x": 0, "y": 6700, "w": 390, "h": 844, "title": "App – Nổi bật"},
+    "AppCourse.dc.html": {"x": 470, "y": 6700, "w": 390, "h": 844, "title": "App – Chi tiết khoá học"},
+    "AppPlayer.dc.html": {"x": 940, "y": 6700, "w": 390, "h": 844, "title": "App – Xem bài giảng"},
+    "LogoRoad.dc.html": {"x": 2040, "y": 0, "w": 1440, "h": 760, "title": "Logo Vân Kính (đã chốt)"}
+  },
+  "order": ["Main.dc.html", "LogoRoad.dc.html", "WebHome.dc.html", "WebCourse.dc.html", "WebPlayer.dc.html", "AppHome.dc.html", "AppCourse.dc.html", "AppPlayer.dc.html"],
+  "notes": {
+    "t1": {"x": 0, "y": -300, "text": "Hệ thống thiết kế", "kind": "title1", "maxW": 1440},
+    "t2": {"x": 0, "y": 2700, "text": "Web (desktop & mobile web)", "kind": "title1", "maxW": 4480},
+    "t3": {"x": 0, "y": 6400, "text": "App di động", "kind": "title1", "maxW": 1330},
+    "s1": {"x": 1520, "y": 0, "w": 420, "text": "Phiên bản 2: kiểu chợ khoá học (học theo bố cục Udemy). Nền trắng, chữ gần đen, viền xám mảnh, nút đen cho đăng ký, nút son cho mua. Thanh tìm kiếm lớn, lưới thẻ khoá học có ảnh bìa, đánh giá và giá. Trang chi tiết có ô mua cố định bên phải. Không dùng logo, tên, font hay mã màu tím của Udemy.", "fill": "orange", "size": "m"},
+    "s2": {"x": 1520, "y": 600, "w": 420, "text": "ĐÃ CHỐT 21/11/2026. Màu nhấn son #C2321C, font Be Vietnam Pro + Noto Serif SC, bố cục chợ khoá học, app 5 tab, logo ấn tròn lối uốn qua núi lên mây. Bản sao canvas: docs/design/ trong repo. Còn thiếu dữ liệu thật: [GIÁ], [n], [Tên giáo viên], điểm đánh giá, ảnh bìa khoá học.", "fill": "green", "size": "m"}
+  },
+  "designSystems": []
+}

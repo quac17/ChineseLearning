@@ -77,6 +77,17 @@ yarn client:start   # Chạy bản production
 
 ---
 
+## Phát triển cùng AI (Claude Code, Codex, Gemini CLI)
+
+Hướng dẫn chung cho mọi AI nằm ở [AGENTS.md](./AGENTS.md); quy tắc code & checklist review ở [CODING_STANDARDS.md](./CODING_STANDARDS.md); thuật ngữ ở [GLOSSARY.md](./GLOSSARY.md). Skill nằm trong `.agents/skills/` (Claude đọc qua symlink `.claude/skills`).
+
+Sau khi clone, cài thêm các skill không được commit (vì license):
+```bash
+yarn skills:install
+```
+
+---
+
 ## Tài khoản mẫu (sau khi chạy `yarn db:seed`)
 
 | Vai trò | Email | Mật khẩu | Ghi chú |
