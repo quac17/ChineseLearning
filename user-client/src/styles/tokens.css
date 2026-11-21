@@ -1,0 +1,105 @@
+/*
+ * Vân Kính design tokens (approved design, docs/design/).
+ * Components use these variables only; never hard-code hex values.
+ */
+:root {
+  --bg: #ffffff;
+  --surface: #f7f9fa;
+  --card: #ffffff;
+  --line: #d1d7dc;
+  --muted: #6a6f73;
+  --ink: #1c1d1f;
+  --inverse: #ffffff;
+
+  --accent: #c2321c;
+  --accent-press: #9e2715;
+  --accent-ink: #ffffff;
+
+  --rating: #b4690e;
+  --badge-bg: #fce8c3;
+  --badge-ink: #5a3a00;
+
+  --success: #1e6e5c;
+  --success-bg: #e1f0ec;
+  --success-ink: #12483c;
+  --warning: #b4690e;
+  --warning-bg: #fcf2e2;
+  --warning-ink: #7a4a00;
+  --error: #8c1d40;
+  --error-bg: #f7e6eb;
+  --error-ink: #5e1029;
+  --info: #1f4fa0;
+  --info-bg: #e4ecf8;
+  --info-ink: #173b78;
+  --neutral-bg: #f1f2f4;
+  --neutral-ink: #50565b;
+
+  --focus: #1f4fa0;
+
+  /* Program colours: covers, goal tiles, program tags (white text on all four). */
+  --prog-easy: #4e8a2e;
+  --prog-yct: #c46a12;
+  --prog-hsk: #1f4fa0;
+  --prog-talk: #1e6e5c;
+
+  --radius: 4px;
+  --shadow-float: 0 8px 24px rgba(28, 29, 31, 0.16);
+  --shadow-bar: 0 2px 4px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  --font-sans: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-han: 'Noto Serif SC', 'Songti SC', serif;
+
+  --text-small: 13px;
+  --text-body: 16px;
+  --text-lead: 19px;
+  --text-h3: 20px;
+  --text-h2: clamp(24px, 1.6vw + 18px, 32px);
+  --text-h1: clamp(32px, 2.4vw + 22px, 48px);
+
+  --content-max: 1340px;
+  --content-narrow: 1180px;
+  --gutter: 24px;
+
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --bg: #16171a;
+  --surface: #222428;
+  --card: #1c1e21;
+  --line: #3e4143;
+  --muted: #a6abaf;
+  --ink: #f2f3f5;
+  --inverse: #16171a;
+
+  --accent: #e0553e;
+  --accent-press: #f07a63;
+  --accent-ink: #16171a;
+
+  --rating: #f3ca8c;
+  --badge-bg: #4a3a1a;
+  --badge-ink: #fce8c3;
+
+  --success-bg: #173a32;
+  --success-ink: #bfe3d9;
+  --warning-bg: #3a2e1a;
+  --warning-ink: #f3ca8c;
+  --error: #f2879f;
+  --error-bg: #3a1a24;
+  --error-ink: #f2b8c9;
+  --info-bg: #1a2a44;
+  --info-ink: #b9ccf0;
+  --neutral-bg: #2a2c30;
+  --neutral-ink: #c9cdd1;
+
+  --focus: #8fb3f0;
+  --shadow-float: 0 8px 24px rgba(0, 0, 0, 0.5);
+
+  color-scheme: dark;
+}
+
+@media (max-width: 760px) {
+  :root {
+    --gutter: 16px;
+  }
+}

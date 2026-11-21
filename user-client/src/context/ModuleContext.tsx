@@ -5,8 +5,10 @@ import { getModuleTheme, ModuleThemeConfig } from '@/lib/modules';
 import { ModuleSelection } from '@/lib/types';
 
 interface ModuleContextValue {
+  /** Selected program, used to filter courses and practice decks. */
   activeModule: ModuleSelection;
   setActiveModule: (mod: ModuleSelection) => void;
+  /** Program copy (name, Hanzi, description). No longer recolours the page. */
   theme: ModuleThemeConfig;
   colorMode: 'light' | 'dark';
   toggleColorMode: () => void;
@@ -16,39 +18,34 @@ const ModuleContext = createContext<ModuleContextValue | null>(null);
 
 export function ModuleProvider({ children }: { children: React.ReactNode }) {
   const [activeModule, setActiveModule] = useState<ModuleSelection>('all');
-  const [colorMode, setColorMode] = useState<'light' | 'dark'>('light');
+  // null until we have read what the inline script in app/layout.tsx set before paint,
+  // so the first render never overwrites the saved theme.
+  const [mode, setMode] = useState<'light' | 'dark' | null>(null);
+  const colorMode = mode ?? 'light';
   const theme = getModuleTheme(activeModule);
 
   useEffect(() => {
-    const saved = localStorage.getItem('vankinh_theme');
-    if (saved === 'dark' || saved === 'light') {
-      setColorMode(saved);
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      setColorMode('dark');
-    }
+    setMode(document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light');
   }, []);
 
   useEffect(() => {
-    const root = document.documentElement;
-    root.dataset.mod = activeModule;
-    root.dataset.theme = colorMode;
-    root.style.setProperty('--m', theme.c1);
-    root.style.setProperty('--m2', theme.c2);
-    root.style.setProperty('--hero', theme.grad);
-  }, [activeModule, colorMode, theme]);
+    if (mode) document.documentElement.dataset.theme = mode;
+  }, [mode]);
 
   const toggleColorMode = () => {
-    setColorMode((prev) => {
-      const next = prev === 'light' ? 'dark' : 'light';
-      localStorage.setItem('vankinh_theme', next);
+    setMode((prev) => {
+      const next = (prev ?? 'light') === 'light' ? 'dark' : 'light';
+      try {
+        localStorage.setItem('vankinh_theme', next);
+      } catch {
+        // Private mode: the choice lasts for this visit only.
+      }
       return next;
     });
   };
 
   return (
-    <ModuleContext.Provider
-      value={{ activeModule, setActiveModule, theme, colorMode, toggleColorMode }}
-    >
+    <ModuleContext.Provider value={{ activeModule, setActiveModule, theme, colorMode, toggleColorMode }}>
       {children}
     </ModuleContext.Provider>
   );
