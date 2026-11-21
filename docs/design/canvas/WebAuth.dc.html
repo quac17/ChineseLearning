@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Web – Đăng nhập, đăng ký, quên mật khẩu</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}*{box-sizing:border-box}
+a{color:#C2321C}
+.btn{height:48px;width:100%;border:0;border-radius:4px;font:700 16px 'Be Vietnam Pro',sans-serif;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none}
+.ink{background:#1C1D1F;color:#fff}.acc{background:#C2321C;color:#fff}
+.field{height:48px;width:100%;padding:0 14px;border:1px solid #6A6F73;border-radius:4px;font:400 16px 'Be Vietnam Pro',sans-serif;background:#fff;color:#1C1D1F}
+.lbl{font-size:14px;font-weight:700}
+.mut{color:#6A6F73}
+.f{display:flex;flex-direction:column;gap:6px}
+.panel{background:#fff;border:1px solid #D1D7DC;border-radius:4px;padding:32px;display:flex;flex-direction:column;gap:16px}
+.be{display:inline-flex;align-self:flex-start;padding:3px 8px;border-radius:4px;font-size:12px;font-weight:700;background:#FFF3D6;color:#5A3A00;border:1px dashed #B4690E}
+</style>
+</helmet>
+<div style="width: 1440px; height: 880px; padding: 48px 64px; background: #F7F9FA; color: #1C1D1F; font-family: 'Be Vietnam Pro', system-ui, sans-serif; display: flex; flex-direction: column; gap: 28px">
+  <div style="display: flex; align-items: center; gap: 12px"><svg width="40" height="40" viewBox="0 0 64 64" aria-hidden="true"><defs><clipPath id="L"><circle cx="32" cy="32" r="30"></circle></clipPath></defs><g clip-path="url(#L)"><rect width="64" height="64" fill="#C2321C"></rect><path d="M0 44 L13 37 L22 41 L33 34 L46 40 L64 33 V64 H0 Z" fill="#9E2715"></path><path d="M14 64 C 22 59, 34 57, 34 52 C 34 47.5, 27.5 46.5, 27.5 43 C 27.5 40, 31.4 38.5, 31.6 35.5 H33 C 33.2 38.5, 32.2 40.5, 32.2 43 C 32.2 45.5, 44 47.5, 44 52.5 C 44 57.5, 40 60, 44 64 Z" fill="#FFFFFF"></path><path d="M18 30 H46 A5.5 5.5 0 0 0 44.5 19.6 A8 8 0 0 0 29.5 16.5 A6.5 6.5 0 0 0 18 30 Z" fill="#FFFFFF"></path></g></svg><span style="font-size: 22px; font-weight: 800; letter-spacing: -0.035em">Vân Kính</span><span class="mut" style="font-size: 14px; margin-left: 12px">Ba màn hình xác thực dùng chung khung: một cột form 440px, giữa trang, nền xám nhạt.</span></div>
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; align-items: start">
+
+    <form class="panel" aria-labelledby="h-login">
+      <h1 id="h-login" style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.02em">Đăng nhập</h1>
+      <p class="mut" style="margin: 0; font-size: 15px">Tiếp tục học từ bài bạn đang dở.</p>
+      <div class="f"><label class="lbl" for="le">Email</label><input id="le" class="field" type="email" value="lan@example.com"></div>
+      <div class="f"><div style="display: flex; justify-content: space-between"><label class="lbl" for="lp">Mật khẩu</label><a href="#forgot" style="font-size: 14px; font-weight: 700">Quên mật khẩu?</a></div><input id="lp" class="field" type="password" value="password"></div>
+      <label style="display: flex; gap: 10px; align-items: center; font-size: 15px; min-height: 44px"><input type="checkbox" checked="" style="width: 20px; height: 20px; accent-color: #1C1D1F; margin: 0">Ghi nhớ đăng nhập</label>
+      <button class="btn ink" type="button">Đăng nhập</button>
+      <p style="margin: 0; font-size: 15px; text-align: center">Chưa có tài khoản? <a href="#register" style="font-weight: 700">Đăng ký</a></p>
+      <div role="alert" style="border: 1px solid #8C1D40; background: #F7E6EB; border-radius: 4px; padding: 12px 14px; font-size: 14px">Trạng thái lỗi: <b>Email hoặc mật khẩu không đúng.</b></div>
+    </form>
+
+    <form class="panel" id="register" aria-labelledby="h-reg">
+      <h1 id="h-reg" style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.02em">Tạo tài khoản</h1>
+      <p class="mut" style="margin: 0; font-size: 15px">Miễn phí. Xem ngay bài học thử của mọi khoá.</p>
+      <div class="f"><label class="lbl" for="rn">Họ và tên</label><input id="rn" class="field" value="Nguyễn Lan"></div>
+      <div class="f"><label class="lbl" for="re">Email</label><input id="re" class="field" type="email" value="lan@example.com"></div>
+      <div class="f"><label class="lbl" for="rp">Mật khẩu</label><input id="rp" class="field" type="password" value="abc" aria-describedby="rph" style="border-color: #8C1D40; box-shadow: inset 0 0 0 1px #8C1D40"><span id="rph" style="font-size: 14px; color: #8C1D40">Tối thiểu 8 ký tự, có chữ và số.</span></div>
+      <label style="display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.5"><input type="checkbox" style="width: 20px; height: 20px; accent-color: #1C1D1F; margin: 1px 0 0; flex: none">Tôi đồng ý với <a href="#">Điều khoản</a> và <a href="#">Chính sách bảo mật</a></label>
+      <button class="btn acc" type="button">Tạo tài khoản</button>
+      <p style="margin: 0; font-size: 15px; text-align: center">Đã có tài khoản? <a href="#" style="font-weight: 700">Đăng nhập</a></p>
+    </form>
+
+    <div style="display: flex; flex-direction: column; gap: 20px">
+      <form class="panel" id="forgot" aria-labelledby="h-fg">
+        <span class="be">Cần backend gửi email</span>
+        <h1 id="h-fg" style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.02em">Quên mật khẩu</h1>
+        <p class="mut" style="margin: 0; font-size: 15px; line-height: 1.5">Nhập email đã đăng ký, chúng tôi gửi đường dẫn đặt lại mật khẩu (hiệu lực 30 phút).</p>
+        <div class="f"><label class="lbl" for="fe">Email</label><input id="fe" class="field" type="email" placeholder="ban@email.com"></div>
+        <button class="btn ink" type="button">Gửi đường dẫn</button>
+        <a href="#" style="font-size: 15px; font-weight: 700; text-align: center">Quay lại đăng nhập</a>
+      </form>
+      <div class="panel" style="gap: 10px">
+        <h2 style="margin: 0; font-size: 20px; font-weight: 800">Kiểm tra hộp thư</h2>
+        <p style="margin: 0; font-size: 15px; line-height: 1.5">Nếu <b>lan@example.com</b> có tài khoản, bạn sẽ nhận email trong vài phút. Không thấy? Xem thư mục Spam.</p>
+        <p class="mut" style="margin: 0; font-size: 13px">Luôn hiện thông báo này dù email có tồn tại hay không, để không lộ danh sách tài khoản.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":880}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

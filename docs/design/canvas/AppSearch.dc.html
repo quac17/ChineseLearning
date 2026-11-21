@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>App – Tìm kiếm</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&amp;family=Noto+Serif+SC:wght@600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}*{box-sizing:border-box}
+a{color:inherit;text-decoration:none}
+.han{font-family:'Noto Serif SC',serif}
+.mut{color:#6A6F73}
+.chip{height:36px;padding:0 14px;border-radius:18px;border:1px solid #1C1D1F;background:#fff;font:700 14px 'Be Vietnam Pro',sans-serif;display:inline-flex;align-items:center;white-space:nowrap}
+.row{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #D1D7DC}
+.th{width:110px;aspect-ratio:16 / 9;border-radius:4px;flex:none;display:flex;align-items:flex-end;justify-content:flex-end;padding:6px;color:#fff}
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:600}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; background: #FFFFFF; color: #1C1D1F; font-family: 'Be Vietnam Pro', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+  <div style="padding: 56px 16px 12px; display: flex; flex-direction: column; gap: 12px">
+    <div style="position: relative"><label for="q" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Tìm khoá học</label><input id="q" value="hsk" style="width: 100%; height: 44px; border-radius: 22px; border: 1px solid #1C1D1F; background: #F7F9FA; padding: 0 16px 0 42px; font: 400 16px 'Be Vietnam Pro', sans-serif"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style="position: absolute; left: 16px; top: 13px"><circle cx="11" cy="11" r="7" fill="none" stroke="#1C1D1F" stroke-width="2"></circle><path d="M16 16l5 5" stroke="#1C1D1F" stroke-width="2"></path></svg></div>
+    <div style="display: flex; gap: 8px; overflow: hidden"><button class="chip" style="background: #1C1D1F; color: #fff">Bộ lọc · 2</button><button class="chip">HSK</button><button class="chip">Miễn phí</button><button class="chip">Có học thử</button></div>
+  </div>
+  <div style="flex: 1 1 auto; overflow: hidden; padding: 0 16px">
+    <p class="mut" style="margin: 4px 0 4px; font-size: 13px">[n] kết quả · Phù hợp nhất ▾</p>
+    <a href="AppCourse.dc.html" class="row"><div class="th" style="background: #1F4FA0"><span class="han" style="font-size: 26px; line-height: 1">一</span></div><div style="display: flex; flex-direction: column; gap: 3px; min-width: 0"><b style="font-size: 15px; line-height: 1.3">HSK 1: nền tảng và 150 từ vựng</b><span class="mut" style="font-size: 12px">GV [Tên] · [n] bài · [n] giờ</span><span style="font-size: 12px"><b style="color: #B4690E">[4,5] ★</b> <span class="mut">· [nguồn]</span></span><b style="font-size: 15px">[GIÁ] ₫</b></div></a>
+    <a href="#" class="row"><div class="th" style="background: #1F4FA0"><span class="han" style="font-size: 26px; line-height: 1">二</span></div><div style="display: flex; flex-direction: column; gap: 3px"><b style="font-size: 15px; line-height: 1.3">HSK 2: mở rộng 300 từ, câu ghép</b><span class="mut" style="font-size: 12px">GV [Tên] · [n] bài · [n] giờ</span><b style="font-size: 15px">[GIÁ] ₫</b></div></a>
+    <a href="#" class="row"><div class="th" style="background: #173B78"><span class="han" style="font-size: 26px; line-height: 1">三</span></div><div style="display: flex; flex-direction: column; gap: 3px"><b style="font-size: 15px; line-height: 1.3">HSK 3: luyện đề và nghe hiểu</b><span class="mut" style="font-size: 12px">GV [Tên] · [n] bài · [n] giờ</span><b style="font-size: 15px">[GIÁ] ₫</b></div></a>
+    <a href="#" class="row"><div class="th" style="background: #173B78"><span class="han" style="font-size: 26px; line-height: 1">法</span></div><div style="display: flex; flex-direction: column; gap: 3px"><b style="font-size: 15px; line-height: 1.3">Ngữ pháp HSK 1–3 trong 20 bài</b><span class="mut" style="font-size: 12px">GV [Tên] · [n] bài</span><b style="font-size: 15px">Miễn phí</b></div></a>
+    <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px"><b style="font-size: 14px">Tìm gần đây</b><span class="mut" style="font-size: 14px">giao tiếp · yct 1 · luyện đề</span></div>
+  </div>
+  <nav aria-label="Điều hướng chính" style="height: 84px; border-top: 1px solid #D1D7DC; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding-bottom: 22px">
+    <a href="AppHome.dc.html" class="tab"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z" fill="none" stroke="#1C1D1F" stroke-width="2"></path></svg>Nổi bật</a>
+    <a href="#" aria-current="page" class="tab" style="color: #C2321C"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="#C2321C" stroke-width="2.4"></circle><path d="M16 16l5 5" stroke="#C2321C" stroke-width="2.4"></path></svg>Tìm kiếm</a>
+    <a href="AppMyCourses.dc.html" class="tab"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="#1C1D1F" stroke-width="2"></rect><path d="M10 9l5 3-5 3z" fill="#1C1D1F"></path></svg>Khoá của tôi</a>
+    <a href="AppReview.dc.html" class="tab"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2" fill="none" stroke="#1C1D1F" stroke-width="2"></rect><path d="M9 8h6M9 12h6" stroke="#1C1D1F" stroke-width="2"></path></svg>Ôn tập</a>
+    <a href="AppAccount.dc.html" class="tab"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" fill="none" stroke="#1C1D1F" stroke-width="2"></circle><path d="M4 21c1-4 4-6 8-6s7 2 8 6" fill="none" stroke="#1C1D1F" stroke-width="2"></path></svg>Tài khoản</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

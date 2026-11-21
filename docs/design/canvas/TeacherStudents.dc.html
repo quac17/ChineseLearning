@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Giáo viên – Sửa khoá: Học viên</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}*{box-sizing:border-box}
+a{color:#C2321C}
+.btn{height:40px;padding:0 16px;border:0;border-radius:4px;font:700 14px 'Be Vietnam Pro',sans-serif;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.ink{background:#1C1D1F;color:#fff}.out{background:#fff;color:#1C1D1F;box-shadow:inset 0 0 0 1px #1C1D1F}.dng{background:#fff;color:#8C1D40;box-shadow:inset 0 0 0 1px #8C1D40}
+.field{height:44px;width:100%;padding:0 12px;border:1px solid #6A6F73;border-radius:4px;font:400 15px 'Be Vietnam Pro',sans-serif;background:#fff;color:#1C1D1F}
+.mut{color:#6A6F73}
+.shell{display:flex;flex-wrap:wrap;min-height:860px}
+.side{flex:0 0 240px;border-right:1px solid #D1D7DC;padding:20px 12px;display:flex;flex-direction:column;gap:4px;background:#fff}
+.side a{min-height:40px;padding:0 12px;display:flex;align-items:center;border-radius:4px;color:#1C1D1F;text-decoration:none;font-size:15px}
+.side a.on{background:#F7F9FA;font-weight:700;box-shadow:inset 3px 0 0 #C2321C}
+.content{flex:999 1 640px;min-width:0;background:#F7F9FA;display:flex;flex-direction:column}
+.eh{background:#fff;border-bottom:1px solid #D1D7DC;padding:20px 32px 0;display:flex;flex-direction:column;gap:12px}
+.tabs{display:flex;gap:24px;font-size:15px;font-weight:700;overflow-x:auto}
+.tabs a{padding:0 0 12px;color:#6A6F73;text-decoration:none;white-space:nowrap}
+.tabs a.on{color:#1C1D1F;box-shadow:inset 0 -3px 0 #1C1D1F}
+.body{padding:24px 32px;display:flex;flex-direction:column;gap:20px}
+.card{background:#fff;border:1px solid #D1D7DC;border-radius:4px}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}.tbl th{text-align:left;font-weight:700;color:#6A6F73;font-size:13px;padding:10px 14px;border-bottom:1px solid #D1D7DC;background:#F7F9FA}.tbl td{padding:12px 14px;border-bottom:1px solid #D1D7DC;vertical-align:middle}
+.st{padding:3px 8px;border-radius:4px;font-size:12px;font-weight:700}
+.pb{height:4px;width:120px;background:#D1D7DC;border-radius:2px}.pb div{height:4px;background:#C2321C;border-radius:2px}
+@media (max-width:900px){.side{flex:1 1 100%;flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid #D1D7DC}.eh,.body{padding-left:16px;padding-right:16px}}
+</style>
+</helmet>
+<div class="shell" style="width: 100%; color: #1C1D1F; font-family: 'Be Vietnam Pro', system-ui, sans-serif">
+  <nav class="side" aria-label="Khu giáo viên">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 0 8px 16px"><svg width="32" height="32" viewBox="0 0 64 64" aria-hidden="true"><defs><clipPath id="L"><circle cx="32" cy="32" r="30"></circle></clipPath></defs><g clip-path="url(#L)"><rect width="64" height="64" fill="#C2321C"></rect><path d="M0 44 L13 37 L22 41 L33 34 L46 40 L64 33 V64 H0 Z" fill="#9E2715"></path><path d="M14 64 C 22 59, 34 57, 34 52 C 34 47.5, 27.5 46.5, 27.5 43 C 27.5 40, 31.4 38.5, 31.6 35.5 H33 C 33.2 38.5, 32.2 40.5, 32.2 43 C 32.2 45.5, 44 47.5, 44 52.5 C 44 57.5, 40 60, 44 64 Z" fill="#FFFFFF"></path><path d="M18 30 H46 A5.5 5.5 0 0 0 44.5 19.6 A8 8 0 0 0 29.5 16.5 A6.5 6.5 0 0 0 18 30 Z" fill="#FFFFFF"></path></g></svg><b style="font-size: 16px">Vân Kính</b></div>
+    <a href="TeacherOverview.dc.html">Tổng quan</a>
+    <a href="TeacherCourses.dc.html" class="on">Khoá học</a>
+  </nav>
+  <main class="content">
+    <div class="eh">
+      <p style="margin: 0; font-size: 14px; font-weight: 700"><a href="TeacherCourses.dc.html" style="text-decoration: none">Khoá học</a> <span class="mut">›</span> HSK 1</p>
+      <h1 style="margin: 0; font-size: 24px; font-weight: 800">HSK 1: nền tảng và 150 từ vựng</h1>
+      <nav class="tabs" aria-label="Phần của khoá học"><a href="TeacherCourseInfo.dc.html">Thông tin</a><a href="TeacherLessons.dc.html">Bài giảng</a><a href="TeacherVocab.dc.html">Từ vựng</a><a href="TeacherDocs.dc.html">Tài liệu</a><a href="#" class="on" aria-current="page">Học viên</a><a href="TeacherCourseInfo.dc.html">Giá &amp; bán</a></nav>
+    </div>
+    <div class="body">
+      <section class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 10px; position: relative" aria-labelledby="gr">
+        <h2 id="gr" style="margin: 0; font-size: 18px; font-weight: 800">Cấp quyền xem khoá</h2>
+        <label for="ss" style="font-size: 14px; font-weight: 700">Tìm học viên theo tên, email hoặc số điện thoại</label>
+        <input id="ss" class="field" value="nguyễn" style="max-width: 520px" role="combobox" aria-expanded="true" aria-controls="res">
+        <ul id="res" role="listbox" style="margin: 0; padding: 6px 0; list-style: none; max-width: 520px; border: 1px solid #D1D7DC; border-radius: 4px; box-shadow: 0 8px 24px rgba(28,29,31,.14); background: #fff">
+          <li role="option" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 14px"><span><b>Nguyễn Minh Anh</b><br><span class="mut" style="font-size: 13px">anh@example.com · 0912…</span></span><button class="btn ink" style="height: 36px">Cấp quyền</button></li>
+          <li role="option" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; background: #F7F9FA"><span><b>Nguyễn Lan</b><br><span class="mut" style="font-size: 13px">lan@example.com</span></span><span class="st" style="background: #E1F0EC; color: #12483C">Đã có quyền</span></li>
+        </ul>
+      </section>
+      <section class="card" style="overflow-x: auto" aria-labelledby="ls">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; gap: 12px; flex-wrap: wrap"><h2 id="ls" style="margin: 0; font-size: 18px; font-weight: 800">Học viên có quyền ([n])</h2><select class="field" aria-label="Lọc nguồn" style="width: 200px"><option>Mọi nguồn</option><option>Đã mua</option><option>Cấp thủ công</option></select></div>
+        <table class="tbl">
+          <thead><tr><th scope="col">Học viên</th><th scope="col">Nguồn</th><th scope="col">Từ ngày</th><th scope="col">Tiến độ</th><th scope="col"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Thao tác</span></th></tr></thead>
+          <tbody>
+            <tr><td><b>Nguyễn Lan</b><br><span class="mut" style="font-size: 13px">lan@example.com</span></td><td><span class="st" style="background: #E1F0EC; color: #12483C">Đã mua</span> <span class="mut" style="font-size: 13px">VK-[mã]</span></td><td>[dd/mm/yyyy]</td><td><div class="pb"><div style="width: 40%"></div></div><span class="mut" style="font-size: 12px">40%</span></td><td><button class="btn dng" style="height: 36px">Thu hồi</button></td></tr>
+            <tr><td><b>Trần Văn Bình</b><br><span class="mut" style="font-size: 13px">binh@example.com</span></td><td><span class="st" style="background: #F1F2F4; color: #50565B">Cấp thủ công</span> <span class="mut" style="font-size: 13px">bởi Cô Ngân</span></td><td>[dd/mm/yyyy]</td><td><div class="pb"><div style="width: 10%"></div></div><span class="mut" style="font-size: 12px">10%</span></td><td><button class="btn dng" style="height: 36px">Thu hồi</button></td></tr>
+          </tbody>
+        </table>
+      </section>
+      <div role="dialog" aria-labelledby="cf" style="align-self: flex-start; width: 420px; background: #fff; border-radius: 4px; box-shadow: 0 16px 48px rgba(28,29,31,.24); padding: 22px; display: flex; flex-direction: column; gap: 12px">
+        <h3 id="cf" style="margin: 0; font-size: 18px; font-weight: 800">Thu hồi quyền của Nguyễn Lan?</h3>
+        <p style="margin: 0; font-size: 14px; line-height: 1.5">Học viên này đã <b>mua</b> khoá (đơn VK-[mã]). Thu hồi sẽ khoá các bài trả phí ngay lập tức; việc hoàn tiền do admin xử lý.</p>
+        <div style="display: flex; gap: 8px; justify-content: flex-end"><button class="btn out">Huỷ</button><button class="btn" style="background: #8C1D40; color: #fff">Thu hồi quyền</button></div>
+        <p class="mut" style="margin: 0; font-size: 12px">Hộp thoại xác nhận (minh hoạ, nằm trên trang khi bấm Thu hồi).</p>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

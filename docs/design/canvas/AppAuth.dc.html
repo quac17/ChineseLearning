@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>App – Đăng nhập</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}*{box-sizing:border-box}
+a{color:#C2321C}
+.field{height:48px;width:100%;padding:0 14px;border:1px solid #6A6F73;border-radius:4px;font:400 16px 'Be Vietnam Pro',sans-serif;background:#fff}
+.lbl{font-size:14px;font-weight:700}
+.f{display:flex;flex-direction:column;gap:6px}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; background: #FFFFFF; color: #1C1D1F; font-family: 'Be Vietnam Pro', system-ui, sans-serif; display: flex; flex-direction: column; padding: 72px 24px 40px; gap: 18px">
+  <svg width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Vân Kính"><defs><clipPath id="L"><circle cx="32" cy="32" r="30"></circle></clipPath></defs><g clip-path="url(#L)"><rect width="64" height="64" fill="#C2321C"></rect><path d="M0 44 L13 37 L22 41 L33 34 L46 40 L64 33 V64 H0 Z" fill="#9E2715"></path><path d="M14 64 C 22 59, 34 57, 34 52 C 34 47.5, 27.5 46.5, 27.5 43 C 27.5 40, 31.4 38.5, 31.6 35.5 H33 C 33.2 38.5, 32.2 40.5, 32.2 43 C 32.2 45.5, 44 47.5, 44 52.5 C 44 57.5, 40 60, 44 64 Z" fill="#FFFFFF"></path><path d="M18 30 H46 A5.5 5.5 0 0 0 44.5 19.6 A8 8 0 0 0 29.5 16.5 A6.5 6.5 0 0 0 18 30 Z" fill="#FFFFFF"></path></g></svg>
+  <h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.02em">Đăng nhập</h1>
+  <p style="margin: 0; font-size: 15px; color: #6A6F73">Một tài khoản cho cả web và app.</p>
+  <div class="f"><label class="lbl" for="e">Email</label><input id="e" class="field" type="email" value="lan@example.com" autocomplete="email"></div>
+  <div class="f"><label class="lbl" for="p">Mật khẩu</label><input id="p" class="field" type="password" value="password" autocomplete="current-password"></div>
+  <a href="#" style="font-size: 14px; font-weight: 700; align-self: flex-end">Quên mật khẩu?</a>
+  <a href="AppHome.dc.html" style="height: 52px; border-radius: 4px; background: #1C1D1F; color: #fff; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center; text-decoration: none">Đăng nhập</a>
+  <p style="margin: auto 0 0; font-size: 15px; text-align: center">Chưa có tài khoản? <a href="#" style="font-weight: 700">Tạo tài khoản</a></p>
+  <p style="margin: 0; font-size: 13px; text-align: center; color: #6A6F73">Màn đăng ký và quên mật khẩu dùng cùng khung, nội dung như bản web.</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
