@@ -27,7 +27,7 @@ the old square 云 logo.
 | `--line` | `#D1D7DC` | 1px borders of cards, inputs, lists, dividers |
 | `--muted` | `#6A6F73` | secondary text (5.1:1 on white) |
 | `--ink` | `#1C1D1F` | text, dark buttons, footer, course hero band |
-| `--accent` | `#C2321C` | buy / add-to-cart button, links, progress |
+| `--accent` | `#C2321C` | buy button, links, progress |
 | `--accent-press` | `#9E2715` | hover / pressed accent |
 | `--rating` | `#B4690E` | stars and score |
 | `--badge-bg` / `--badge-ink` | `#FCE8C3` / `#5A3A00` | "Nổi bật" badge |
@@ -53,7 +53,7 @@ muted `#A6ABAF`, accent `#E0553E`.
 ## Components (see `Main.dc.html`)
 
 - **Buttons:** radius 4px, weight 700, height 48 (40 small, 56 CTA). Accent =
-  buy / add to cart only, one per view. Black = sign up / log in. Outlined
+  buy only, one per view. Black = sign up / log in. Outlined
   (1px ink) = secondary. Text button = accent colour. Disabled = `--line` bg.
 - **Search:** pill input, 1px ink border, `--surface` fill, search icon left.
 - **Inputs:** 1px `--muted` border, radius 4, focus = 1px ink border + inset
@@ -70,15 +70,28 @@ muted `#A6ABAF`, accent `#E0553E`.
 
 ## Layouts
 
-- **Header:** logo, "Danh mục", wide search, "Dạy trên Vân Kính", cart,
-  outlined "Đăng nhập", black "Đăng ký"; category row under it.
+- **No cart.** One course per purchase via PayOS QR; never add a cart icon,
+  "Thêm vào giỏ" or multi-item checkout.
+- **Header:** logo, "Danh mục", wide search, "Dạy trên Vân Kính",
+  outlined "Đăng nhập", black "Đăng ký" (logged in: "Khoá học của tôi" +
+  avatar); category row under it.
 - **Home:** photo hero with a white card (H1 + one sentence + accent CTA),
   program tabs + 5-card grid, goal tiles with photos, benefits band,
   latest courses, teacher CTA, dark footer with photo credits.
 - **Course detail:** dark hero band (breadcrumb, title, rating, teacher) and a
-  sticky buy box on the right (preview, price, "Thêm vào giỏ", "Mua ngay bằng
-  QR", what is included); then "Bạn sẽ học được", curriculum accordion,
-  description, teacher.
+  sticky buy box on the right (preview, price, accent "Mua ngay bằng QR",
+  outlined "Xem bài học thử", what is included); then "Bạn sẽ học được",
+  curriculum accordion, description, teacher.
+- **Other learner screens:** catalog with filters (`WebCatalog`), auth
+  (`WebAuth`), checkout QR + success/expired (`WebCheckout`), my courses with
+  "Học tiếp" (`WebMyCourses`), account + orders (`WebProfile`), flashcard and
+  writing (`WebPractice`), quiz 4 types (`WebQuiz`).
+- **Teacher and admin:** dashboard shell, 240px left nav (teacher white,
+  admin dark), dense tables, forms in a right-hand panel. Course editor tabs:
+  Thông tin, Bài giảng, Từ vựng, Tài liệu, Học viên, Giá & bán (read-only for
+  teachers). Teachers never see revenue.
+- **States:** use the patterns in `States.dc.html` (404, error/offline,
+  skeleton loading, empty, logged-out paywall, 403).
 - **Player:** dark top bar, 16:9 video, tabs Từ vựng / Tài liệu / Ghi chú /
   Hỏi đáp, curriculum sidebar with completion checkboxes.
 - **App:** 5 bottom tabs (Nổi bật, Tìm kiếm, Khoá của tôi, Ôn tập, Tài khoản),
@@ -100,6 +113,11 @@ muted `#A6ABAF`, accent `#E0553E`.
 - Vietnamese, short, addresses the learner as "bạn". Prices `499.000 ₫`.
 - No invented numbers: ratings, student counts and prices come from data;
   show nothing (not a fake value) when data is missing.
+- **Ratings:** render `4,5 ★ · <source>` only when the course has a rating
+  value *and* its source (admin-entered from a real survey, see
+  `docs/design/DECISIONS.md`); otherwise hide the whole rating block. Never
+  add an unsourced, free-typed rating field. Offline learners show as
+  "(+80 lớp offline)", never merged into the online count.
 - Locked or paid content always says what to do next (học thử, mua, đăng nhập).
 
 ## Before finishing a UI change

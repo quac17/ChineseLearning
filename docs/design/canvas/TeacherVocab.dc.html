@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Giáo viên – Sửa khoá: Từ vựng</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&amp;family=Noto+Serif+SC:wght@600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}*{box-sizing:border-box}
+a{color:#C2321C}
+.han{font-family:'Noto Serif SC',serif}
+.btn{height:40px;padding:0 16px;border:0;border-radius:4px;font:700 14px 'Be Vietnam Pro',sans-serif;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.ink{background:#1C1D1F;color:#fff}.out{background:#fff;color:#1C1D1F;box-shadow:inset 0 0 0 1px #1C1D1F}
+.cell{height:40px;width:100%;padding:0 10px;border:1px solid #D1D7DC;border-radius:4px;font:400 15px 'Be Vietnam Pro',sans-serif;background:#fff;color:#1C1D1F}
+.mut{color:#6A6F73}
+.shell{display:flex;flex-wrap:wrap;min-height:900px}
+.side{flex:0 0 240px;border-right:1px solid #D1D7DC;padding:20px 12px;display:flex;flex-direction:column;gap:4px;background:#fff}
+.side a{min-height:40px;padding:0 12px;display:flex;align-items:center;border-radius:4px;color:#1C1D1F;text-decoration:none;font-size:15px}
+.side a.on{background:#F7F9FA;font-weight:700;box-shadow:inset 3px 0 0 #C2321C}
+.content{flex:999 1 640px;min-width:0;background:#F7F9FA;display:flex;flex-direction:column}
+.eh{background:#fff;border-bottom:1px solid #D1D7DC;padding:20px 32px 0;display:flex;flex-direction:column;gap:12px}
+.tabs{display:flex;gap:24px;font-size:15px;font-weight:700;overflow-x:auto}
+.tabs a{padding:0 0 12px;color:#6A6F73;text-decoration:none;white-space:nowrap}
+.tabs a.on{color:#1C1D1F;box-shadow:inset 0 -3px 0 #1C1D1F}
+.body{padding:24px 32px;display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+.card{background:#fff;border:1px solid #D1D7DC;border-radius:4px}
+.vr{display:grid;grid-template-columns:120px 150px 1fr 1.4fr 44px 44px;gap:8px;align-items:center;padding:8px 16px;border-bottom:1px solid #D1D7DC}
+.ib{width:40px;height:40px;border-radius:4px;border:1px solid #D1D7DC;background:#fff;display:flex;align-items:center;justify-content:center}
+.be{display:inline-flex;padding:3px 8px;border-radius:4px;font-size:12px;font-weight:700;background:#FFF3D6;color:#5A3A00;border:1px dashed #B4690E}
+@media (max-width:900px){.side{flex:1 1 100%;flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid #D1D7DC}.eh,.body{padding-left:16px;padding-right:16px}.vr{grid-template-columns:1fr 1fr}}
+</style>
+</helmet>
+<div class="shell" style="width: 100%; color: #1C1D1F; font-family: 'Be Vietnam Pro', system-ui, sans-serif">
+  <nav class="side" aria-label="Khu giáo viên">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 0 8px 16px"><svg width="32" height="32" viewBox="0 0 64 64" aria-hidden="true"><defs><clipPath id="L"><circle cx="32" cy="32" r="30"></circle></clipPath></defs><g clip-path="url(#L)"><rect width="64" height="64" fill="#C2321C"></rect><path d="M0 44 L13 37 L22 41 L33 34 L46 40 L64 33 V64 H0 Z" fill="#9E2715"></path><path d="M14 64 C 22 59, 34 57, 34 52 C 34 47.5, 27.5 46.5, 27.5 43 C 27.5 40, 31.4 38.5, 31.6 35.5 H33 C 33.2 38.5, 32.2 40.5, 32.2 43 C 32.2 45.5, 44 47.5, 44 52.5 C 44 57.5, 40 60, 44 64 Z" fill="#FFFFFF"></path><path d="M18 30 H46 A5.5 5.5 0 0 0 44.5 19.6 A8 8 0 0 0 29.5 16.5 A6.5 6.5 0 0 0 18 30 Z" fill="#FFFFFF"></path></g></svg><b style="font-size: 16px">Vân Kính</b></div>
+    <a href="TeacherOverview.dc.html">Tổng quan</a>
+    <a href="TeacherCourses.dc.html" class="on">Khoá học</a>
+  </nav>
+  <main class="content">
+    <div class="eh">
+      <p style="margin: 0; font-size: 14px; font-weight: 700"><a href="TeacherCourses.dc.html" style="text-decoration: none">Khoá học</a> <span class="mut">›</span> HSK 1</p>
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap"><h1 style="margin: 0; font-size: 24px; font-weight: 800">HSK 1: nền tảng và 150 từ vựng</h1><span class="be">Cần backend: bảng lesson_vocabulary</span></div>
+      <nav class="tabs" aria-label="Phần của khoá học"><a href="TeacherCourseInfo.dc.html">Thông tin</a><a href="TeacherLessons.dc.html">Bài giảng</a><a href="#" class="on" aria-current="page">Từ vựng</a><a href="TeacherDocs.dc.html">Tài liệu</a><a href="TeacherStudents.dc.html">Học viên</a><a href="TeacherCourseInfo.dc.html">Giá &amp; bán</a></nav>
+    </div>
+    <div class="body">
+      <section class="card" style="flex: 1 1 100%; min-width: 0" aria-labelledby="vh">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px; flex-wrap: wrap">
+          <div style="display: flex; gap: 12px; align-items: center"><label for="ls" style="font-size: 14px; font-weight: 700">Bài</label><select id="ls" class="cell" style="width: 280px"><option>1. Xin chào 你好 (8 từ)</option><option>2. Bốn thanh điệu (4 từ)</option></select></div>
+          <div style="display: flex; gap: 8px"><button class="btn out">Dán từ bảng tính</button><button class="btn ink">+ Thêm từ</button></div>
+        </div>
+        <h2 id="vh" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Danh sách từ vựng</h2>
+        <div class="vr" style="background: #F7F9FA; font-size: 13px; font-weight: 700; color: #6A6F73"><span>Chữ Hán</span><span>Pinyin</span><span>Nghĩa tiếng Việt</span><span>Câu ví dụ (không bắt buộc)</span><span>Nghe</span><span></span></div>
+        <div class="vr"><input class="cell han" aria-label="Chữ Hán" value="你好" style="font-size: 20px"><input class="cell" aria-label="Pinyin" value="nǐ hǎo"><input class="cell" aria-label="Nghĩa" value="xin chào"><input class="cell" aria-label="Câu ví dụ" value="你好，我叫兰。"><button class="ib" aria-label="Nghe phát âm"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#1C1D1F"></path></svg></button><button class="ib" aria-label="Xoá từ">×</button></div>
+        <div class="vr"><input class="cell han" aria-label="Chữ Hán" value="我" style="font-size: 20px"><input class="cell" aria-label="Pinyin" value="wǒ"><input class="cell" aria-label="Nghĩa" value="tôi"><input class="cell" aria-label="Câu ví dụ" value=""><button class="ib" aria-label="Nghe phát âm"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#1C1D1F"></path></svg></button><button class="ib" aria-label="Xoá từ">×</button></div>
+        <div class="vr"><input class="cell han" aria-label="Chữ Hán" value="叫" style="font-size: 20px"><input class="cell" aria-label="Pinyin" value="jiao4" aria-describedby="pyh" style="border-color: #8C1D40"><input class="cell" aria-label="Nghĩa" value="tên là"><input class="cell" aria-label="Câu ví dụ" value="我叫兰。"><button class="ib" aria-label="Nghe phát âm"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#1C1D1F"></path></svg></button><button class="ib" aria-label="Xoá từ">×</button></div>
+        <p id="pyh" style="margin: 0; padding: 8px 16px 0; font-size: 13px; color: #8C1D40">Pinyin “jiao4” sẽ tự đổi thành “jiào” khi lưu (gõ số thanh 1–4 sau âm tiết cũng được).</p>
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px; flex-wrap: wrap">
+          <p class="mut" style="margin: 0; font-size: 13px; line-height: 1.5; max-width: 70ch">Từ vựng của bài tự sinh flashcard, quiz 4 dạng và bài luyện viết cho học viên. Phát âm dùng giọng đọc tiếng Trung có sẵn của trình duyệt.</p>
+          <button class="btn ink">Lưu từ vựng</button>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":820}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

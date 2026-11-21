@@ -85,7 +85,7 @@ a{color:#C2321C}a:hover{color:#9E2715}
   <div class="sec">
     <h2 class="h2">5. Nút</h2>
     <div style="grid-column: 1 / span 12; display: flex; flex-wrap: wrap; gap: 14px; align-items: center">
-      <button class="btn" style="background: {{accent}}; color: #FFFFFF">Thêm vào giỏ</button>
+      <button class="btn" style="background: {{accent}}; color: #FFFFFF">Mua ngay bằng QR</button>
       <button class="btn" style="background: #9E2715; color: #FFFFFF">Hover / nhấn</button>
       <button class="btn" style="background: #1C1D1F; color: #FFFFFF">Đăng ký</button>
       <button class="btn" style="background: #FFFFFF; color: #1C1D1F; box-shadow: inset 0 0 0 1px #1C1D1F">Mua ngay</button>
@@ -95,7 +95,7 @@ a{color:#C2321C}a:hover{color:#9E2715}
       <button class="btn" style="height: 40px; padding: 0 14px; font-size: 14px; background: #1C1D1F; color: #FFFFFF">Nhỏ 40</button>
       <button class="btn" style="height: 56px; padding: 0 28px; font-size: 17px; background: {{accent}}; color: #FFFFFF">Lớn 56</button>
     </div>
-    <p class="lbl" style="grid-column: 1 / span 12">Nút son = mua / thêm giỏ. Nút đen = đăng ký, đăng nhập. Nút viền = hành động phụ. Bo 4px, chữ 700, cao 48 mặc định.</p>
+    <p class="lbl" style="grid-column: 1 / span 12">Nút son = mua khoá (không có giỏ hàng). Nút đen = đăng ký, đăng nhập. Nút viền = hành động phụ. Bo 4px, chữ 700, cao 48 mặc định.</p>
   </div>
 
   <div class="sec">
@@ -180,7 +180,8 @@ a{color:#C2321C}a:hover{color:#9E2715}
         <span style="padding: 4px 8px; background: #E4ECF8; color: #173B78; font-size: 13px; font-weight: 700; border-radius: 4px">Học thử</span>
         <span style="padding: 4px 8px; background: #1C1D1F; color: #FFFFFF; font-size: 13px; font-weight: 700; border-radius: 4px">Đã mua</span>
       </div>
-      <div style="display: flex; align-items: center; gap: 6px; font-size: 14px"><b style="color: #B4690E">[4,8]</b><span aria-hidden="true" style="color: #B4690E; letter-spacing: 1px">★★★★★</span><span style="color: #6A6F73">([n] đánh giá)</span></div>
+      <div style="display: flex; flex-direction: column; gap: 4px"><div style="display: flex; align-items: center; gap: 6px; font-size: 14px; flex-wrap: wrap"><b style="color: #B4690E">4,5 ★</b><span style="color: #6A6F73">· khảo sát 120 học viên lớp offline 2025</span></div><span style="font-size: 13px; color: #6A6F73">Đánh giá chỉ hiện khi có nguồn thật đi kèm; không có thì ẩn cả khối.</span></div>
+        <span style="align-self: flex-start; padding: 4px 8px; background: #FFF3D6; color: #5A3A00; border: 1px dashed #B4690E; font-size: 12px; font-weight: 700; border-radius: 4px">Cần backend</span>
       <div style="display: flex; flex-direction: column; gap: 6px; max-width: 420px">
         <div role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" aria-label="Tiến độ" style="height: 6px; background: #D1D7DC; border-radius: 3px"><div style="width: 40%; height: 6px; background: {{accent}}; border-radius: 3px"></div></div>
         <span style="font-size: 13px; color: #6A6F73">Đã học 40% · 6 / 15 bài</span>
@@ -190,7 +191,7 @@ a{color:#C2321C}a:hover{color:#9E2715}
       <div role="status" style="border: 1px solid #1E6E5C; background: #E1F0EC; border-radius: 4px; padding: 14px 16px; font-size: 15px; line-height: 1.45"><b>Thanh toán thành công.</b> Khoá HSK 1 đã có trong “Khoá học của tôi”.</div>
       <div role="alert" style="border: 1px solid #8C1D40; background: #F7E6EB; border-radius: 4px; padding: 14px 16px; font-size: 15px; line-height: 1.45"><b>Chưa thanh toán được.</b> Mã QR đã hết hạn, hãy tạo mã mới.</div>
       <div role="status" style="border: 1px solid #B4690E; background: #FCF2E2; border-radius: 4px; padding: 14px 16px; font-size: 15px; line-height: 1.45"><b>Ưu đãi kết thúc sau 2 ngày.</b> [nếu bạn có chương trình giảm giá]</div>
-      <div style="background: #1C1D1F; color: #FFFFFF; border-radius: 4px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 24px rgba(28,29,31,0.25); max-width: 400px"><span style="font-size: 15px">Đã thêm vào giỏ</span><button style="border: 0; background: none; color: #FFFFFF; font: 700 15px 'Be Vietnam Pro', sans-serif; min-height: 44px; cursor: pointer">Xem giỏ</button></div>
+      <div style="background: #1C1D1F; color: #FFFFFF; border-radius: 4px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 24px rgba(28,29,31,0.25); max-width: 400px"><span style="font-size: 15px">Đã lưu ghi chú</span><button style="border: 0; background: none; color: #FFFFFF; font: 700 15px 'Be Vietnam Pro', sans-serif; min-height: 44px; cursor: pointer">Hoàn tác</button></div>
     </div>
   </div>
 
@@ -200,7 +201,7 @@ a{color:#C2321C}a:hover{color:#9E2715}
       <div class="thumb" style="background: #1F4FA0"><span style="font-size: 13px; font-weight: 700">[Ảnh bìa khoá]</span><span class="han" style="font-size: 44px; line-height: 1">考</span></div>
       <p style="margin: 4px 0 0; font-size: 16px; font-weight: 700; line-height: 1.3">HSK 1: nền tảng và 150 từ vựng</p>
       <p style="margin: 0; font-size: 13px; color: #6A6F73">GV [Tên giáo viên]</p>
-      <div style="display: flex; align-items: center; gap: 4px; font-size: 13px"><b style="color: #B4690E">[4,8]</b><span aria-hidden="true" style="color: #B4690E">★★★★★</span><span style="color: #6A6F73">([n])</span></div>
+      <div style="display: flex; align-items: center; gap: 4px; font-size: 13px; flex-wrap: wrap"><b style="color: #B4690E">[4,5] ★</b><span style="color: #6A6F73">· [nguồn]</span></div>
       <p style="margin: 0; font-size: 16px; font-weight: 800">[GIÁ] ₫</p>
       <span style="align-self: flex-start; padding: 4px 8px; background: #FCE8C3; color: #5A3A00; font-size: 12px; font-weight: 700; border-radius: 4px">Nổi bật</span>
     </div>
