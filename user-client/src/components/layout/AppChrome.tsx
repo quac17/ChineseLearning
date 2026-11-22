@@ -13,7 +13,9 @@ const TEACHER_NAV = [
 ];
 
 const ADMIN_NAV = [
-  { href: '/admin', label: 'Tổng quan' },
+  { href: '/admin', label: 'Thống kê' },
+  { href: '/admin/users', label: 'Người dùng' },
+  { href: '/admin/courses', label: 'Khoá học' },
   { href: '/admin/prices', label: 'Giá khoá học' },
   { href: '/admin/orders', label: 'Đơn hàng' },
 ];

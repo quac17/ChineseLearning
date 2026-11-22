@@ -14,6 +14,7 @@ import { ProgressModule } from './progress/progress.module';
 import { VocabularyModule } from './vocabulary/vocabulary.module';
 import { PracticeModule } from './practice/practice.module';
 import { NotesQaModule } from './notes-qa/notes-qa.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { NotesQaModule } from './notes-qa/notes-qa.module';
     VocabularyModule,
     PracticeModule,
     NotesQaModule,
+    AdminModule,
   ],
   controllers: [HealthController],
 })

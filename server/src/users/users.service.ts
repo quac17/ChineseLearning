@@ -177,6 +177,22 @@ export class UsersService {
     if (id === currentAdminId) {
       throw new BadRequestException('Không thể tự xóa tài khoản Admin của chính mình.');
     }
+    // Deleting a teacher would cascade to their courses, and orders must keep
+    // their buyer; in both cases the account is locked instead.
+    const links = await this.db.queryOne(
+      `SELECT
+        (SELECT COUNT(*)::int FROM courses WHERE teacher_id = $1) AS courses,
+        (SELECT COUNT(*)::int FROM orders WHERE user_id = $1) AS orders`,
+      [id],
+    );
+    if (links?.courses > 0) {
+      throw new BadRequestException(
+        `Người này đang phụ trách ${links.courses} khoá học nên không xoá được. Hãy khoá tài khoản thay vì xoá.`,
+      );
+    }
+    if (links?.orders > 0) {
+      throw new BadRequestException('Tài khoản đã có đơn hàng nên không xoá được. Hãy khoá tài khoản thay vì xoá.');
+    }
     const res = await this.db.query('DELETE FROM users WHERE id = $1', [id]);
     if (!res.rowCount) {
       throw new NotFoundException('Không tìm thấy người dùng.');
