@@ -12,6 +12,7 @@ import {
   EmptyState,
   LinkButton,
   Radio,
+  Rating,
   SearchInput,
   Select,
   Skeleton,
@@ -27,6 +28,7 @@ import {
   durationBucket,
   hasPreview,
   isOnSale,
+  learnerText,
   parseProgram,
   routes,
   type DurationBucket,
@@ -441,6 +443,10 @@ function CourseRow({ course }: { course: CourseItem }) {
         <span className={s.rowTitle}>{course.title}</span>
         {(course.subtitle || course.description) && <span className={s.rowDesc}>{course.subtitle || course.description}</span>}
         {course.teacher && <span className={s.rowMeta}>GV {course.teacher.fullName}</span>}
+        <Rating value={course.rating?.value} source={course.rating?.source} />
+        {learnerText(course.learnerCount ?? 0, course.offlineLearnerCount) && (
+          <span className={s.rowMeta}>{learnerText(course.learnerCount ?? 0, course.offlineLearnerCount)}</span>
+        )}
         <span className={s.rowMeta}>
           {p.name} · {courseMeta(course)}
         </span>

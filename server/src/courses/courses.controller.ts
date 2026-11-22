@@ -20,7 +20,14 @@ import { Response } from 'express';
 import { StorageService } from '../common/storage/storage.service';
 import { Role } from '../common/types/domain.types';
 import { CoursesService } from './courses.service';
-import { CreateCourseDto, ReorderCoursesDto, SetCoursePriceDto, UpdateCourseDto } from './dto/course.dto';
+import {
+  CreateCourseDto,
+  ReorderCoursesDto,
+  SetCoursePriceDto,
+  SetCourseRatingDto,
+  SetOfflineLearnersDto,
+  UpdateCourseDto,
+} from './dto/course.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../common/guards/optional-jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -133,6 +140,22 @@ export class CoursesController {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Cache-Control', 'public, max-age=86400');
     this.storage.createReadStream(key).pipe(res);
+  }
+
+  /** Admins only: a rating needs its real source (DECISIONS.md); both null hides it. */
+  @Patch(':id/rating')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  setRating(@Param('id') id: string, @Body() dto: SetCourseRatingDto) {
+    return this.coursesService.setRating(id, dto.ratingValue, dto.ratingSource);
+  }
+
+  /** Admins only: offline-class learners, shown apart from online accounts. */
+  @Patch(':id/offline-learners')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  setOfflineLearners(@Param('id') id: string, @Body() dto: SetOfflineLearnersDto) {
+    return this.coursesService.setOfflineLearners(id, dto.offlineLearnerCount);
   }
 
   @Delete(':id')

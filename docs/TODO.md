@@ -33,6 +33,14 @@ ký tự). Ảnh bìa: `POST /courses/:id/cover` (multipart `file`, .jpg/.png/.w
 Thời lượng bài: `durationMinutes` (1–600) trên `POST /lessons/youtube|upload` và `PATCH /lessons/:id`;
 bỏ trống thì server đọc từ ô chữ `duration`. Khoá có `totalDurationMinutes`.
 
+API đánh giá và số học viên (#29): trang tạm `/admin/ratings` (Đánh giá & học viên); có thể gộp
+vào `/admin/courses`, giữ nguyên API `PATCH /courses/:id/rating` `{ ratingValue, ratingSource }`
+(chỉ admin; điểm 1–5, một chữ số thập phân, **bắt buộc kèm nguồn thật** ≥ 10 ký tự; cả hai `null` =
+ẩn khối đánh giá; DB cũng chặn điểm không nguồn) và `PATCH /courses/:id/offline-learners`
+`{ offlineLearnerCount }` (số nguyên ≥ 1 hoặc `null`). Khoá trả `rating: { value, source } | null`,
+`learnerCount` (số tài khoản đang có quyền xem) và `offlineLearnerCount`, hiện riêng
+"(+80 lớp offline)", không cộng gộp. Không thêm ô điểm sao nhập tay không nguồn.
+
 ## Chủ dự án
 
 - [ ] Đăng ký PayOS, lấy `PAYOS_CLIENT_ID`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM_KEY`

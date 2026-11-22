@@ -12,6 +12,7 @@ import { generateId, ProgramModule, Role } from '../common/types/domain.types';
 import { CreateCourseDto, UpdateCourseDto } from './dto/course.dto';
 import { courseSearchClause, courseSearchPattern } from './course-search';
 import { buildOutline } from './course-outline';
+import { checkRating } from './course-proof';
 import { COVER_CONTENT_TYPES, CoverImageType, detectImageType, normalizeOutcomes, sumDurationMinutes } from './course-meta';
 
 /** Public cover path with a version from the storage key, so a new upload is never served from cache. */
@@ -201,6 +202,15 @@ export class CoursesService {
       coverUrl: coverPath(course.id, course.cover_key),
       /** Sum of the lessons that have minutes. */
       totalDurationMinutes: totalMinutes,
+      /** Shown only with its stated source; null = hide the rating block. */
+      rating:
+        course.rating_value != null && course.rating_source
+          ? { value: Number(course.rating_value), source: course.rating_source }
+          : null,
+      /** Accounts that can open the course right now (open enrollments). */
+      learnerCount: (course.enrollments || []).length,
+      /** Offline-class learners, shown apart ("+80 lớp offline"), never added to learnerCount. */
+      offlineLearnerCount: course.offline_learner_count ?? null,
       sortOrder: course.sort_order ?? 0,
       isFree: course.is_free,
       isPublished: course.is_published,
@@ -339,6 +349,30 @@ export class CoursesService {
     return { id: row.id, priceVnd: row.price_vnd };
   }
 
+  async setRating(id: string, ratingValue: number | null | undefined, ratingSource: string | null | undefined) {
+    const checked = checkRating({ ratingValue, ratingSource });
+    if ('message' in checked) throw new BadRequestException(checked.message);
+    const row = await this.db.queryOne(
+      `UPDATE courses SET rating_value = $1, rating_source = $2, updated_at = NOW()
+       WHERE id = $3 RETURNING id, rating_value, rating_source`,
+      [checked.ratingValue, checked.ratingSource, id],
+    );
+    if (!row) throw new NotFoundException('Không tìm thấy khóa học.');
+    return {
+      id: row.id,
+      rating: row.rating_value != null ? { value: Number(row.rating_value), source: row.rating_source } : null,
+    };
+  }
+
+  async setOfflineLearners(id: string, count: number | null) {
+    const row = await this.db.queryOne(
+      'UPDATE courses SET offline_learner_count = $1, updated_at = NOW() WHERE id = $2 RETURNING id, offline_learner_count',
+      [count, id],
+    );
+    if (!row) throw new NotFoundException('Không tìm thấy khóa học.');
+    return { id: row.id, offlineLearnerCount: row.offline_learner_count };
+  }
+
   async create(dto: CreateCourseDto, user: AuthUser) {
     const id = generateId('course');
     const maxRow = await this.db.queryOne(
@@ -375,6 +409,9 @@ export class CoursesService {
       outcomes: created.outcomes,
       coverUrl: null,
       totalDurationMinutes: 0,
+      rating: null,
+      learnerCount: 0,
+      offlineLearnerCount: null,
       sortOrder: created.sort_order,
       isFree: created.is_free,
       isPublished: created.is_published,

@@ -144,6 +144,20 @@ export function durationBucket(totalMinutes: number | undefined): DurationBucket
   return 'long';
 }
 
+const nf = new Intl.NumberFormat('vi-VN');
+
+/**
+ * "12 học viên (+80 lớp offline)". Online accounts and offline learners are
+ * never added up. null when there is nothing to show.
+ */
+export function learnerText(online: number, offline: number | null | undefined): string | null {
+  const off = offline && offline > 0 ? offline : 0;
+  if (online > 0 && off > 0) return `${nf.format(online)} học viên (+${nf.format(off)} lớp offline)`;
+  if (online > 0) return `${nf.format(online)} học viên`;
+  if (off > 0) return `${nf.format(off)} học viên lớp offline`;
+  return null;
+}
+
 /** A paid course that can be bought right now. */
 export function isOnSale(course: Pick<CourseItem, 'isFree' | 'priceVnd'>): boolean {
   return !course.isFree && typeof course.priceVnd === 'number' && course.priceVnd > 0;

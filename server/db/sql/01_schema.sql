@@ -55,11 +55,18 @@ CREATE TABLE IF NOT EXISTS courses (
   level VARCHAR(20),
   outcomes TEXT[] NOT NULL DEFAULT '{}',
   cover_key TEXT,
+  rating_value NUMERIC(2,1),
+  rating_source VARCHAR(200),
+  offline_learner_count INTEGER,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT courses_pkey PRIMARY KEY (id),
   CONSTRAINT courses_price_vnd_check CHECK (price_vnd IS NULL OR price_vnd > 0),
   CONSTRAINT courses_level_check CHECK (level IS NULL OR level IN ('BEGINNER', 'INTERMEDIATE', 'ADVANCED')),
+  -- A rating exists only together with its real source (docs/design/DECISIONS.md).
+  CONSTRAINT courses_rating_value_check CHECK (rating_value IS NULL OR rating_value BETWEEN 1 AND 5),
+  CONSTRAINT courses_rating_source_check CHECK ((rating_value IS NULL) = (rating_source IS NULL) AND (rating_source IS NULL OR char_length(btrim(rating_source)) >= 10)),
+  CONSTRAINT courses_offline_learner_count_check CHECK (offline_learner_count IS NULL OR offline_learner_count > 0),
   CONSTRAINT courses_module_fkey FOREIGN KEY (module) REFERENCES program_modules(code),
   CONSTRAINT courses_teacher_id_fkey FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
 );
