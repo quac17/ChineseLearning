@@ -94,13 +94,18 @@ export class LessonsController {
   @Post('upload')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.TEACHER)
+  @UseInterceptors(FileInterceptor('file', videoUploadInterceptorOptions))
   uploadVideo(
-    @Body() _dto: UploadVideoLessonDto,
-    @CurrentUser() _user: AuthUser,
+    @Body() dto: UploadVideoLessonDto,
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() user: AuthUser,
   ) {
-    throw new ServiceUnavailableException(
-      'Chức năng upload video lên kho lưu trữ hiện đang tạm khóa. Vui lòng sử dụng link video YouTube Unlisted.',
-    );
+    if (process.env.VIDEO_UPLOAD_DISABLED === 'true') {
+      throw new ServiceUnavailableException(
+        'Chức năng upload video lên kho lưu trữ hiện đang tạm khóa. Vui lòng sử dụng link video YouTube Unlisted.',
+      );
+    }
+    return this.lessonsService.createUploadedLesson(dto, file, user);
   }
 
   /**
@@ -144,14 +149,19 @@ export class LessonsController {
   @Patch(':id/upload')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.TEACHER)
+  @UseInterceptors(FileInterceptor('file', videoUploadInterceptorOptions))
   replaceVideo(
-    @Param('id') _id: string,
-    @Body() _dto: UpdateLessonDto,
-    @CurrentUser() _user: AuthUser,
+    @Param('id') id: string,
+    @Body() dto: UpdateLessonDto,
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() user: AuthUser,
   ) {
-    throw new ServiceUnavailableException(
-      'Chức năng upload video lên kho lưu trữ hiện đang tạm khóa. Vui lòng sử dụng link video YouTube Unlisted.',
-    );
+    if (process.env.VIDEO_UPLOAD_DISABLED === 'true') {
+      throw new ServiceUnavailableException(
+        'Chức năng upload video lên kho lưu trữ hiện đang tạm khóa. Vui lòng sử dụng link video YouTube Unlisted.',
+      );
+    }
+    return this.lessonsService.replaceVideoFile(id, dto, file, user);
   }
 
   /** Step 2 when replacing the video of an existing lesson. */

@@ -89,6 +89,16 @@ export function YouTubePlayer({
       const targetEl = document.createElement('div');
       hostRef.current.appendChild(targetEl);
 
+      const applyIframeAttrs = (p: any) => {
+        const iframe = p?.getIframe?.();
+        if (iframe) {
+          iframe.setAttribute('title', title);
+          iframe.style.width = '100%';
+          iframe.style.height = '100%';
+          iframe.style.border = '0';
+        }
+      };
+
       playerRef.current = new YT.Player(targetEl, {
         videoId: youtubeId,
         host: 'https://www.youtube-nocookie.com',
@@ -109,13 +119,7 @@ export function YouTubePlayer({
             if (!mounted) return;
             setReady(true);
             setDuration(e.target.getDuration() || 0);
-            const iframe = e.target.getIframe?.();
-            if (iframe) {
-              iframe.setAttribute('title', title);
-              iframe.style.width = '100%';
-              iframe.style.height = '100%';
-              iframe.style.border = '0';
-            }
+            applyIframeAttrs(e.target);
           },
           onStateChange: (e: any) => {
             if (!mounted) return;
@@ -125,6 +129,7 @@ export function YouTubePlayer({
           },
         },
       });
+      applyIframeAttrs(playerRef.current);
 
       pollId = setInterval(() => {
         const p = playerRef.current;
