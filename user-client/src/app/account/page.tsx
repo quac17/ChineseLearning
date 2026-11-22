@@ -1,24 +1,36 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import Link from 'next/link';
-import { Alert, Badge, Button, EmptyState, Field, Input, LinkButton, Skeleton, Textarea } from '@/components/ui';
+import { Alert, Badge, Button, EmptyState, Field, Input, LinkButton, Radio, Skeleton, Textarea } from '@/components/ui';
 import type { BadgeTone } from '@/components/ui';
 import { apiRequest } from '@/lib/api';
 import { routes } from '@/lib/courses';
 import { formatVnd } from '@/lib/programs';
 import type { OrderItem, OrderStatus } from '@/lib/types';
 import { useAuth } from '@/context/AuthContext';
+import { useModule, type ThemePreference } from '@/context/ModuleContext';
+import { SUPPORT_CONTACT } from '@/lib/site';
 import s from './account.module.css';
 
 const ROLE_LABEL: Record<string, string> = { ADMIN: 'Quản trị viên', TEACHER: 'Giáo viên', STUDENT: 'Học viên' };
 
 type Msg = { tone: 'success' | 'error'; text: string } | null;
 
+type SectionId = 'ho-so' | 'bao-mat' | 'don-hang' | 'giao-dien' | 'ho-tro';
+
 export default function AccountPage() {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
+  const { open, show, close } = useOpenSection();
+
+  // A link like /account#giao-dien: the sections only exist once the user has loaded.
+  const ready = !loading && Boolean(user);
+  useEffect(() => {
+    const id = window.location.hash.slice(1);
+    if (ready && id) document.getElementById(id)?.scrollIntoView();
+  }, [ready]);
 
   if (loading) {
     return (
@@ -49,10 +61,64 @@ export default function AccountPage() {
   const since = user.createdAt
     ? new Date(user.createdAt).toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' })
     : null;
+  const isStudent = user.role === 'STUDENT';
+  const initial = user.fullName.trim().charAt(0).toUpperCase();
+  const onLogout = async () => {
+    await logout();
+    router.push('/');
+  };
+  const sectionProps = (id: SectionId) => ({
+    id,
+    className: s.section,
+    'aria-labelledby': `${id}-title`,
+    'data-open': open === id ? '' : undefined,
+  });
 
   return (
-    <div className={s.page}>
+    <div className={s.page} data-open={open ?? undefined}>
       <h1 className={s.title}>Tài khoản</h1>
+
+      {/* Phones (AppAccount board): a settings list; each row opens its section. */}
+      <div className={s.settings}>
+        <div className={s.me}>
+          <span className={s.meAvatar} aria-hidden="true">
+            {initial}
+          </span>
+          <b className={s.meName}>{user.fullName}</b>
+          <span className={s.muted}>{user.email}</span>
+        </div>
+        <h2 className={s.group}>{isStudent ? 'Học tập' : 'Hồ sơ'}</h2>
+        <ul className={s.list}>
+          <SettingsRow href="#ho-so" onOpen={() => show('ho-so')}>
+            {isStudent ? 'Hồ sơ và mục tiêu học' : 'Hồ sơ'}
+          </SettingsRow>
+          {isStudent && (
+            <SettingsRow href="#don-hang" onOpen={() => show('don-hang')}>
+              Đơn hàng
+            </SettingsRow>
+          )}
+        </ul>
+        <h2 className={s.group}>Tài khoản</h2>
+        <ul className={s.list}>
+          <SettingsRow href="#bao-mat" onOpen={() => show('bao-mat')}>
+            Đổi mật khẩu
+          </SettingsRow>
+          <SettingsRow href="#giao-dien" onOpen={() => show('giao-dien')} value={<ThemeValue />}>
+            Giao diện
+          </SettingsRow>
+          {SUPPORT_CONTACT && (
+            <SettingsRow href="#ho-tro" onOpen={() => show('ho-tro')} value={SUPPORT_CONTACT}>
+              Hỗ trợ
+            </SettingsRow>
+          )}
+          <li>
+            <button type="button" className={`${s.row} ${s.logout}`} onClick={onLogout}>
+              Đăng xuất
+            </button>
+          </li>
+        </ul>
+      </div>
+
       <div className={s.layout}>
         <nav className={s.nav} aria-label="Mục tài khoản">
           <a href="#ho-so" className={s.navItem}>
@@ -61,27 +127,32 @@ export default function AccountPage() {
           <a href="#bao-mat" className={s.navItem}>
             Bảo mật
           </a>
-          {user.role === 'STUDENT' && (
+          {isStudent && (
             <a href="#don-hang" className={s.navItem}>
               Đơn hàng
             </a>
           )}
-          <button
-            type="button"
-            className={s.navItem}
-            onClick={async () => {
-              await logout();
-              router.push('/');
-            }}
-          >
+          <a href="#giao-dien" className={s.navItem}>
+            Giao diện
+          </a>
+          {SUPPORT_CONTACT && (
+            <a href="#ho-tro" className={s.navItem}>
+              Hỗ trợ
+            </a>
+          )}
+          <button type="button" className={s.navItem} onClick={onLogout}>
             Đăng xuất
           </button>
         </nav>
         <div className={s.main}>
-          <section id="ho-so" className={s.section} aria-labelledby="ho-so-title">
+          <button type="button" className={s.back} onClick={close}>
+            <span aria-hidden="true">‹</span> Tài khoản
+          </button>
+
+          <section {...sectionProps('ho-so')}>
             <div className={s.who}>
               <span className={s.avatar} aria-hidden="true">
-                {user.fullName.trim().charAt(0).toUpperCase()}
+                {initial}
               </span>
               <div>
                 <h2 id="ho-so-title">Hồ sơ</h2>
@@ -94,20 +165,132 @@ export default function AccountPage() {
             <ProfileForm />
           </section>
 
-          <section id="bao-mat" className={s.section} aria-labelledby="bao-mat-title">
+          <section {...sectionProps('bao-mat')}>
             <h2 id="bao-mat-title">Đổi mật khẩu</h2>
             <PasswordForm />
           </section>
 
-          {user.role === 'STUDENT' && (
-            <section id="don-hang" className={s.section} aria-labelledby="don-hang-title">
+          {isStudent && (
+            <section {...sectionProps('don-hang')}>
               <h2 id="don-hang-title">Đơn hàng</h2>
               <Orders />
+            </section>
+          )}
+
+          <section {...sectionProps('giao-dien')}>
+            <h2 id="giao-dien-title">Giao diện</h2>
+            <ThemeChoice />
+          </section>
+
+          {SUPPORT_CONTACT && (
+            <section {...sectionProps('ho-tro')}>
+              <h2 id="ho-tro-title">Hỗ trợ</h2>
+              <p className={s.text}>
+                Cần giúp về khoá học, thanh toán hay tài khoản? Liên hệ <b>{SUPPORT_CONTACT}</b>.
+              </p>
             </section>
           )}
         </div>
       </div>
     </div>
+  );
+}
+
+const SECTIONS: SectionId[] = ['ho-so', 'bao-mat', 'don-hang', 'giao-dien', 'ho-tro'];
+
+/**
+ * Which section is open on phones, kept in the URL hash so a row can be linked
+ * to and the browser back button returns to the list. On wider screens every
+ * section is shown and the hash only scrolls to it.
+ */
+function useOpenSection() {
+  const [open, setOpen] = useState<SectionId | null>(null);
+  const pushed = useRef(false);
+
+  useEffect(() => {
+    const read = () => {
+      const id = window.location.hash.slice(1) as SectionId;
+      setOpen(SECTIONS.includes(id) ? id : null);
+    };
+    read();
+    window.addEventListener('hashchange', read);
+    return () => window.removeEventListener('hashchange', read);
+  }, []);
+
+  const show = (id: SectionId) => {
+    pushed.current = true;
+    setOpen(id);
+    window.scrollTo({ top: 0 });
+  };
+  const close = () => {
+    if (pushed.current) {
+      pushed.current = false;
+      window.history.back();
+    } else {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      setOpen(null);
+    }
+  };
+  return { open, show, close };
+}
+
+function SettingsRow({
+  href,
+  onOpen,
+  value,
+  children,
+}: {
+  href: string;
+  onOpen: () => void;
+  value?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <li>
+      {/* A real link, so the hash changes (back button) and it works without JS. */}
+      <a href={href} className={s.row} onClick={onOpen}>
+        <span>{children}</span>
+        <span className={s.rowEnd}>
+          {value && <span className={s.rowValue}>{value}</span>}
+          <span aria-hidden="true">›</span>
+        </span>
+      </a>
+    </li>
+  );
+}
+
+const THEME_OPTIONS: Array<{ id: ThemePreference; label: string; hint: string }> = [
+  { id: 'system', label: 'Theo máy', hint: 'Sáng hoặc tối theo cài đặt của thiết bị.' },
+  { id: 'light', label: 'Sáng', hint: 'Nền trắng, chữ đen.' },
+  { id: 'dark', label: 'Tối', hint: 'Nền tối, dễ chịu khi học buổi tối.' },
+];
+
+function ThemeValue() {
+  const { themePreference } = useModule();
+  return <>{THEME_OPTIONS.find((o) => o.id === themePreference)?.label}</>;
+}
+
+function ThemeChoice() {
+  const { themePreference, setThemePreference } = useModule();
+  return (
+    <fieldset className={s.choices}>
+      <legend className="sr-only">Chọn giao diện</legend>
+      {THEME_OPTIONS.map((o) => (
+        <div key={o.id} className={s.choice}>
+          <Radio
+            name="theme"
+            value={o.id}
+            label={o.label}
+            checked={themePreference === o.id}
+            onChange={() => setThemePreference(o.id)}
+            aria-describedby={`theme-${o.id}-hint`}
+          />
+          <span id={`theme-${o.id}-hint`} className={s.muted}>
+            {o.hint}
+          </span>
+        </div>
+      ))}
+    </fieldset>
   );
 }
 
