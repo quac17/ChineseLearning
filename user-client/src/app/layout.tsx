@@ -3,6 +3,7 @@ import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { ModuleProvider } from '@/context/ModuleContext';
 import { AppChrome } from '@/components/layout/AppChrome';
+import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister';
 import { ToastProvider } from '@/components/ui';
 
 export const metadata: Metadata = {
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         />
       </head>
       <body>
+        <ServiceWorkerRegister />
         <AuthProvider>
           <ModuleProvider>
             <ToastProvider>

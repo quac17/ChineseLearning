@@ -19,7 +19,7 @@ const ADMIN_NAV = [
 ];
 
 /** Learner pages rebuilt on the new design: they lay out their own width. */
-const REBUILT = ['/courses', '/my-courses', '/account', '/checkout', '/flashcards', '/quiz', '/writing', '/login', '/register'];
+const REBUILT = ['/courses', '/my-courses', '/account', '/checkout', '/flashcards', '/quiz', '/writing', '/login', '/register', '/offline'];
 /** Pages that show public/images/stock photos must carry the credit line. */
 const WITH_STOCK_PHOTOS = ['/'];
 
