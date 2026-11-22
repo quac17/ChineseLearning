@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
-import { Alert, Button, Field, Input, LinkButton } from '@/components/ui';
+import { Alert, Button, Checkbox, Field, Input, LinkButton } from '@/components/ui';
 import { readNext, withNext } from '@/components/auth/useNext';
 import s from '@/components/auth/auth.module.css';
 import { useAuth } from '@/context/AuthContext';
@@ -16,6 +16,7 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const online = useOnline();
@@ -30,7 +31,7 @@ export default function RegisterPage() {
     setError('');
     setSubmitting(true);
     try {
-      await register(fullName.trim(), email.trim(), password);
+      await register(fullName.trim(), email.trim(), password, acceptTerms);
       router.push(readNext() ?? routes.catalog());
     } catch (err) {
       setError((err as Error).message || 'Đăng ký thất bại.');
@@ -83,12 +84,31 @@ export default function RegisterPage() {
             minLength={6}
           />
         </Field>
+        {/* Links open a new tab so the typed form values stay (docs/design/canvas/WebAuth.dc.html). */}
+        <Checkbox
+          className={s.consent}
+          checked={acceptTerms}
+          onChange={(e) => setAcceptTerms(e.target.checked)}
+          required
+          label={
+            <>
+              Tôi đồng ý với{' '}
+              <Link href="/dieu-khoan" target="_blank" rel="noopener">
+                Điều khoản sử dụng
+              </Link>{' '}
+              và{' '}
+              <Link href="/bao-mat" target="_blank" rel="noopener">
+                Chính sách bảo mật
+              </Link>
+            </>
+          }
+        />
         <Button
           type="submit"
           variant="accent"
           block
           loading={submitting}
-          disabled={!online || fullName.trim().length < 2 || !email || password.length < 6}
+          disabled={!online || fullName.trim().length < 2 || !email || password.length < 6 || !acceptTerms}
         >
           Tạo tài khoản
         </Button>

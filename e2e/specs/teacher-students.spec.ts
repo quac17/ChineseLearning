@@ -15,7 +15,7 @@ test('teacher grants a fresh student through the UI, who can then play the paid 
   const learner = await browser.newContext();
   const email = `cap-${uniq()}@e2e.test`;
   const reg = await learner.request.post(`${API_URL}/auth/register`, {
-    data: { fullName: `Học viên cấp quyền ${uniq()}`, email, password: 'Matkhau@123' },
+    data: { fullName: `Học viên cấp quyền ${uniq()}`, email, password: 'Matkhau@123', acceptTerms: true },
   });
   expect(reg.status(), await reg.text()).toBe(201);
   const { user } = await reg.json();

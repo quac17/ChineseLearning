@@ -190,6 +190,12 @@
   margin-top: 40px;
   font-size: 13px;
 }
+.footLegal {
+  display: flex;
+  gap: 8px 20px;
+  flex-wrap: wrap;
+  font-size: 14px;
+}
 .credits {
   margin-top: 20px;
   font-size: 13px;

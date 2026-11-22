@@ -17,7 +17,7 @@ async function newCourse(teacher: APIRequestContext, extra: Record<string, unkno
 async function freshStudent() {
   const api = await request.newContext({ baseURL: `${API_URL}/`, storageState: { cookies: [], origins: [] } });
   const res = await api.post('auth/register', {
-    data: { fullName: 'Học viên trình sửa', email: `ts-${uniq()}@e2e.test`, password: 'Matkhau@123' },
+    data: { fullName: 'Học viên trình sửa', email: `ts-${uniq()}@e2e.test`, password: 'Matkhau@123', acceptTerms: true },
   });
   expect(res.status(), await res.text()).toBe(201);
   const { user } = await res.json();

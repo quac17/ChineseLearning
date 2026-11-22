@@ -16,10 +16,9 @@ Cập nhật: 2026-11-22.
 | Ai làm | Issue | Chờ |
 |---|---|---|
 | Chủ dự án | [#14](https://github.com/quac17/ChineseLearning/issues/14) Mở bán thật với PayOS: key, giao dịch thử 2.000 ₫, webhook, giá thật | |
-| Chủ dự án | [#15](https://github.com/quac17/ChineseLearning/issues/15) Nội dung Điều khoản sử dụng và Chính sách bảo mật | |
+| Chủ dự án | [#15](https://github.com/quac17/ChineseLearning/issues/15) Duyệt và điền bản nháp Điều khoản sử dụng, Chính sách bảo mật (`user-client/src/content/legal/`) rồi đặt `draft: false` | |
 | Chủ dự án | [#16](https://github.com/quac17/ChineseLearning/issues/16) Chọn dịch vụ gửi email và chuẩn bị Google Cloud Storage | |
 | Chủ dự án + Claude | [#17](https://github.com/quac17/ChineseLearning/issues/17) Triển khai production lên GCP | #14 |
-| Claude | [#30](https://github.com/quac17/ChineseLearning/issues/30) Trang Điều khoản, Chính sách bảo mật và ô đồng ý khi đăng ký | #15 |
 | Claude | [#31](https://github.com/quac17/ChineseLearning/issues/31) Quên mật khẩu qua email | #16 |
 | Claude | [#32](https://github.com/quac17/ChineseLearning/issues/32) Lưu video và tài liệu trên Google Cloud Storage | #16 |
 | Claude (để sau) | [#38](https://github.com/quac17/ChineseLearning/issues/38) Nhắc ôn tập mỗi ngày | |

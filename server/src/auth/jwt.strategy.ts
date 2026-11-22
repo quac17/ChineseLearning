@@ -47,7 +47,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: JwtPayload): Promise<AuthUser> {
     const user = await this.db.queryOne(
-      `SELECT id, email, full_name, phone, bio, role, is_active, created_at
+      `SELECT id, email, full_name, phone, bio, role, is_active, terms_accepted_at, created_at
        FROM users
        WHERE id = $1`,
       [payload.sub],
@@ -64,6 +64,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       phone: user.phone,
       bio: user.bio,
       role: user.role,
+      termsAcceptedAt: user.terms_accepted_at ?? null,
       createdAt: user.created_at,
     };
   }

@@ -34,6 +34,9 @@ CREATE TABLE IF NOT EXISTS users (
   bio TEXT,
   role VARCHAR(20) NOT NULL DEFAULT 'STUDENT'::character varying,
   is_active BOOLEAN NOT NULL DEFAULT true,
+  -- When the user ticked "Tôi đồng ý với Điều khoản sử dụng và Chính sách bảo mật"
+  -- on the register form. NULL for accounts created before #30 or by an admin.
+  terms_accepted_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT users_pkey PRIMARY KEY (id),

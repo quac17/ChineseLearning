@@ -50,6 +50,7 @@ test.describe('footer and auth pages', () => {
     await page.getByLabel('Họ và tên').fill('Học viên quay lại');
     await page.getByLabel('Email').fill(`quaylai-${Date.now()}@e2e.test`);
     await page.getByLabel(/Mật khẩu/).fill('Matkhau@123');
+    await page.getByRole('checkbox', { name: /Tôi đồng ý với Điều khoản sử dụng/ }).check();
     await page.getByRole('button', { name: 'Tạo tài khoản' }).click();
     await expect(page).toHaveURL(new RegExp(`/courses/${SEED.hsk1}$`));
   });

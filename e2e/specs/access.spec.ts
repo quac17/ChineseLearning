@@ -109,7 +109,7 @@ test.describe('learner pages show the locked state', () => {
     // A fresh account: studentB can be granted access by a parallel spec.
     // page.request shares the browser's cookies, so this also logs the page in.
     const res = await page.request.post(`${API_URL}/auth/register`, {
-      data: { fullName: 'Học viên mới', email: `moi-${uniq()}@e2e.test`, password: 'Matkhau@123' },
+      data: { fullName: 'Học viên mới', email: `moi-${uniq()}@e2e.test`, password: 'Matkhau@123', acceptTerms: true },
     });
     expect(res.status(), await res.text()).toBe(201);
     await page.goto('/my-courses');

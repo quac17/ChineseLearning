@@ -8,6 +8,8 @@ export interface AuthUser {
   phone: string | null;
   bio: string | null;
   role: Role;
+  /** When the user accepted the Terms of use and Privacy policy; null for older or admin-created accounts. */
+  termsAcceptedAt?: string | null;
   createdAt?: string;
 }
 

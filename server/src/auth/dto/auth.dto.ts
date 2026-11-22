@@ -1,4 +1,7 @@
-import { IsEmail, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { Equals, IsEmail, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+
+export const TERMS_REQUIRED_MESSAGE =
+  'Bạn cần đồng ý với Điều khoản sử dụng và Chính sách bảo mật để tạo tài khoản.';
 
 export class LoginDto {
   @IsEmail({}, { message: 'Email không hợp lệ' })
@@ -25,6 +28,10 @@ export class RegisterDto {
   @IsString()
   @MaxLength(30)
   phone?: string;
+
+  /** The register form's consent box; the account is only created when it is ticked. */
+  @Equals(true, { message: TERMS_REQUIRED_MESSAGE })
+  acceptTerms: boolean;
 }
 
 export class UpdateProfileDto {
