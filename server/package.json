@@ -14,7 +14,8 @@
     "db:generate": "ts-node db/scripts/db-cli.ts generate",
     "db:reset": "ts-node db/scripts/db-cli.ts reset",
     "db:seed": "ts-node db/scripts/db-cli.ts seed",
-    "db:dump": "ts-node db/scripts/db-cli.ts dump"
+    "db:dump": "ts-node db/scripts/db-cli.ts dump",
+    "db:demo": "ts-node db/scripts/db-cli.ts demo"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.4",

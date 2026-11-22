@@ -14,6 +14,7 @@
     "db:generate": "yarn --cwd server db:generate",
     "db:reset": "yarn --cwd server db:reset",
     "db:seed": "yarn --cwd server db:seed",
+    "db:demo": "yarn --cwd server db:demo && node scripts/demo/make-videos.mjs",
     "db:dump": "yarn --cwd server db:dump",
     "server:install": "yarn --cwd server install",
     "server:dev": "yarn --cwd server dev",

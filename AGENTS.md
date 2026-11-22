@@ -22,6 +22,7 @@ Gemini at it, so **edit only this file**.
 ```bash
 yarn env                          # create missing .env files
 yarn db:up && yarn db:init && yarn db:reset && yarn db:seed
+yarn db:demo                      # optional: extra demo courses, accounts and videos (local only)
 yarn server:dev                   # http://localhost:4000/api
 yarn client:dev                   # http://localhost:3000
 yarn server:build && yarn client:build
