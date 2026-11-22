@@ -97,6 +97,20 @@ test.describe('ratings in the pages', () => {
     await expect(page.getByText('★')).toHaveCount(0);
   });
 
+  test.describe('as the teacher', () => {
+    test.use({ storageState: storageStateFor('teacher') });
+
+    test('Giá & bán tab shows the sourced rating read-only', async ({ page }) => {
+      const course = await newCourse();
+      await page.goto(`/teacher/courses/${course.id}/pricing`);
+      await expect(page.getByText('Không có (chỉ hiện khi admin nhập kèm nguồn thật)')).toBeVisible();
+      await (await apiAs('admin')).patch(`courses/${course.id}/rating`, { data: { ratingValue: 4.5, ratingSource: SOURCE } });
+      await page.reload();
+      await expect(page.getByText(`· ${SOURCE}`)).toBeVisible();
+      await expect(page.getByRole('textbox')).toHaveCount(0);
+    });
+  });
+
   test.describe('as admin', () => {
     test.use({ storageState: storageStateFor('admin') });
 
