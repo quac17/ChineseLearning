@@ -4,21 +4,23 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { EmptyState, LinkButton, Skeleton } from '@/components/ui';
 import { useCourse } from '@/components/course/useCourse';
-import { firstLesson, routes } from '@/lib/courses';
+import { useCourseProgress } from '@/components/course/useCourseProgress';
+import { resumeLesson, routes } from '@/lib/courses';
 import s from '../player.module.css';
 
-/** /learn/<course> opens the first lesson the viewer can play. */
+/** /learn/<course> continues where the learner stopped ("Học tiếp"), else the first lesson. */
 export default function LearnCoursePage() {
   const { courseId } = useParams<{ courseId: string }>();
   const router = useRouter();
   const { course, error } = useCourse(courseId);
-  const start = course ? firstLesson(course) : null;
+  const { progress, ready } = useCourseProgress(courseId);
+  const start = course && ready ? resumeLesson(course, progress) : null;
 
   useEffect(() => {
     if (start) router.replace(routes.learn(courseId, start.id));
   }, [start, courseId, router]);
 
-  if (error || (course && !start)) {
+  if (error || (course && ready && !start)) {
     return (
       <div className={s.state}>
         <EmptyState

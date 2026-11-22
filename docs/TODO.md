@@ -55,16 +55,17 @@ Làm lại theo các board `Admin*.dc.html`. **Không làm lại** hai trang đ�
 - [ ] Gửi nội dung thật cho `NEXT_PUBLIC_SUPPORT_CONTACT` (Zalo hoặc email hỗ trợ) và
       `NEXT_PUBLIC_REFUND_POLICY` (một câu chính sách hoàn tiền). Để trống thì hai dòng
       này bị ẩn trên trang mua và trang thanh toán.
-- [ ] Khi deploy: chạy `server/db/migrations/20261122_1200_payments.sql` trên DB có dữ liệu,
+- [ ] Khi deploy: chạy lần lượt các file trong `server/db/migrations/` trên DB có dữ liệu,
       đặt `PAYMENT_GATEWAY=payos` và 3 key, rồi đăng ký webhook
       `https://<api>/api/payments/webhook/payos` trong my.payos.vn.
 - [ ] Đặt giá thật cho các khoá ở `/admin/prices` (giá trong seed và demo chỉ là giá thử).
 
 ## Claude
 
-- [ ] Giai đoạn 2: tiến độ học (ô đã học, "Học tiếp", thanh tiến độ) và từ vựng theo
-      bài (API cho tab Từ vựng của giáo viên; tab Từ vựng trong trình phát; flashcard,
-      quiz, luyện viết sinh từ từ vựng của bài).
+- [ ] Giai đoạn 2b: từ vựng theo bài (bảng `lesson_vocabulary`, API cho tab Từ vựng của
+      giáo viên, tab Từ vựng trong trình phát, từ vựng mẫu trong seed và demo).
+- [ ] Giai đoạn 2c: flashcard (Leitner), quiz 4 dạng và luyện viết (Hanzi Writer) sinh
+      từ từ vựng của bài, thay cho dữ liệu cứng ở `/flashcards`, `/quiz`, `/writing`.
 - [ ] Giai đoạn 4: quên mật khẩu qua email, lưu video trên Google Cloud Storage.
 
 ## Chưa giao

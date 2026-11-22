@@ -10,6 +10,7 @@ import { DocumentsModule } from './documents/documents.module';
 import { EnrollmentsModule } from './enrollments/enrollments.module';
 import { HealthController } from './health.controller';
 import { PaymentsModule } from './payments/payments.module';
+import { ProgressModule } from './progress/progress.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { PaymentsModule } from './payments/payments.module';
     DocumentsModule,
     EnrollmentsModule,
     PaymentsModule,
+    ProgressModule,
   ],
   controllers: [HealthController],
 })

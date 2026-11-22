@@ -91,7 +91,11 @@ async function renderInPage({ title, course, program, index, seconds }) {
   };
 
   draw(0);
-  const stream = canvas.captureStream(30);
+  // Frame rate 0 + requestFrame(): frames are pushed by hand after each draw,
+  // because background pages barely render and an automatic capture would
+  // record only the first few frames (a 0.2 s "video").
+  const stream = canvas.captureStream(0);
+  const track = stream.getVideoTracks()[0];
   const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 600_000 });
   const chunks = [];
   recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
@@ -103,6 +107,7 @@ async function renderInPage({ title, course, program, index, seconds }) {
     const tick = () => {
       const t = (performance.now() - start) / 1000;
       draw(t);
+      track.requestFrame();
       if (t >= seconds) resolve();
       else setTimeout(tick, 1000 / 30);
     };
@@ -110,10 +115,28 @@ async function renderInPage({ title, course, program, index, seconds }) {
   });
   recorder.stop();
   await done;
-  const buf = new Uint8Array(await new Blob(chunks, { type: 'video/webm' }).arrayBuffer());
+  const blob = new Blob(chunks, { type: 'video/webm' });
+  // MediaRecorder webm has no duration header; seek far to make the browser
+  // compute the real length, so a broken capture is caught here.
+  const duration = await new Promise((resolve) => {
+    const v = document.createElement('video');
+    v.muted = true;
+    v.preload = 'metadata';
+    v.onloadedmetadata = () => {
+      if (Number.isFinite(v.duration)) return resolve(v.duration);
+      v.ontimeupdate = () => {
+        v.ontimeupdate = null;
+        resolve(v.duration);
+      };
+      v.currentTime = 1e6;
+    };
+    v.onerror = () => resolve(0);
+    v.src = URL.createObjectURL(blob);
+  });
+  const buf = new Uint8Array(await blob.arrayBuffer());
   let bin = '';
   for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
-  return btoa(bin);
+  return { b64: btoa(bin), duration };
 }
 
 async function main() {
@@ -135,12 +158,14 @@ async function main() {
   if (todo.length === 0) {
     console.log(`✔ Video demo đã có đủ (${rows.length} bài). Dùng --force để tạo lại.`);
   } else {
-    console.log(`… Đang tạo ${todo.length} video demo (${SECONDS}s mỗi video)…`);
-    const browser = await chromium.launch();
-    try {
-      // A few pages at once: MediaRecorder records in real time.
-      const queue = [...todo];
-      const worker = async () => {
+    console.log(`… Đang tạo ${todo.length} video demo (${SECONDS}s mỗi video, khoảng ${Math.ceil((todo.length * (SECONDS + 1)) / 60)} phút)…`);
+    // One at a time: MediaRecorder records in real time and parallel pages
+    // (even in separate browsers) starve each other and record 0-second
+    // videos. Every file is checked for its real duration below.
+    const queue = [...todo];
+    const worker = async () => {
+      const browser = await chromium.launch();
+      try {
         const page = await browser.newPage();
         for (let r = queue.shift(); r; r = queue.shift()) {
           const args = {
@@ -150,21 +175,22 @@ async function main() {
             index: r.sort_order,
             seconds: SECONDS,
           };
-          let data = Buffer.alloc(0);
-          for (let attempt = 0; attempt < 3 && data.length === 0; attempt++) {
-            data = Buffer.from(await page.evaluate(renderInPage, args), 'base64');
+          let out = { b64: '', duration: 0 };
+          for (let attempt = 0; attempt < 3 && out.duration < SECONDS - 0.5; attempt++) {
+            out = await page.evaluate(renderInPage, args);
           }
-          if (data.length === 0) throw new Error(`Video rỗng cho bài ${r.id}`);
+          if (out.duration < SECONDS - 0.5) {
+            throw new Error(`Video demo của bài ${r.id} chỉ dài ${out.duration.toFixed(1)} giây`);
+          }
           const filePath = path.join(uploadDir, r.storage_key);
           fs.mkdirSync(path.dirname(filePath), { recursive: true });
-          fs.writeFileSync(filePath, data);
+          fs.writeFileSync(filePath, Buffer.from(out.b64, 'base64'));
         }
-        await page.close();
-      };
-      await Promise.all(Array.from({ length: 4 }, worker));
-    } finally {
-      await browser.close();
-    }
+      } finally {
+        await browser.close();
+      }
+    };
+    await worker();
   }
 
   for (const r of rows) {

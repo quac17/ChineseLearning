@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { PROGRAMS, formatVnd } from '@/lib/programs';
 import type { ProgramModule } from '@/lib/types';
-import { Badge, Rating } from './Display';
+import { Badge, ProgressBar, Rating } from './Display';
 import s from './ui.module.css';
 
 export interface CourseCardProps {
@@ -19,6 +19,8 @@ export interface CourseCardProps {
   ratingSource?: string | null;
   featured?: boolean;
   meta?: string;
+  /** Learner progress (my courses): 0–100 plus the text under the bar. */
+  progress?: { percent: number; label: string };
 }
 
 /** Course card: 16:9 cover, title, teacher, sourced rating, price, badge. */
@@ -35,6 +37,7 @@ export function CourseCard({
   ratingSource,
   featured,
   meta,
+  progress,
 }: CourseCardProps) {
   const p = PROGRAMS[program];
   const price = isFree ? 'Miễn phí' : priceVnd != null ? formatVnd(priceVnd) : null;
@@ -56,6 +59,12 @@ export function CourseCard({
       {meta && <span className={s.cardMeta}>{meta}</span>}
       {price && <span className={s.cardPrice}>{price}</span>}
       {featured && <Badge tone="featured">Nổi bật</Badge>}
+      {progress && (
+        <span className={s.cardProgress}>
+          <ProgressBar value={progress.percent} label={`Tiến độ ${title}`} />
+          <span className={s.cardMeta}>{progress.label}</span>
+        </span>
+      )}
     </Link>
   );
 }
