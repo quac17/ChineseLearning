@@ -1,0 +1,57 @@
+import { assertProductionEnv, checkProductionEnv } from './production-env';
+
+const good = {
+  NODE_ENV: 'production',
+  JWT_SECRET: 'q'.repeat(40),
+  DATABASE_URL: 'postgresql://vankinh:pw@localhost/vankinh_db?host=/cloudsql/x',
+  COOKIE_SECURE: 'true',
+  COOKIE_SAME_SITE: 'lax',
+  CORS_ORIGIN: 'https://vankinh.vn',
+  APP_URL: 'https://vankinh.vn',
+  PAYMENT_GATEWAY: 'payos',
+  STORAGE_BACKEND: 'gcs',
+  MAIL_TRANSPORT: 'smtp',
+};
+
+describe('production configuration', () => {
+  it('a complete production env passes without warnings', () => {
+    expect(checkProductionEnv(good)).toEqual({ errors: [], warnings: [] });
+  });
+
+  it('is not checked outside production (local and e2e keep their defaults)', () => {
+    expect(checkProductionEnv({ NODE_ENV: 'development' })).toEqual({ errors: [], warnings: [] });
+    expect(checkProductionEnv({})).toEqual({ errors: [], warnings: [] });
+  });
+
+  it.each([
+    ['the .env.example JWT secret', { JWT_SECRET: 'super_secret_jwt_key_change_in_production' }, /JWT_SECRET/],
+    ['a short JWT secret', { JWT_SECRET: 'short' }, /JWT_SECRET/],
+    ['no database', { DATABASE_URL: undefined }, /DATABASE_URL/],
+    ['an insecure cookie', { COOKIE_SECURE: 'false' }, /COOKIE_SECURE/],
+    ['an unknown SameSite', { COOKIE_SAME_SITE: 'loose' }, /COOKIE_SAME_SITE/],
+    ['CORS "*"', { CORS_ORIGIN: '*' }, /CORS_ORIGIN/],
+    ['CORS over http', { CORS_ORIGIN: 'http://vankinh.vn' }, /CORS_ORIGIN/],
+    ['CORS with a trailing slash', { CORS_ORIGIN: 'https://vankinh.vn/' }, /CORS_ORIGIN/],
+    ['no APP_URL', { APP_URL: undefined }, /APP_URL/],
+    ['the fake gateway', { PAYMENT_GATEWAY: 'fake' }, /PAYMENT_GATEWAY/],
+  ])('refuses %s', (_, patch, message) => {
+    const { errors } = checkProductionEnv({ ...good, ...patch });
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toMatch(message);
+  });
+
+  it('accepts several https origins', () => {
+    expect(checkProductionEnv({ ...good, CORS_ORIGIN: 'https://vankinh.vn, https://www.vankinh.vn' }).errors).toEqual([]);
+  });
+
+  it('only warns about local storage and missing mail', () => {
+    const { errors, warnings } = checkProductionEnv({ ...good, STORAGE_BACKEND: undefined, MAIL_TRANSPORT: undefined });
+    expect(errors).toEqual([]);
+    expect(warnings).toHaveLength(2);
+  });
+
+  it('throws with every problem listed at once', () => {
+    jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    expect(() => assertProductionEnv({ NODE_ENV: 'production' })).toThrow(/JWT_SECRET[\s\S]*COOKIE_SECURE[\s\S]*PAYMENT_GATEWAY/);
+  });
+});
