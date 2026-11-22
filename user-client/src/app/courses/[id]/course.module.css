@@ -299,7 +299,38 @@
     max-width: none;
   }
 }
+/* Sticky price bar at phone width (AppCourse board), above the tab bar. */
+.buyBar {
+  display: none;
+}
 @media (max-width: 760px) {
+  .buyBar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    z-index: 44;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 72px;
+    padding: 0 16px;
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+  }
+  /* The footer reads this to keep its last line above both bars. */
+  :global(html):has(.buyBar) {
+    --page-bottom-bar: 72px;
+  }
+  .barPrice {
+    font-size: 22px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+  .barAction {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
   .lead {
     font-size: 17px;
   }
