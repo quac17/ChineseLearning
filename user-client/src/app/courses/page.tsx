@@ -2,14 +2,27 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useMemo, useState } from 'react';
-import { Alert, Badge, Button, Checkbox, EmptyState, LinkButton, Select, Skeleton } from '@/components/ui';
+import { Suspense, useEffect, useMemo, useState, type FormEvent } from 'react';
+import {
+  Alert,
+  Badge,
+  Button,
+  Checkbox,
+  Dialog,
+  EmptyState,
+  LinkButton,
+  Radio,
+  SearchInput,
+  Select,
+  Skeleton,
+} from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
 import { useModule } from '@/context/ModuleContext';
 import { apiRequest } from '@/lib/api';
 import { courseMeta, hasPreview, isOnSale, parseProgram, routes } from '@/lib/courses';
 import { PROGRAMS, PROGRAM_ORDER, formatVnd } from '@/lib/programs';
-import type { CourseItem } from '@/lib/types';
+import { addRecentSearch, loadRecentSearches, saveRecentSearches } from '@/lib/recentSearches';
+import type { CourseItem, ProgramModule } from '@/lib/types';
 import s from './catalog.module.css';
 
 type SortKey = 'relevant' | 'newest' | 'title' | 'price';
@@ -38,6 +51,25 @@ function Catalog() {
   const [onlyPaid, setOnlyPaid] = useState(false);
   const [withPreview, setWithPreview] = useState(false);
   const [sort, setSort] = useState<SortKey>('relevant');
+  const [term, setTerm] = useState(q);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [recent, setRecent] = useState<string[]>([]);
+  // The program lives in the URL; keep the sheet's radio checked while the route updates.
+  const [chosenProgram, setChosenProgram] = useState(program);
+  useEffect(() => setChosenProgram(program), [program]);
+
+  // The phone search box edits the keyword in place; follow the URL when it changes.
+  useEffect(() => setTerm(q), [q]);
+
+  // "Tìm gần đây" lives in this browser only (see lib/recentSearches).
+  useEffect(() => {
+    let list = loadRecentSearches();
+    if (q) {
+      list = addRecentSearch(list, q);
+      saveRecentSearches(list);
+    }
+    setRecent(list);
+  }, [q]);
 
   // Old links were /courses?courseId=…; the course now has its own page.
   useEffect(() => {
@@ -89,6 +121,44 @@ function Catalog() {
     setOnlyPaid(false);
     setWithPreview(false);
   };
+  const clearAll = () => {
+    clearFilters();
+    if (program) router.replace(routes.catalog({ q }));
+  };
+  const pickProgram = (id: ProgramModule | null) => {
+    setChosenProgram(id);
+    router.replace(routes.catalog({ q, program: id }));
+  };
+
+  // Chips shown under the phone search box; each one removes its filter.
+  const active = [
+    ...(program ? [{ key: 'program', label: PROGRAMS[program].name, remove: () => pickProgram(null) }] : []),
+    ...(onlyFree ? [{ key: 'free', label: 'Miễn phí', remove: () => setOnlyFree(false) }] : []),
+    ...(onlyPaid ? [{ key: 'paid', label: 'Trả phí', remove: () => setOnlyPaid(false) }] : []),
+    ...(withPreview ? [{ key: 'preview', label: 'Có học thử', remove: () => setWithPreview(false) }] : []),
+  ];
+
+  const onSearch = (e: FormEvent) => {
+    e.preventDefault();
+    const next = term.trim();
+    // Close the phone keyboard so the results are visible.
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    router.push(routes.catalog({ q: next, program }));
+  };
+
+  const clearRecent = () => {
+    saveRecentSearches([]);
+    setRecent([]);
+  };
+  const otherRecent = recent.filter((t) => t.toLocaleLowerCase('vi') !== q.toLocaleLowerCase('vi'));
+
+  const priceFilters = (
+    <>
+      <Checkbox label="Miễn phí" checked={onlyFree} onChange={(e) => setOnlyFree(e.target.checked)} />
+      <Checkbox label="Trả phí" checked={onlyPaid} onChange={(e) => setOnlyPaid(e.target.checked)} />
+      <Checkbox label="Có bài học thử" checked={withPreview} onChange={(e) => setWithPreview(e.target.checked)} />
+    </>
+  );
 
   const heading = q
     ? courses
@@ -109,7 +179,39 @@ function Catalog() {
       </p>
       <h1 className={s.title}>{heading}</h1>
 
-      <nav className={s.chips} aria-label="Lọc theo chương trình">
+      {/* Phones: the header search is hidden here, this one edits the keyword in place. */}
+      <div className={s.phoneBar}>
+        <form role="search" onSubmit={onSearch}>
+          <SearchInput
+            label="Tìm khoá học"
+            placeholder="HSK 1, YCT, giao tiếp…"
+            value={term}
+            onChange={(e) => setTerm(e.target.value)}
+            enterKeyHint="search"
+            name="q"
+          />
+        </form>
+        <div className={s.chips}>
+          <button
+            type="button"
+            className={`${s.chip} ${active.length ? s.chipOn : ''}`}
+            aria-haspopup="dialog"
+            onClick={() => setFiltersOpen(true)}
+          >
+            {active.length ? `Bộ lọc · ${active.length}` : 'Bộ lọc'}
+          </button>
+          {active.map((f) => (
+            <button key={f.key} type="button" className={s.chip} aria-label={`Bỏ lọc ${f.label}`} onClick={f.remove}>
+              {f.label}
+              <span className={s.chipX} aria-hidden="true">
+                ×
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <nav className={`${s.chips} ${s.wideOnly}`} aria-label="Lọc theo chương trình">
         <Link href={routes.catalog({ q })} className={s.chip} aria-current={!program ? 'true' : undefined}>
           Tất cả
         </Link>
@@ -131,7 +233,7 @@ function Catalog() {
       </nav>
 
       <div className={s.layout}>
-        <aside className={s.filters} aria-label="Bộ lọc">
+        <aside className={`${s.filters} ${s.wideOnly}`} aria-label="Bộ lọc">
           <div className={s.filtersHead}>
             <h2>Bộ lọc</h2>
             {filtersOn && (
@@ -142,13 +244,7 @@ function Catalog() {
           </div>
           <fieldset className={s.group}>
             <legend>Giá</legend>
-            <Checkbox label="Miễn phí" checked={onlyFree} onChange={(e) => setOnlyFree(e.target.checked)} />
-            <Checkbox label="Trả phí" checked={onlyPaid} onChange={(e) => setOnlyPaid(e.target.checked)} />
-            <Checkbox
-              label="Có bài học thử"
-              checked={withPreview}
-              onChange={(e) => setWithPreview(e.target.checked)}
-            />
+            {priceFilters}
           </fieldset>
         </aside>
 
@@ -200,6 +296,65 @@ function Catalog() {
           )}
         </section>
       </div>
+
+      {otherRecent.length > 0 && (
+        <section className={s.recent} aria-labelledby="recent-title">
+          <div className={s.filtersHead}>
+            <h2 id="recent-title">Tìm gần đây</h2>
+            <Button variant="text" size="sm" onClick={clearRecent}>
+              Xoá lịch sử
+            </Button>
+          </div>
+          <ul className={s.chips}>
+            {otherRecent.map((t) => (
+              <li key={t}>
+                <Link href={routes.catalog({ q: t })} className={s.chip}>
+                  {t}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <Dialog
+        open={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        title="Bộ lọc"
+        actions={
+          <>
+            <Button variant="text" onClick={clearAll} disabled={!active.length}>
+              Xoá lọc
+            </Button>
+            <Button onClick={() => setFiltersOpen(false)}>
+              {courses ? `Xem ${visible.length} kết quả` : 'Xong'}
+            </Button>
+          </>
+        }
+      >
+        {/* Rendered only while open so the wide-screen checkboxes stay the only ones on the page. */}
+        {filtersOpen && (
+          <>
+            <fieldset className={s.group}>
+              <legend>Chương trình</legend>
+              <Radio name="program" label="Tất cả" checked={!chosenProgram} onChange={() => pickProgram(null)} />
+              {PROGRAM_ORDER.map((id) => (
+                <Radio
+                  key={id}
+                  name="program"
+                  label={PROGRAMS[id].name}
+                  checked={chosenProgram === id}
+                  onChange={() => pickProgram(id)}
+                />
+              ))}
+            </fieldset>
+            <fieldset className={s.group}>
+              <legend>Giá</legend>
+              {priceFilters}
+            </fieldset>
+          </>
+        )}
+      </Dialog>
     </div>
   );
 }
