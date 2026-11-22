@@ -110,7 +110,31 @@ export interface AdminStats {
   activeEnrollments: number;
 }
 
-export type OrderStatus = 'PENDING' | 'PAID' | 'CANCELLED' | 'EXPIRED' | 'REFUNDED';
+export type StatsPeriod = '30d' | 'month' | 'year';
+
+/** GET /admin/stats: every figure is counted from the database. */
+export interface AdminDashboardStats {
+  period: StatsPeriod;
+  users: { total: number; admins: number; teachers: number; students: number; locked: number; newInPeriod: number };
+  courses: {
+    total: number;
+    published: number;
+    lessons: number;
+    documents: number;
+    /** Published paid courses without a price (no buy button yet). */
+    unpriced: Array<{ id: string; title: string }>;
+  };
+  enrollments: { open: number; purchased: number; manual: number };
+  orders: { paid: number; revenueVnd: number; expired: number; refunded: number; needsReview: number };
+  revenueSeries: {
+    bucket: 'day' | 'month';
+    /** start is YYYY-MM-DD in Vietnam time. */
+    points: Array<{ start: string; orders: number; revenueVnd: number }>;
+  };
+  topCourses: Array<{ courseId: string | null; title: string; orders: number; revenueVnd: number }>;
+}
+
+export type OrderStatus ='PENDING' | 'PAID' | 'CANCELLED' | 'EXPIRED' | 'REFUNDED';
 
 /** An order as its owner sees it (GET /payments/orders/:id). */
 export interface OrderItem {

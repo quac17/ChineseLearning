@@ -18,22 +18,6 @@ Làm lại theo các board `Teacher*.dc.html`, trong khung `DashboardShell`
 API của các issue khác (đánh dấu `TODO(...)` trong code): mô tả ngắn, cấp độ,
 "Bạn sẽ học được", ảnh bìa, thời lượng dạng số, phần/chương, phụ đề.
 
-### Khu admin (`/admin`)
-
-Làm lại theo các board `Admin*.dc.html`. **Không làm lại** hai trang đã có
-(PR #7): `/admin/prices` (Giá khoá học) và `/admin/orders` (Đơn hàng).
-
-- [ ] Thống kê (`AdminStats`), thay cho `app/admin/page.tsx` cũ.
-- [ ] Người dùng: tạo, đổi vai trò, khoá/mở tài khoản (`AdminUsers`).
-- [ ] Khoá học (`AdminCourses`). Có thể gộp trang Giá khoá học vào đây sau;
-      giữ nguyên API `PATCH /courses/:id/price`.
-- [ ] Thêm mục menu vào `ADMIN_NAV` trong `AppChrome.tsx` (có sau khi PR #7 merge).
-
-### Kiểm tra
-
-- [ ] Viết e2e cho các trang admin mới (skill `e2e-playwright`): admin khoá tài khoản
-      qua giao diện. (Giáo viên cấp quyền qua giao diện: `teacher-students.spec.ts`.)
-
 ## Chủ dự án
 
 - [ ] Đăng ký PayOS, lấy `PAYOS_CLIENT_ID`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM_KEY`
@@ -47,7 +31,7 @@ Làm lại theo các board `Admin*.dc.html`. **Không làm lại** hai trang đ�
 - [ ] Khi deploy: chạy lần lượt các file trong `server/db/migrations/` trên DB có dữ liệu,
       đặt `PAYMENT_GATEWAY=payos` và 3 key, rồi đăng ký webhook
       `https://<api>/api/payments/webhook/payos` trong my.payos.vn.
-- [ ] Đặt giá thật cho các khoá ở `/admin/prices` (giá trong seed và demo chỉ là giá thử).
+- [ ] Đặt giá thật cho các khoá ở `/admin/courses` hoặc `/admin/prices` (giá trong seed và demo chỉ là giá thử).
 
 ## Claude
 
