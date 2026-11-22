@@ -331,3 +331,44 @@
     font-size: 26px;
   }
 }
+
+/* Đánh giá & học viên (/admin/ratings): one card per course. */
+.ratingList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ratingRow {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ratingHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 12px;
+}
+.ratingFields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+.ratingField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 0 1 140px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.ratingSource {
+  flex: 1 1 320px;
+}
+.ratingProblem {
+  margin: 0;
+  font-size: 14px;
+  color: var(--error);
+}

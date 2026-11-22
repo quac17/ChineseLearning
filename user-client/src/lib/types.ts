@@ -83,6 +83,12 @@ export interface CourseItem {
   coverUrl?: string | null;
   /** Sum of the lessons' minutes (lessons without minutes count 0). */
   totalDurationMinutes?: number;
+  /** Set by an admin, always with its real source; null = no rating block. */
+  rating?: { value: number; source: string } | null;
+  /** Accounts that can open the course (open enrollments). */
+  learnerCount?: number;
+  /** Offline-class learners, shown apart ("+80 lớp offline"), never added to learnerCount. */
+  offlineLearnerCount?: number | null;
   sortOrder?: number;
   isFree: boolean;
   isPublished: boolean;

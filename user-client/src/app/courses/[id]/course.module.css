@@ -61,6 +61,15 @@
   color: #f3b7ac;
   text-decoration: underline;
 }
+/* The shared Rating reads these tokens; the hero is dark in both themes. */
+.heroRating {
+  --muted: #c9cdd1;
+  --rating: #f6c453;
+  font-size: 14px;
+}
+.heroRating > span {
+  font-size: 14px;
+}
 .heroMuted {
   color: #c9cdd1;
 }

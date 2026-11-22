@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { Badge, EmptyState, LinkButton, Skeleton } from '@/components/ui';
+import { Badge, EmptyState, LinkButton, Rating, Skeleton } from '@/components/ui';
 import { FileIcon, LockIcon, PlayIcon } from '@/components/course/icons';
 import { useCourse } from '@/components/course/useCourse';
 import { useAuth } from '@/context/AuthContext';
@@ -15,6 +15,7 @@ import {
   formatMinutes,
   hasSections,
   isOnSale,
+  learnerText,
   lessonDuration,
   lessonsMinutes,
   previewLesson,
@@ -76,6 +77,14 @@ function CourseDetail({ course }: { course: CourseItem }) {
             <p className={s.heroMeta}>
               {course.isFree && <Badge tone="new">Miễn phí</Badge>}
               {course.level && <span>{LEVELS[course.level].label}</span>}
+              {course.rating && (
+                <span className={s.heroRating}>
+                  <Rating value={course.rating.value} source={course.rating.source} />
+                </span>
+              )}
+              {learnerText(course.learnerCount ?? 0, course.offlineLearnerCount) && (
+                <span>{learnerText(course.learnerCount ?? 0, course.offlineLearnerCount)}</span>
+              )}
               {!course.isFree && course.hasAccess && <Badge tone="owned">Bạn đã có quyền xem</Badge>}
               <span>
                 {lessons.length} bài{hasDocs ? ` · ${course.documents.length} tài liệu` : ''}

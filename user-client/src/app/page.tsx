@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Alert, CourseCard, EmptyState, LinkButton, ProgressBar, Skeleton, Tabs } from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
 import { apiRequest, buildMediaUrl } from '@/lib/api';
-import { courseMeta, isOnSale, routes } from '@/lib/courses';
+import { courseMeta, isOnSale, learnerText, routes } from '@/lib/courses';
 import { PROGRAMS } from '@/lib/programs';
 import { SUPPORT_CONTACT } from '@/lib/site';
 import type { CourseItem, MyCourseProgress, ProgramModule } from '@/lib/types';
@@ -270,7 +270,9 @@ function CourseGrid({ courses, error, empty }: { courses: CourseItem[] | null; e
           coverUrl={c.coverUrl ? buildMediaUrl(c.coverUrl) : null}
           isFree={c.isFree}
           priceVnd={isOnSale(c) ? c.priceVnd : null}
-          meta={courseMeta(c)}
+          ratingValue={c.rating?.value}
+          ratingSource={c.rating?.source}
+          meta={[courseMeta(c), learnerText(c.learnerCount ?? 0, c.offlineLearnerCount)].filter(Boolean).join(' · ')}
         />
       ))}
     </div>

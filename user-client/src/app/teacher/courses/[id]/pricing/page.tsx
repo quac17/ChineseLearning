@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { Rating } from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
+import { learnerText } from '@/lib/courses';
 import { formatVnd } from '@/lib/programs';
 import s from '../../../teacher.module.css';
 import { useEditorCourse } from '../editor';
@@ -52,17 +54,36 @@ export default function CoursePricingTab() {
         {!course.isFree && course.priceVnd == null && (
           <p className={s.note}>Khoá trả phí chưa có giá nên học viên chưa mua được (chỉ xem bài học thử).</p>
         )}
-        {/* TODO(ratings): show "Đánh giá hiển thị" (value + real source) once courses carry an admin-entered, sourced rating. */}
+        <dl className={s.kvList}>
+          <div>
+            <dt>Đánh giá hiển thị</dt>
+            <dd>
+              {course.rating ? (
+                <Rating value={course.rating.value} source={course.rating.source} />
+              ) : (
+                'Không có (chỉ hiện khi admin nhập kèm nguồn thật)'
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt>Học viên</dt>
+            <dd>{learnerText(course.learnerCount ?? 0, course.offlineLearnerCount) ?? 'Chưa có'}</dd>
+          </div>
+        </dl>
         {user?.role === 'ADMIN' ? (
           <p className={s.note}>
             Bạn là admin: đặt giá ở trang{' '}
             <Link href="/admin/prices" className={s.textLink}>
               Giá khoá học
             </Link>
+            , đánh giá có nguồn ở trang{' '}
+            <Link href="/admin/ratings" className={s.textLink}>
+              Đánh giá & học viên
+            </Link>
             .
           </p>
         ) : (
-          <p className={s.note}>Giá do admin quản lý. Cần đổi? Liên hệ admin. Khu giáo viên không hiển thị doanh thu.</p>
+          <p className={s.note}>Giá và đánh giá do admin quản lý. Cần đổi? Liên hệ admin. Khu giáo viên không hiển thị doanh thu.</p>
         )}
       </section>
       <section className={`${s.card} ${s.panel} ${s.sideCol}`} aria-labelledby="preview-title">

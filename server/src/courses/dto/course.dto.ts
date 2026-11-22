@@ -6,6 +6,7 @@ import {
   IsBoolean,
   IsEnum,
   IsInt,
+  IsNumber,
   IsOptional,
   IsString,
   Max,
@@ -95,6 +96,31 @@ export class SetCoursePriceDto {
   @Min(1000, { message: 'Giá tối thiểu 1.000 ₫' })
   @Max(100_000_000, { message: 'Giá tối đa 100.000.000 ₫' })
   priceVnd: number | null;
+}
+
+/**
+ * Admin only. Both null = no rating (the block is hidden). A value is only
+ * accepted with its real source; the pairing is checked in the service.
+ */
+export class SetCourseRatingDto {
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @IsNumber({ maxDecimalPlaces: 1 }, { message: 'Điểm đánh giá từ 1 đến 5, tối đa một chữ số thập phân.' })
+  ratingValue?: number | null;
+
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @IsString({ message: 'Nguồn đánh giá không hợp lệ' })
+  ratingSource?: string | null;
+}
+
+/** Admin only. Learners of the offline classes, shown apart from online accounts; null = none. */
+export class SetOfflineLearnersDto {
+  @ValidateIf((_, value) => value !== null)
+  @IsInt({ message: 'Số học viên offline phải là số nguyên' })
+  @Min(1, { message: 'Số học viên offline tối thiểu 1 (để trống nếu không có)' })
+  @Max(1_000_000, { message: 'Số học viên offline quá lớn' })
+  offlineLearnerCount: number | null;
 }
 
 export class ReorderCoursesDto {
