@@ -1,13 +1,27 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import * as path from 'path';
 import { DatabaseService } from '../database/database.service';
 import { StorageService } from '../common/storage/storage.service';
 import { AuthUser } from '../common/decorators/current-user.decorator';
 import { generateId, ProgramModule, Role } from '../common/types/domain.types';
 import { CreateCourseDto, UpdateCourseDto } from './dto/course.dto';
+import { courseSearchClause, courseSearchPattern } from './course-search';
+import { buildOutline } from './course-outline';
+import { checkRating } from './course-proof';
+import { reviewSummary } from '../reviews/reviews.rules';
+import { COVER_CONTENT_TYPES, CoverImageType, detectImageType, normalizeOutcomes, sumDurationMinutes } from './course-meta';
+
+/** Public cover path with a version from the storage key, so a new upload is never served from cache. */
+function coverPath(courseId: string, coverKey: string | null | undefined): string | null {
+  if (!coverKey) return null;
+  const version = path.basename(coverKey).split('.')[0];
+  return `/courses/${encodeURIComponent(courseId)}/cover?v=${encodeURIComponent(version)}`;
+}
 
 @Injectable()
 export class CoursesService {
@@ -40,11 +54,13 @@ export class CoursesService {
     if (courseRows.length === 0) return [];
     const courseIds = courseRows.map((c) => c.id);
 
-    const [lessonsRows, docsRows, enrollRows] = await Promise.all([
+    const [lessonsRows, docsRows, enrollRows, sectionRows, reviewRows] = await Promise.all([
       this.db.queryAll(
-        `SELECT * FROM lessons
-         WHERE course_id = ANY($1::varchar[])
-         ORDER BY sort_order ASC, created_at ASC`,
+        `SELECT l.*,
+                (SELECT count(*)::int FROM lesson_vocabulary v WHERE v.lesson_id = l.id) AS vocabulary_count
+         FROM lessons l
+         WHERE l.course_id = ANY($1::varchar[])
+         ORDER BY l.sort_order ASC, l.created_at ASC`,
         [courseIds],
       ),
       this.db.queryAll(
@@ -60,7 +76,26 @@ export class CoursesService {
          WHERE e.course_id = ANY($1::varchar[]) AND e.can_view = TRUE`,
         [courseIds],
       ),
+      this.db.queryAll(
+        `SELECT id, course_id, title, sort_order, created_at FROM course_sections
+         WHERE course_id = ANY($1::varchar[])`,
+        [courseIds],
+      ),
+      this.db.queryAll(
+        `SELECT course_id, count(*)::int AS count, avg(stars) AS average FROM course_reviews
+         WHERE course_id = ANY($1::varchar[]) AND is_hidden = FALSE
+         GROUP BY course_id`,
+        [courseIds],
+      ),
     ]);
+    const reviewsByCourse = new Map(reviewRows.map((r) => [r.course_id, r]));
+
+    const sectionsByCourse = new Map<string, any[]>();
+    for (const sec of sectionRows) {
+      const arr = sectionsByCourse.get(sec.course_id) || [];
+      arr.push(sec);
+      sectionsByCourse.set(sec.course_id, arr);
+    }
 
     const lessonsByCourse = new Map<string, any[]>();
     for (const l of lessonsRows) {
@@ -88,12 +123,17 @@ export class CoursesService {
       enrollsByCourse.set(e.course_id, arr);
     }
 
-    return courseRows.map((c) => ({
-      ...c,
-      lessons: lessonsByCourse.get(c.id) || [],
-      documents: docsByCourse.get(c.id) || [],
-      enrollments: enrollsByCourse.get(c.id) || [],
-    }));
+    return courseRows.map((c) => {
+      const outline = buildOutline(sectionsByCourse.get(c.id) || [], lessonsByCourse.get(c.id) || []);
+      return {
+        ...c,
+        sections: outline.sections,
+        lessons: outline.lessons,
+        documents: docsByCourse.get(c.id) || [],
+        enrollments: enrollsByCourse.get(c.id) || [],
+        reviewStats: reviewsByCourse.get(c.id) ?? null,
+      };
+    });
   }
 
   private formatCourseForViewer(
@@ -116,7 +156,9 @@ export class CoursesService {
         title: lesson.title,
         description: lesson.description,
         duration: lesson.duration,
+        durationMinutes: lesson.duration_minutes ?? null,
         sortOrder: lesson.sort_order ?? 0,
+        sectionId: lesson.section_id ?? null,
         isFree: lesson.is_free,
         sourceType: lesson.source_type,
         canWatch,
@@ -126,8 +168,13 @@ export class CoursesService {
           canWatch && lesson.source_type === 'UPLOAD'
             ? `/lessons/${lesson.id}/stream`
             : null,
+        subtitlePath:
+          canWatch && lesson.source_type === 'UPLOAD' && lesson.subtitle_key
+            ? `/lessons/${lesson.id}/subtitle`
+            : null,
         originalFileName: lesson.original_file_name,
         fileSize: lesson.file_size,
+        vocabularyCount: lesson.vocabulary_count ?? 0,
         createdAt: lesson.created_at,
       };
     });
@@ -150,49 +197,87 @@ export class CoursesService {
       };
     });
 
+    const { totalMinutes } = sumDurationMinutes(course.lessons || []);
+
     return {
       id: course.id,
       title: course.title,
+      subtitle: course.subtitle ?? null,
       description: course.description,
       module: course.module as ProgramModule,
+      level: course.level ?? null,
+      outcomes: course.outcomes ?? [],
+      /** Public image path (covers are marketing, not paid content); null = program colour. */
+      coverUrl: coverPath(course.id, course.cover_key),
+      /** Sum of the lessons that have minutes. */
+      totalDurationMinutes: totalMinutes,
+      /** Shown only with its stated source; null = hide the rating block. */
+      rating:
+        course.rating_value != null && course.rating_source
+          ? { value: Number(course.rating_value), source: course.rating_source }
+          : null,
+      /**
+       * Real reviews from learners who bought the course (#41), never merged
+       * with the sourced `rating`. `average` is null below REVIEWS_MIN_TO_SHOW.
+       */
+      reviews: reviewSummary(course.reviewStats?.count ?? 0, course.reviewStats?.average ?? null),
+      /** Accounts that can open the course right now (open enrollments). */
+      learnerCount: (course.enrollments || []).length,
+      /** Offline-class learners, shown apart ("+80 lớp offline"), never added to learnerCount. */
+      offlineLearnerCount: course.offline_learner_count ?? null,
       sortOrder: course.sort_order ?? 0,
       isFree: course.is_free,
       isPublished: course.is_published,
+      priceVnd: course.price_vnd ?? null,
       teacherId: course.teacher_id,
       teacher: {
         id: course.teacher_id,
         fullName: course.teacher_name,
         email: course.teacher_email,
+        bio: course.teacher_bio ?? null,
       },
       hasAccess: hasCourseAccess,
       createdAt: course.created_at,
+      updatedAt: course.updated_at,
+      /** Sections in order with their lesson ids; empty = flat lesson list. */
+      sections: course.sections || [],
+      /** Already in display order (section by section, unassigned last). */
       lessons,
       documents,
     };
   }
 
-  async findAll(moduleFilter: string | undefined, user: AuthUser | null) {
-    const validModule =
-      moduleFilter && ['easy', 'yct', 'hsk', 'talk'].includes(moduleFilter)
-        ? moduleFilter
-        : null;
+  /**
+   * Published courses, optionally filtered by program and a search term that
+   * matches the title, description or teacher name (case-insensitive).
+   */
+  async findAll(
+    moduleFilter: string | undefined,
+    search: string | undefined,
+    user: AuthUser | null,
+  ) {
+    const where = ['c.is_published = TRUE'];
+    const params: unknown[] = [];
 
-    const courseRows = validModule
-      ? await this.db.queryAll(
-          `SELECT c.*, u.full_name AS teacher_name, u.email AS teacher_email
-           FROM courses c
-           JOIN users u ON u.id = c.teacher_id
-           WHERE c.is_published = TRUE AND c.module = $1
-           ORDER BY c.sort_order ASC, c.created_at ASC`,
-          [validModule],
-        )
-      : await this.db.queryAll(
-          `SELECT c.*, u.full_name AS teacher_name, u.email AS teacher_email
-           FROM courses c
-           JOIN users u ON u.id = c.teacher_id
-           WHERE c.is_published = TRUE
-           ORDER BY c.sort_order ASC, c.created_at ASC`,
-        );
+    if (moduleFilter && ['easy', 'yct', 'hsk', 'talk'].includes(moduleFilter)) {
+      params.push(moduleFilter);
+      where.push(`c.module = $${params.length}`);
+    }
+
+    const pattern = courseSearchPattern(search);
+    if (pattern) {
+      params.push(pattern);
+      where.push(`(${courseSearchClause(`$${params.length}`)})`);
+    }
+
+    const courseRows = await this.db.queryAll(
+      `SELECT c.*, u.full_name AS teacher_name, u.email AS teacher_email, u.bio AS teacher_bio
+       FROM courses c
+       JOIN users u ON u.id = c.teacher_id
+       WHERE ${where.join(' AND ')}
+       ORDER BY c.sort_order ASC, c.created_at ASC`,
+      params,
+    );
 
     const [enriched, enrollments] = await Promise.all([
       this.attachCourseRelations(courseRows),
@@ -213,13 +298,13 @@ export class CoursesService {
     const courseRows =
       user.role === Role.ADMIN
         ? await this.db.queryAll(
-            `SELECT c.*, u.full_name AS teacher_name, u.email AS teacher_email
+            `SELECT c.*, u.full_name AS teacher_name, u.email AS teacher_email, u.bio AS teacher_bio
              FROM courses c
              JOIN users u ON u.id = c.teacher_id
              ORDER BY c.sort_order ASC, c.created_at ASC`,
           )
         : await this.db.queryAll(
-            `SELECT c.*, u.full_name AS teacher_name, u.email AS teacher_email
+            `SELECT c.*, u.full_name AS teacher_name, u.email AS teacher_email, u.bio AS teacher_bio
              FROM courses c
              JOIN users u ON u.id = c.teacher_id
              WHERE c.teacher_id = $1
@@ -236,7 +321,7 @@ export class CoursesService {
 
   async findOne(id: string, user: AuthUser | null) {
     const row = await this.db.queryOne(
-      `SELECT c.*, u.full_name AS teacher_name, u.email AS teacher_email
+      `SELECT c.*, u.full_name AS teacher_name, u.email AS teacher_email, u.bio AS teacher_bio
        FROM courses c
        JOIN users u ON u.id = c.teacher_id
        WHERE c.id = $1`,
@@ -257,11 +342,49 @@ export class CoursesService {
         : Promise.resolve([]),
     ]);
 
-    return this.formatCourseForViewer(
+    const course = this.formatCourseForViewer(
       enriched[0],
       user,
       new Set(enrollments.map((e) => e.course_id)),
     );
+    // Who can view the course is shown to its manager only (course editor).
+    const canManage =
+      Boolean(user) &&
+      (user.role === Role.ADMIN || (user.role === Role.TEACHER && row.teacher_id === user.id));
+    return canManage ? { ...course, enrollments: enriched[0].enrollments } : course;
+  }
+
+  async setPrice(id: string, priceVnd: number | null) {
+    const row = await this.db.queryOne(
+      'UPDATE courses SET price_vnd = $1, updated_at = NOW() WHERE id = $2 RETURNING id, price_vnd',
+      [priceVnd, id],
+    );
+    if (!row) throw new NotFoundException('Không tìm thấy khóa học.');
+    return { id: row.id, priceVnd: row.price_vnd };
+  }
+
+  async setRating(id: string, ratingValue: number | null | undefined, ratingSource: string | null | undefined) {
+    const checked = checkRating({ ratingValue, ratingSource });
+    if ('message' in checked) throw new BadRequestException(checked.message);
+    const row = await this.db.queryOne(
+      `UPDATE courses SET rating_value = $1, rating_source = $2, updated_at = NOW()
+       WHERE id = $3 RETURNING id, rating_value, rating_source`,
+      [checked.ratingValue, checked.ratingSource, id],
+    );
+    if (!row) throw new NotFoundException('Không tìm thấy khóa học.');
+    return {
+      id: row.id,
+      rating: row.rating_value != null ? { value: Number(row.rating_value), source: row.rating_source } : null,
+    };
+  }
+
+  async setOfflineLearners(id: string, count: number | null) {
+    const row = await this.db.queryOne(
+      'UPDATE courses SET offline_learner_count = $1, updated_at = NOW() WHERE id = $2 RETURNING id, offline_learner_count',
+      [count, id],
+    );
+    if (!row) throw new NotFoundException('Không tìm thấy khóa học.');
+    return { id: row.id, offlineLearnerCount: row.offline_learner_count };
   }
 
   async create(dto: CreateCourseDto, user: AuthUser) {
@@ -272,8 +395,8 @@ export class CoursesService {
     const nextOrder = (maxRow?.max_order ?? -1) + 1;
 
     const created = await this.db.queryOne(
-      `INSERT INTO courses (id, title, description, module, sort_order, is_free, is_published, teacher_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO courses (id, title, description, module, sort_order, is_free, is_published, teacher_id, subtitle, level, outcomes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *`,
       [
         id,
@@ -284,14 +407,26 @@ export class CoursesService {
         dto.isFree ?? false,
         dto.isPublished ?? true,
         user.id,
+        dto.subtitle ?? null,
+        dto.level ?? null,
+        normalizeOutcomes(dto.outcomes ?? []),
       ],
     );
 
     return {
       id: created.id,
       title: created.title,
+      subtitle: created.subtitle,
       description: created.description,
       module: created.module,
+      level: created.level,
+      outcomes: created.outcomes,
+      coverUrl: null,
+      totalDurationMinutes: 0,
+      rating: null,
+      reviews: { average: null, count: 0 },
+      learnerCount: 0,
+      offlineLearnerCount: null,
       sortOrder: created.sort_order,
       isFree: created.is_free,
       isPublished: created.is_published,
@@ -299,9 +434,49 @@ export class CoursesService {
       teacher: { id: user.id, fullName: user.fullName, email: user.email },
       hasAccess: true,
       createdAt: created.created_at,
+      sections: [],
       lessons: [],
       documents: [],
     };
+  }
+
+  /**
+   * Stores a new cover (JPEG, PNG or WebP, checked by its bytes) under a
+   * server-generated key and removes the previous file.
+   */
+  async setCover(courseId: string, file: Express.Multer.File | undefined, user: AuthUser) {
+    if (!file?.buffer?.length) throw new BadRequestException('Vui lòng chọn ảnh bìa để tải lên.');
+    const course = await this.assertCanManageCourse(courseId, user);
+    const type = detectImageType(file.buffer);
+    if (!type) throw new BadRequestException('Ảnh bìa phải là tệp JPG, PNG hoặc WebP.');
+
+    const key = this.storage.generateStorageKey('covers', `cover.${type}`);
+    await this.storage.saveBuffer(key, file.buffer, COVER_CONTENT_TYPES[type]);
+    try {
+      await this.db.query('UPDATE courses SET cover_key = $1, updated_at = NOW() WHERE id = $2', [key, courseId]);
+    } catch (err) {
+      await this.storage.deleteFile(key);
+      throw err;
+    }
+    if (course.cover_key && course.cover_key !== key) await this.storage.deleteFile(course.cover_key);
+    return { id: courseId, coverUrl: coverPath(courseId, key) };
+  }
+
+  async removeCover(courseId: string, user: AuthUser) {
+    const course = await this.assertCanManageCourse(courseId, user);
+    await this.db.query('UPDATE courses SET cover_key = NULL, updated_at = NOW() WHERE id = $1', [courseId]);
+    await this.storage.deleteFile(course.cover_key);
+    return { id: courseId, coverUrl: null };
+  }
+
+  /** The cover file to stream (public). */
+  async getCover(courseId: string): Promise<{ key: string; contentType: string }> {
+    const row = await this.db.queryOne('SELECT cover_key FROM courses WHERE id = $1', [courseId]);
+    if (!row?.cover_key || !(await this.storage.fileExists(row.cover_key))) {
+      throw new NotFoundException('Khoá học chưa có ảnh bìa.');
+    }
+    const ext = path.extname(row.cover_key).slice(1) as CoverImageType;
+    return { key: row.cover_key, contentType: COVER_CONTENT_TYPES[ext] ?? 'application/octet-stream' };
   }
 
   async assertCanManageCourse(courseId: string, user: AuthUser) {
@@ -344,6 +519,18 @@ export class CoursesService {
       sets.push(`is_published = $${idx++}`);
       params.push(dto.isPublished);
     }
+    if (dto.subtitle !== undefined) {
+      sets.push(`subtitle = $${idx++}`);
+      params.push(dto.subtitle);
+    }
+    if (dto.level !== undefined) {
+      sets.push(`level = $${idx++}`);
+      params.push(dto.level);
+    }
+    if (dto.outcomes !== undefined) {
+      sets.push(`outcomes = $${idx++}`);
+      params.push(normalizeOutcomes(dto.outcomes));
+    }
 
     params.push(id);
     const updated = await this.db.queryOne(
@@ -368,15 +555,34 @@ export class CoursesService {
   async remove(id: string, user: AuthUser) {
     await this.assertCanManageCourse(id, user);
 
+    // Learners who bought or were granted the course must not lose it to a
+    // teacher's click; an admin can still delete (after refunds, for example).
+    if (user.role !== Role.ADMIN) {
+      const learners = await this.db.queryOne(
+        'SELECT count(*)::int AS n FROM course_enrollments WHERE course_id = $1 AND can_view = TRUE',
+        [id],
+      );
+      if (learners?.n > 0) {
+        throw new BadRequestException(
+          'Khoá học đã có học viên nên không thể xoá. Hãy chuyển về bản nháp hoặc liên hệ admin.',
+        );
+      }
+    }
+
     const [lessons, docs] = await Promise.all([
-      this.db.queryAll('SELECT storage_key FROM lessons WHERE course_id = $1', [id]),
+      this.db.queryAll('SELECT storage_key, subtitle_key FROM lessons WHERE course_id = $1', [id]),
       this.db.queryAll('SELECT storage_key FROM course_documents WHERE course_id = $1', [
         id,
       ]),
     ]);
 
-    for (const l of lessons) await this.storage.deleteFile(l.storage_key);
+    const course = await this.db.queryOne('SELECT cover_key FROM courses WHERE id = $1', [id]);
+    for (const l of lessons) {
+      await this.storage.deleteFile(l.storage_key);
+      await this.storage.deleteFile(l.subtitle_key);
+    }
     for (const d of docs) await this.storage.deleteFile(d.storage_key);
+    await this.storage.deleteFile(course?.cover_key);
 
     await this.db.query('DELETE FROM courses WHERE id = $1', [id]);
     return { deleted: true, id };

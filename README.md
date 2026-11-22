@@ -83,6 +83,17 @@ yarn client:start   # Chạy bản production
 
 ---
 
+## Phát triển cùng AI (Claude Code, Codex, Gemini CLI)
+
+Hướng dẫn chung cho mọi AI nằm ở [AGENTS.md](./AGENTS.md); quy tắc code & checklist review ở [CODING_STANDARDS.md](./CODING_STANDARDS.md); thuật ngữ ở [GLOSSARY.md](./GLOSSARY.md). Skill nằm trong `.agents/skills/` (Claude đọc qua symlink `.claude/skills`).
+
+Sau khi clone, cài thêm các skill không được commit (vì license):
+```bash
+yarn skills:install
+```
+
+---
+
 ## Tài khoản mẫu (sau khi chạy `yarn db:seed`)
 
 | Vai trò | Email | Mật khẩu | Ghi chú |
@@ -91,5 +102,50 @@ yarn client:start   # Chạy bản production
 | **Giáo viên** | `teacher@chineselearner.vn` | `Teacher@123` | Tạo khóa học, upload video/tài liệu & cấp quyền |
 | **Học sinh A** | `studentA@chineselearner.vn` | `Student@123` | Đã được cấp quyền khóa **HSK 1** |
 | **Học sinh B** | `studentB@chineselearner.vn` | `Student@123` | Chưa được cấp quyền khóa trả phí |
+
+## Thanh toán PayOS
+
+PayOS **không có môi trường sandbox**: mọi giao dịch qua PayOS là tiền thật.
+
+- **Mặc định (`PAYMENT_GATEWAY=fake` trong `server/.env`):** dùng cổng giả lập.
+  Trang thanh toán vẫn hiện mã QR (không quét được) và nút **"Giả lập: đã thanh toán"**.
+  Nút này đi qua đúng đường xử lý webhook thật. Cổng giả lập tự chặn khi `NODE_ENV=production`.
+- **Thử PayOS thật:** đặt `PAYMENT_GATEWAY=payos` và 3 key `PAYOS_*` (lấy ở my.payos.vn),
+  rồi mua khoá demo "Giao tiếp du lịch Trung Quốc" giá 2.000 ₫ (`yarn db:demo`).
+  Ở local, PayOS không gọi được webhook vào máy bạn. Trang thanh toán tự hỏi lại PayOS
+  vài giây một lần nên vẫn mở khoá sau khi trả tiền.
+- **Giá khoá học:** admin đặt ở `/admin/prices`. Để trống nghĩa là chưa mở bán.
+  Đơn hàng xem ở `/admin/orders`.
+- DB đang có dữ liệu thì chạy migration
+  `server/db/migrations/20261122_1200_payments.sql` (chạy lại nhiều lần vẫn an toàn).
+
+## Dữ liệu demo để thử giao diện (`yarn db:demo`)
+
+Seed ở trên rất ít vì bộ test e2e dựa vào nó. Để có nhiều khoá học, bài học và
+tài khoản mà bấm thử, nạp thêm dữ liệu demo **chồng lên seed** (chỉ trên DB local):
+
+```bash
+yarn db:reset && yarn db:seed && yarn db:demo
+```
+
+`yarn db:demo` chạy lại được bao nhiêu lần cũng được: nó xoá rồi tạo lại các dòng
+`demo-*`, ghi tài liệu mẫu vào `server/uploads/documents/` và tạo video mẫu
+(thẻ tiêu đề 4 giây, cần Chromium của Playwright) vào `server/uploads/videos/`.
+Toàn bộ là nội dung bịa để thử giao diện, không có đánh giá hay số học viên. Giá trên các khoá là giá thử để test thanh toán.
+
+Mật khẩu mọi tài khoản demo: `Demo@123`.
+
+| Email | Vai trò | Dùng để thử |
+|---|---|---|
+| `gv.minh@demo.vankinh.vn` | Giáo viên | HSK 2, HSK 3, du lịch, khoá nháp HSK 4 (chưa xuất bản) |
+| `gv.ha@demo.vankinh.vn` | Giáo viên | Khoá miễn phí (pinyin, ngữ pháp), tiếng Trung công sở |
+| `hv01@demo.vankinh.vn` | Học viên | Có 2 khoá: HSK 2, HSK 3 |
+| `hv02@demo.vankinh.vn` | Học viên | Có khoá công sở |
+| `hv03@demo.vankinh.vn` | Học viên | Có YCT 2 và Easy Steps 2 |
+| `hv04@demo.vankinh.vn` | Học viên | Bị thu hồi quyền HSK 2 (thấy bài bị khoá) |
+| `hv05@demo.vankinh.vn` | Học viên | Chưa có khoá nào (trạng thái trống) |
+| `hv06@demo.vankinh.vn` | Học viên | Tài khoản bị khoá: không đăng nhập được |
+
+Ngoài ra Học sinh A được thêm HSK 2, và "YCT 3 – Sắp ra mắt" là khoá chưa có bài.
 
 Xem thêm hướng dẫn chi tiết tại [tmp/HUONG-DAN-CHAY-LOCAL.md](./tmp/HUONG-DAN-CHAY-LOCAL.md) và [tmp/HUONG-DAN-DEPLOY-GCP.md](./tmp/HUONG-DAN-DEPLOY-GCP.md).

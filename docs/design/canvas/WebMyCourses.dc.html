@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Web – Khoá học của tôi</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&amp;family=Noto+Serif+SC:wght@600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}*{box-sizing:border-box}
+a{color:#C2321C}
+.han{font-family:'Noto Serif SC',serif}
+.btn{height:44px;padding:0 18px;border:0;border-radius:4px;font:700 15px 'Be Vietnam Pro',sans-serif;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;white-space:nowrap}
+.ink{background:#1C1D1F;color:#fff}.out{background:#fff;color:#1C1D1F;box-shadow:inset 0 0 0 1px #1C1D1F}.acc{background:#C2321C;color:#fff}
+.mut{color:#6A6F73}
+.wrap{max-width:1340px;margin:0 auto;padding:0 24px}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+.card{display:flex;flex-direction:column;gap:6px;text-decoration:none;color:#1C1D1F}
+.thumb{aspect-ratio:16 / 9;border-radius:4px;display:flex;align-items:flex-end;justify-content:flex-end;padding:10px;color:#fff}
+.be{display:inline-flex;padding:3px 8px;border-radius:4px;font-size:12px;font-weight:700;background:#FFF3D6;color:#5A3A00;border:1px dashed #B4690E}
+@media (max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.wrap{padding:0 16px}.grid{grid-template-columns:1fr}}
+</style>
+</helmet>
+<div style="width: 100%; background: #FFFFFF; color: #1C1D1F; font-family: 'Be Vietnam Pro', system-ui, sans-serif; padding-bottom: 72px">
+  <header style="background: #1C1D1F; color: #fff">
+    <div class="wrap" style="height: 64px; display: flex; align-items: center; justify-content: space-between">
+      <a href="WebHome.dc.html" aria-label="Vân Kính, trang chủ" style="display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none"><svg width="32" height="32" viewBox="0 0 64 64" aria-hidden="true"><defs><clipPath id="L"><circle cx="32" cy="32" r="30"></circle></clipPath></defs><g clip-path="url(#L)"><rect width="64" height="64" fill="#E0553E"></rect><path d="M0 44 L13 37 L22 41 L33 34 L46 40 L64 33 V64 H0 Z" fill="#B8402C"></path><path d="M14 64 C 22 59, 34 57, 34 52 C 34 47.5, 27.5 46.5, 27.5 43 C 27.5 40, 31.4 38.5, 31.6 35.5 H33 C 33.2 38.5, 32.2 40.5, 32.2 43 C 32.2 45.5, 44 47.5, 44 52.5 C 44 57.5, 40 60, 44 64 Z" fill="#FFFFFF"></path><path d="M18 30 H46 A5.5 5.5 0 0 0 44.5 19.6 A8 8 0 0 0 29.5 16.5 A6.5 6.5 0 0 0 18 30 Z" fill="#FFFFFF"></path></g></svg><span style="font-size: 19px; font-weight: 800; letter-spacing: -0.035em">Vân Kính</span></a>
+      <nav style="display: flex; gap: 24px; font-size: 14px"><a href="WebCatalog.dc.html" style="color: #fff; text-decoration: none">Khám phá khoá học</a><a href="WebProfile.dc.html" style="color: #fff; text-decoration: none">Tài khoản</a></nav>
+    </div>
+    <div class="wrap" style="padding-top: 28px; padding-bottom: 0">
+      <h1 style="margin: 0 0 20px; font-size: 36px; font-weight: 800; letter-spacing: -0.02em">Khoá học của tôi</h1>
+      <div role="tablist" aria-label="Lọc khoá học" style="display: flex; gap: 28px; font-size: 16px; font-weight: 700">
+        <button role="tab" aria-selected="true" style="border: 0; background: none; padding: 0 0 14px; color: #fff; font: inherit; box-shadow: inset 0 -4px 0 #fff">Tất cả (3)</button>
+        <button role="tab" aria-selected="false" style="border: 0; background: none; padding: 0 0 14px; color: #A6ABAF; font: inherit">Đang học (2)</button>
+        <button role="tab" aria-selected="false" style="border: 0; background: none; padding: 0 0 14px; color: #A6ABAF; font: inherit">Đã xong (1)</button>
+        <button role="tab" aria-selected="false" style="border: 0; background: none; padding: 0 0 14px; color: #A6ABAF; font: inherit">Ôn tập</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap" style="padding-top: 32px; display: flex; flex-direction: column; gap: 32px">
+    <section aria-labelledby="cont" style="border: 1px solid #D1D7DC; border-radius: 4px; padding: 20px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap">
+      <div style="width: 220px; aspect-ratio: 16 / 9; border-radius: 4px; background: #1F4FA0; display: flex; align-items: center; justify-content: center; flex: none"><span style="width: 52px; height: 52px; border-radius: 26px; background: #fff; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l12 7-12 7z" fill="#1C1D1F"></path></svg></span></div>
+      <div style="flex: 1 1 300px; display: flex; flex-direction: column; gap: 8px">
+        <span style="display: flex; gap: 8px; align-items: center"><h2 id="cont" style="margin: 0; font-size: 20px; font-weight: 800">Học tiếp</h2><span class="be">Cần backend: tiến độ học</span></span>
+        <span style="font-size: 16px; font-weight: 700">HSK 1 · Bài 2: Bốn thanh điệu</span>
+        <span class="mut" style="font-size: 14px">Dừng ở 06:12 / 14:00 · hôm qua</span>
+      </div>
+      <a href="WebPlayer.dc.html" class="btn ink">Học tiếp</a>
+    </section>
+
+    <div class="grid">
+      <sc-for list="{{ courses }}" as="c" hint-placeholder-count="3">
+        <a href="WebPlayer.dc.html" class="card">
+          <div class="thumb" style="background: {{ c.color }}"><span class="han" style="font-size: 38px; line-height: 1">{{ c.han }}</span></div>
+          <span style="font-size: 16px; font-weight: 700; line-height: 1.3; margin-top: 4px">{{ c.title }}</span>
+          <span class="mut" style="font-size: 13px">GV [Tên giáo viên]</span>
+          <div role="progressbar" aria-valuenow="{{ c.pct }}" aria-valuemin="0" aria-valuemax="100" aria-label="Tiến độ" style="height: 4px; background: #D1D7DC; border-radius: 2px; margin-top: 6px"><div style="width: {{ c.w }}; height: 4px; background: #C2321C; border-radius: 2px"></div></div>
+          <span style="font-size: 13px">{{ c.state }}</span>
+        </a>
+      </sc-for>
+      <div style="border: 1px dashed #D1D7DC; border-radius: 4px; padding: 20px; display: flex; flex-direction: column; gap: 10px; justify-content: center; align-items: flex-start">
+        <span style="font-size: 16px; font-weight: 700">Tìm khoá tiếp theo</span>
+        <span class="mut" style="font-size: 14px">Xong HSK 1? HSK 2 nối tiếp ngay từ vựng bạn đã học.</span>
+        <a href="WebCatalog.dc.html" class="btn out">Khám phá khoá học</a>
+      </div>
+    </div>
+
+    <section aria-labelledby="empty" style="background: #F7F9FA; border-radius: 4px; padding: 28px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start">
+      <h2 id="empty" style="margin: 0; font-size: 18px; font-weight: 800">Trạng thái trống (tài khoản chưa có khoá nào)</h2>
+      <p style="margin: 0; font-size: 15px; line-height: 1.5">Bạn chưa có khoá học nào. Bắt đầu bằng một bài học thử miễn phí, không cần thanh toán.</p>
+      <a href="WebCatalog.dc.html" class="btn acc">Xem bài học thử</a>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      courses: [
+        { title: 'HSK 1: nền tảng và 150 từ vựng', han: '一', color: '#1F4FA0', pct: 40, w: '40%', state: '40% · 6 / 15 bài' },
+        { title: 'Easy Steps: tiếng Trung bước đầu', han: '易', color: '#4E8A2E', pct: 100, w: '100%', state: 'Đã hoàn thành' },
+        { title: 'Giao tiếp đời sống và thương mại', han: '说', color: '#1E6E5C', pct: 0, w: '0%', state: 'Chưa bắt đầu' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

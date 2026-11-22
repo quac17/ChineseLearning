@@ -1,0 +1,278 @@
+/* Catalog (docs/design/canvas/WebCatalog.dc.html). */
+
+.page {
+  padding-top: 28px;
+  padding-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.crumbs {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+.crumbs a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.crumbs a:hover {
+  text-decoration: underline;
+}
+.crumbSep {
+  color: var(--muted);
+  margin: 0 4px;
+}
+.title {
+  margin: 0;
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.chip {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 18px;
+  border: 1px solid var(--ink);
+  background: var(--bg);
+  color: var(--ink);
+  font: 700 14px var(--font-sans);
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+.chip:hover {
+  background: var(--surface);
+}
+.chip[aria-current='true'],
+.chipOn {
+  background: var(--ink);
+  color: var(--inverse);
+}
+button.chip {
+  cursor: pointer;
+}
+.chipOn:hover {
+  background: var(--ink);
+}
+.chipX {
+  margin-left: 6px;
+  font-size: 16px;
+}
+ul.chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Phone search bar and "Tìm gần đây" (docs/design/canvas/AppSearch.dc.html). */
+.phoneBar,
+.recent {
+  display: none;
+}
+.recent {
+  flex-direction: column;
+  gap: 10px;
+}
+.recent h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  align-items: flex-start;
+}
+.filters {
+  flex: 1 1 240px;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.filtersHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.filtersHead h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+.group {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 0;
+  padding: 14px 0 6px;
+  min-width: 0;
+}
+.group legend {
+  font-size: 16px;
+  font-weight: 700;
+  padding: 0;
+}
+
+.list {
+  flex: 999 1 640px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.count {
+  font-size: 14px;
+  color: var(--muted);
+}
+.sort {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sort label {
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.sort select {
+  width: 200px;
+  height: 40px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr) auto;
+  gap: 20px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  text-decoration: none;
+}
+.row:hover .rowTitle {
+  text-decoration: underline;
+}
+.thumb {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 10px;
+  color: #fff;
+}
+.thumbImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.thumbHan {
+  font-family: var(--font-han);
+  font-size: 40px;
+  line-height: 1;
+}
+.rowBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.rowTitle {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.rowDesc {
+  font-size: 14px;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rowMeta {
+  font-size: 13px;
+  color: var(--muted);
+}
+.tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.price {
+  font-size: 18px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.state {
+  padding-top: 20px;
+}
+
+@media (max-width: 760px) {
+  .phoneBar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .recent {
+    display: flex;
+  }
+  .wideOnly {
+    display: none;
+  }
+  .filters {
+    max-width: none;
+    gap: 0;
+  }
+  /* Filters sit above the results on phones: keep them to one wrapped row. */
+  .group {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 18px;
+    padding: 8px 0 0;
+  }
+  .group legend {
+    float: left;
+    width: 100%;
+    padding-bottom: 2px;
+  }
+  .row {
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 14px;
+  }
+  .row .price {
+    grid-column: 2;
+  }
+  .rowDesc {
+    display: none;
+  }
+  .thumbHan {
+    font-size: 28px;
+  }
+  .toolbar {
+    flex-wrap: wrap;
+  }
+  .sort select {
+    width: auto;
+    flex: 1;
+  }
+}

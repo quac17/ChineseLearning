@@ -1,0 +1,610 @@
+/* Teacher area (docs/design/canvas/Teacher*.dc.html). The dashboard shell supplies the grey background. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.sub {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.muted {
+  color: var(--muted);
+}
+.note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.nowrap {
+  white-space: nowrap;
+}
+.right {
+  text-align: right;
+}
+.textLink {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+/* Cards and tables ---------------------------------------------------------- */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  min-width: 0;
+}
+.pad {
+  padding: 16px 20px;
+}
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 16px 20px;
+}
+.cardTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+.scroll {
+  overflow-x: auto;
+  /* Contains the absolutely positioned .sr-only labels in table headers;
+     without it they escape the scroller and widen the page on phones. */
+  position: relative;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.table th {
+  text-align: left;
+  font-weight: 700;
+  color: var(--muted);
+  font-size: 13px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  white-space: nowrap;
+}
+.table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* Overview ------------------------------------------------------------------- */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+.kpi {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+.kpiValue {
+  margin: 6px 0 0;
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.kpiNote {
+  font-size: 13px;
+  color: var(--muted);
+}
+.todos {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 15px;
+}
+.todos li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+/* Course list ---------------------------------------------------------------- */
+.filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.filters input,
+.filters select {
+  height: 40px;
+  width: auto;
+  min-width: 180px;
+}
+.filters input[type='search'] {
+  min-width: 260px;
+}
+.courseCell {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-width: 260px;
+}
+.thumb {
+  flex: none;
+  width: 96px;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 22px;
+}
+.rowTitle {
+  display: block;
+  font-weight: 700;
+  color: inherit;
+  text-decoration: none;
+}
+.rowTitle:hover {
+  text-decoration: underline;
+}
+.rowMeta {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+}
+.rowActions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-end;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Course editor --------------------------------------------------------------- */
+.editorHead {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.crumb {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.crumb a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.crumbCurrent {
+  font-weight: 400;
+  color: var(--muted);
+}
+.titleRow {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.editorTitle {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+.tabs {
+  display: flex;
+  gap: 28px;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+}
+.tab {
+  padding: 4px 0 12px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.tab:hover {
+  color: var(--ink);
+}
+.tab[aria-current='page'] {
+  color: var(--ink);
+  box-shadow: inset 0 -2px 0 var(--ink);
+}
+.body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+}
+.mainCol {
+  flex: 999 1 520px;
+  min-width: 0;
+}
+.sideCol {
+  flex: 1 1 320px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.panel {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.floating {
+  box-shadow: var(--shadow-float);
+}
+.cardHeadTight {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.formActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.twoCols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: end;
+}
+.fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.legend {
+  padding: 0 0 6px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.coverImg {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+.coverPreview > span {
+  width: 100%;
+  font-size: 56px;
+}
+
+/* Sections ("Phần") in the Bài giảng tab */
+.partHead {
+  margin: 0;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 15px;
+  font-weight: 700;
+}
+.partList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.partRow {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+.partNo {
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.partAdd {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.partAdd > :first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+@media (max-width: 600px) {
+  .partRow {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .partRow .partNo {
+    display: none;
+  }
+  .partRow .rowActions {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Lesson rows */
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+.row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.row[data-warn] {
+  background: var(--warning-bg);
+}
+.rowMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.warnText {
+  font-size: 13px;
+  color: var(--warning-ink);
+}
+.order {
+  display: inline-flex;
+  gap: 2px;
+}
+.fileType {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* File drop zone */
+.drop {
+  border: 2px dashed var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  overflow-wrap: anywhere;
+}
+.drop[data-over] {
+  border-color: var(--ink);
+  background: var(--surface);
+}
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+.fileButton {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius);
+  box-shadow: inset 0 0 0 1px var(--ink);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+.fileInput:focus-visible + .fileButton {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.progressRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Vocabulary editor */
+.lessonPick {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.lessonPick select {
+  height: 40px;
+  width: auto;
+  max-width: 100%;
+  min-width: 240px;
+}
+.vocabTable td {
+  padding: 8px 6px;
+  vertical-align: top;
+}
+.vocabTable td:first-child {
+  padding-left: 14px;
+}
+.cell {
+  width: 100%;
+  min-width: 120px;
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--ink);
+  font: 400 15px var(--font-sans);
+}
+.cell:focus {
+  outline: none;
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+.cell[aria-invalid='true'] {
+  border-color: var(--error);
+}
+.cellHan {
+  min-width: 90px;
+  font-family: var(--font-han);
+  font-size: 20px;
+}
+.cellHint {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+  max-width: 180px;
+}
+
+/* Students and pricing */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.compactSelect {
+  height: 40px;
+  width: auto;
+  min-width: 180px;
+}
+.searchBox {
+  max-width: 520px;
+  height: 44px;
+}
+.results {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+  max-width: 520px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-float);
+  background: var(--card);
+}
+.results li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  overflow-wrap: anywhere;
+}
+.rowMetaInline {
+  font-size: 13px;
+  color: var(--muted);
+}
+.progressCell {
+  min-width: 140px;
+}
+.kvList {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+.kvList > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 15px;
+}
+.kvList dt {
+  color: var(--muted);
+}
+.kvList dd {
+  margin: 0;
+  font-weight: 700;
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  .row {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .rowSource,
+  .rowSwitch,
+  .rowActions {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+  .twoCols {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 480px) {
+  .filters input,
+  .filters select,
+  .filters input[type='search'] {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  .kpiValue {
+    font-size: 26px;
+  }
+}

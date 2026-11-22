@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Web – Thanh toán QR</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}*{box-sizing:border-box}
+a{color:#C2321C}
+.btn{height:48px;padding:0 20px;border:0;border-radius:4px;font:700 16px 'Be Vietnam Pro',sans-serif;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none}
+.ink{background:#1C1D1F;color:#fff}.out{background:#fff;color:#1C1D1F;box-shadow:inset 0 0 0 1px #1C1D1F}.acc{background:#C2321C;color:#fff}
+.mut{color:#6A6F73}
+.panel{border:1px solid #D1D7DC;border-radius:4px;background:#fff;padding:28px;display:flex;flex-direction:column;gap:16px}
+.kv{display:flex;justify-content:space-between;gap:16px;font-size:15px;padding:10px 0;border-bottom:1px solid #D1D7DC}
+.be{display:inline-flex;align-self:flex-start;padding:3px 8px;border-radius:4px;font-size:12px;font-weight:700;background:#FFF3D6;color:#5A3A00;border:1px dashed #B4690E}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1000px; padding: 48px 64px; background: #F7F9FA; color: #1C1D1F; font-family: 'Be Vietnam Pro', system-ui, sans-serif; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; align-items: center; justify-content: space-between">
+    <div style="display: flex; align-items: center; gap: 10px"><svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true"><defs><clipPath id="L"><circle cx="32" cy="32" r="30"></circle></clipPath></defs><g clip-path="url(#L)"><rect width="64" height="64" fill="#C2321C"></rect><path d="M0 44 L13 37 L22 41 L33 34 L46 40 L64 33 V64 H0 Z" fill="#9E2715"></path><path d="M14 64 C 22 59, 34 57, 34 52 C 34 47.5, 27.5 46.5, 27.5 43 C 27.5 40, 31.4 38.5, 31.6 35.5 H33 C 33.2 38.5, 32.2 40.5, 32.2 43 C 32.2 45.5, 44 47.5, 44 52.5 C 44 57.5, 40 60, 44 64 Z" fill="#FFFFFF"></path><path d="M18 30 H46 A5.5 5.5 0 0 0 44.5 19.6 A8 8 0 0 0 29.5 16.5 A6.5 6.5 0 0 0 18 30 Z" fill="#FFFFFF"></path></g></svg><span style="font-size: 20px; font-weight: 800; letter-spacing: -0.035em">Vân Kính</span></div>
+    <span class="be">Cần backend: PayOS, bảng orders, webhook</span>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1.15fr 1fr 1fr; gap: 24px; align-items: start">
+    <section class="panel" aria-labelledby="pay">
+      <h1 id="pay" style="margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.02em">Thanh toán khoá học</h1>
+      <div style="display: flex; gap: 14px; align-items: center"><div style="width: 120px; aspect-ratio: 16 / 9; border-radius: 4px; background: #1F4FA0; flex: none"></div><div><p style="margin: 0; font-size: 16px; font-weight: 700">HSK 1: nền tảng và 150 từ vựng</p><p class="mut" style="margin: 4px 0 0; font-size: 14px">Xem trọn đời · [n] bài · tài liệu kèm theo</p></div></div>
+      <div>
+        <div class="kv"><span>Giá khoá học</span><b>[GIÁ] ₫</b></div>
+        <div class="kv" style="border-bottom: 0; font-size: 18px"><b>Tổng thanh toán</b><b>[GIÁ] ₫</b></div>
+      </div>
+      <div style="display: flex; gap: 20px; align-items: center; background: #F7F9FA; border-radius: 4px; padding: 20px">
+        <div style="width: 180px; height: 180px; background: #fff; border: 1px solid #D1D7DC; display: flex; align-items: center; justify-content: center; flex: none; text-align: center; font-size: 13px; color: #6A6F73; padding: 12px">[Mã VietQR do PayOS tạo]</div>
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 15px; line-height: 1.5">
+          <b>Quét mã bằng app ngân hàng</b>
+          <span>Số tiền và nội dung chuyển khoản đã có sẵn trong mã, bạn không cần gõ lại.</span>
+          <span class="mut" style="font-size: 14px">Mã hết hạn sau <b style="color: #1C1D1F">14:52</b></span>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; font-size: 15px"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="#D1D7DC" stroke-width="3"></circle><path d="M12 3a9 9 0 0 1 9 9" fill="none" stroke="#1C1D1F" stroke-width="3"></path></svg>Đang chờ ngân hàng xác nhận… Trang tự cập nhật, bạn không cần tải lại.</div>
+      <p class="mut" style="margin: 0; font-size: 13px; line-height: 1.5">Gặp sự cố? Gửi mã đơn <b style="color: #1C1D1F">VK-[mã]</b> cho [Zalo/email hỗ trợ].</p>
+    </section>
+
+    <section class="panel" aria-labelledby="ok" style="align-items: flex-start">
+      <span style="width: 56px; height: 56px; border-radius: 28px; background: #1E6E5C; display: flex; align-items: center; justify-content: center"><svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10" fill="none" stroke="#fff" stroke-width="2.6"></path></svg></span>
+      <h2 id="ok" style="margin: 0; font-size: 24px; font-weight: 800">Thanh toán thành công</h2>
+      <p style="margin: 0; font-size: 15px; line-height: 1.55">Khoá <b>HSK 1: nền tảng</b> đã mở trên tài khoản của bạn. Hoá đơn đã gửi tới lan@example.com.</p>
+      <a href="WebPlayer.dc.html" class="btn ink">Vào học ngay</a>
+      <a href="WebMyCourses.dc.html" style="font-weight: 700; font-size: 15px">Xem khoá học của tôi</a>
+    </section>
+
+    <section class="panel" aria-labelledby="fail" style="align-items: flex-start">
+      <span style="width: 56px; height: 56px; border-radius: 28px; background: #8C1D40; display: flex; align-items: center; justify-content: center"><svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v8M12 17.5v.5" stroke="#fff" stroke-width="2.6" stroke-linecap="round"></path></svg></span>
+      <h2 id="fail" style="margin: 0; font-size: 24px; font-weight: 800">Mã QR đã hết hạn</h2>
+      <p style="margin: 0; font-size: 15px; line-height: 1.55">Chưa có khoản tiền nào được ghi nhận cho đơn này. Nếu bạn đã chuyển khoản, đừng chuyển lại: hãy gửi mã đơn cho chúng tôi để kiểm tra.</p>
+      <button class="btn acc" type="button">Tạo mã mới</button>
+      <a href="#" style="font-weight: 700; font-size: 15px">Liên hệ hỗ trợ</a>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

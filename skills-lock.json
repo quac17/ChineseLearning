@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "skills": {
+    "SVG Logo Designer": {
+      "source": "rknall/claude-skills",
+      "commit": "ca7fbd0e07f824b119030f323da3409bc779f9bc",
+      "sourceType": "github",
+      "skillPath": "svg-logo-designer/SKILL.md",
+      "computedHash": "e418b0b698948259a10a537a46e81b61ae385dd508889c267c2b3b7acd6680cc"
+    },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "commit": "b49177d32788f2dc585c42831d845dacf1ebed2c",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/impeccable/SKILL.md",
+      "computedHash": "08bd5bf141cb507f46bd8347890cd985865606f15adf88295ed3a73bc9ad5d96"
+    },
+    "transitions-dev": {
+      "source": "Jakubantalik/transitions.dev",
+      "commit": "add5b467b13be16664d10fd888330ce2f3288b07",
+      "sourceType": "github",
+      "skillPath": "skills/transitions-dev/SKILL.md",
+      "computedHash": "c7bc25bf1998615c73188bfcef6deca06c43f1b6f64538a456d446ca9d3911cd"
+    },
+    "transitions-polish": {
+      "source": "Jakubantalik/transitions.dev",
+      "commit": "add5b467b13be16664d10fd888330ce2f3288b07",
+      "sourceType": "github",
+      "skillPath": "skills/transitions-polish/SKILL.md",
+      "computedHash": "37a0842bfb0d9778b9a01fdd83947749476a9549addc60b31c9b8bfe2b2d9aae"
+    }
+  }
+}

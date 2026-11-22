@@ -1,10 +1,24 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import * as cookieParser from 'cookie-parser';
+import * as dotenv from 'dotenv';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
+import { assertProductionEnv } from './config/production-env';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // Fail before Nest starts: a revision with dev defaults must never serve traffic.
+  // Same .env files as ConfigModule; real environment variables win.
+  dotenv.config({ path: '.env' });
+  dotenv.config({ path: '../.env' });
+  assertProductionEnv();
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Behind Cloud Run / a load balancer, req.ip must come from X-Forwarded-For
+  // (password reset limits per IP). TRUST_PROXY = number of proxy hops; unset
+  // locally so a client cannot fake its address.
+  const trustProxy = process.env.TRUST_PROXY;
+  if (trustProxy) app.set('trust proxy', /^\d+$/.test(trustProxy) ? Number(trustProxy) : trustProxy);
 
   app.use(cookieParser());
   app.setGlobalPrefix('api');

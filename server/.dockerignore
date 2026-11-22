@@ -1,6 +1,17 @@
+# Only package.json, yarn.lock, tsconfig*, nest-cli.json and src/ are needed to build.
 node_modules
 dist
+dist-e2e
 uploads
+db
 .env
+.env.*
+!.env.example
 .git
 *.log
+coverage
+*.tsbuildinfo
+**/*.spec.ts
+# Never bake credentials into an image.
+*service-account*.json
+*credentials*.json

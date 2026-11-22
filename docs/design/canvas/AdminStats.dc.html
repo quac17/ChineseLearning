@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Admin – Thống kê</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}*{box-sizing:border-box}
+a{color:#C2321C}
+.mut{color:#6A6F73}
+.shell{display:flex;flex-wrap:wrap;min-height:900px}
+.side{flex:0 0 240px;background:#1C1D1F;color:#fff;padding:20px 12px;display:flex;flex-direction:column;gap:4px}
+.side a{min-height:40px;padding:0 12px;display:flex;align-items:center;border-radius:4px;color:#fff;text-decoration:none;font-size:15px}
+.side a.on{background:#2E3033;font-weight:700;box-shadow:inset 3px 0 0 #E0553E}
+.content{flex:999 1 640px;min-width:0;background:#F7F9FA;padding:28px 32px;display:flex;flex-direction:column;gap:20px}
+.card{background:#fff;border:1px solid #D1D7DC;border-radius:4px;padding:20px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}.tbl th{text-align:left;font-weight:700;color:#6A6F73;font-size:13px;padding:10px 12px;border-bottom:1px solid #D1D7DC}.tbl td{padding:12px;border-bottom:1px solid #D1D7DC}
+.st{padding:3px 8px;border-radius:4px;font-size:12px;font-weight:700}
+.be{display:inline-flex;padding:3px 8px;border-radius:4px;font-size:12px;font-weight:700;background:#FFF3D6;color:#5A3A00;border:1px dashed #B4690E}
+@media (max-width:900px){.side{flex:1 1 100%;flex-direction:row;overflow-x:auto}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.content{padding:20px 16px}}
+</style>
+</helmet>
+<div class="shell" style="width: 100%; color: #1C1D1F; font-family: 'Be Vietnam Pro', system-ui, sans-serif">
+  <nav class="side" aria-label="Khu quản trị">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 0 8px 16px"><svg width="32" height="32" viewBox="0 0 64 64" aria-hidden="true"><defs><clipPath id="L"><circle cx="32" cy="32" r="30"></circle></clipPath></defs><g clip-path="url(#L)"><rect width="64" height="64" fill="#E0553E"></rect><path d="M0 44 L13 37 L22 41 L33 34 L46 40 L64 33 V64 H0 Z" fill="#B8402C"></path><path d="M14 64 C 22 59, 34 57, 34 52 C 34 47.5, 27.5 46.5, 27.5 43 C 27.5 40, 31.4 38.5, 31.6 35.5 H33 C 33.2 38.5, 32.2 40.5, 32.2 43 C 32.2 45.5, 44 47.5, 44 52.5 C 44 57.5, 40 60, 44 64 Z" fill="#FFFFFF"></path><path d="M18 30 H46 A5.5 5.5 0 0 0 44.5 19.6 A8 8 0 0 0 29.5 16.5 A6.5 6.5 0 0 0 18 30 Z" fill="#FFFFFF"></path></g></svg><span style="display: flex; flex-direction: column"><b style="font-size: 16px">Vân Kính</b><span style="font-size: 12px; color: #A6ABAF">Quản trị</span></span></div>
+    <a href="#" class="on" aria-current="page">Thống kê</a>
+    <a href="AdminUsers.dc.html">Người dùng</a>
+    <a href="AdminCourses.dc.html">Khoá học</a>
+    <a href="AdminOrders.dc.html">Đơn hàng</a>
+  </nav>
+  <main class="content">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap">
+      <h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.02em">Thống kê</h1>
+      <select aria-label="Khoảng thời gian" style="height: 40px; border: 1px solid #6A6F73; border-radius: 4px; padding: 0 12px; font: 400 14px 'Be Vietnam Pro', sans-serif; background: #fff"><option>30 ngày qua</option><option>Tháng này</option><option>Năm nay</option></select>
+    </div>
+    <div class="kpis">
+      <div class="card"><span class="mut" style="font-size: 14px">Doanh thu</span><p style="margin: 6px 0 4px; font-size: 30px; font-weight: 800">[n] ₫</p><span class="be">Cần backend: orders</span></div>
+      <div class="card"><span class="mut" style="font-size: 14px">Đơn đã thanh toán</span><p style="margin: 6px 0 4px; font-size: 30px; font-weight: 800">[n]</p><span class="mut" style="font-size: 13px">[n] đơn hết hạn</span></div>
+      <div class="card"><span class="mut" style="font-size: 14px">Tài khoản mới</span><p style="margin: 6px 0 4px; font-size: 30px; font-weight: 800">[n]</p><span class="mut" style="font-size: 13px">tổng [n] tài khoản</span></div>
+      <div class="card"><span class="mut" style="font-size: 14px">Lượt cấp quyền</span><p style="margin: 6px 0 4px; font-size: 30px; font-weight: 800">[n]</p><span class="mut" style="font-size: 13px">[n] mua · [n] cấp tay</span></div>
+    </div>
+    <section class="card" aria-labelledby="ch">
+      <h2 id="ch" style="margin: 0 0 4px; font-size: 18px; font-weight: 800">Doanh thu theo ngày</h2>
+      <p class="mut" style="margin: 0 0 14px; font-size: 13px">Biểu đồ cột, một màu; di chuột vào cột để xem số. Số liệu minh hoạ.</p>
+      <svg viewBox="0 0 900 200" width="100%" height="200" role="img" aria-label="Biểu đồ doanh thu theo ngày (minh hoạ)">
+        <path d="M0 180 H900" stroke="#D1D7DC"></path>
+        <g fill="#C2321C"><rect x="10" y="120" width="20" height="60"></rect><rect x="40" y="100" width="20" height="80"></rect><rect x="70" y="140" width="20" height="40"></rect><rect x="100" y="90" width="20" height="90"></rect><rect x="130" y="110" width="20" height="70"></rect><rect x="160" y="70" width="20" height="110"></rect><rect x="190" y="130" width="20" height="50"></rect><rect x="220" y="95" width="20" height="85"></rect><rect x="250" y="60" width="20" height="120"></rect><rect x="280" y="115" width="20" height="65"></rect><rect x="310" y="105" width="20" height="75"></rect><rect x="340" y="80" width="20" height="100"></rect><rect x="370" y="125" width="20" height="55"></rect><rect x="400" y="65" width="20" height="115"></rect><rect x="430" y="100" width="20" height="80"></rect><rect x="460" y="85" width="20" height="95"></rect><rect x="490" y="135" width="20" height="45"></rect><rect x="520" y="75" width="20" height="105"></rect><rect x="550" y="55" width="20" height="125"></rect><rect x="580" y="110" width="20" height="70"></rect><rect x="610" y="90" width="20" height="90"></rect><rect x="640" y="120" width="20" height="60"></rect><rect x="670" y="70" width="20" height="110"></rect><rect x="700" y="100" width="20" height="80"></rect><rect x="730" y="45" width="20" height="135"></rect><rect x="760" y="95" width="20" height="85"></rect><rect x="790" y="115" width="20" height="65"></rect><rect x="820" y="80" width="20" height="100"></rect><rect x="850" y="60" width="20" height="120"></rect></g>
+      </svg>
+    </section>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px">
+      <section class="card" aria-labelledby="top"><h2 id="top" style="margin: 0 0 8px; font-size: 18px; font-weight: 800">Khoá bán chạy</h2><table class="tbl"><thead><tr><th scope="col">Khoá học</th><th scope="col">Đơn</th><th scope="col">Doanh thu</th></tr></thead><tbody><tr><td>HSK 1: nền tảng</td><td>[n]</td><td>[n] ₫</td></tr><tr><td>YCT 1: thiếu nhi</td><td>[n]</td><td>[n] ₫</td></tr><tr><td>Giao tiếp đời sống</td><td>[n]</td><td>[n] ₫</td></tr></tbody></table></section>
+      <section class="card" aria-labelledby="att"><h2 id="att" style="margin: 0 0 8px; font-size: 18px; font-weight: 800">Cần xử lý</h2><ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 15px"><li style="display: flex; justify-content: space-between; gap: 12px"><span>2 đơn đã nhận tiền nhưng chưa cấp quyền</span><a href="AdminOrders.dc.html" style="font-weight: 700">Xem đơn</a></li><li style="display: flex; justify-content: space-between; gap: 12px"><span>Khoá HSK 2 chưa có giá</span><a href="AdminCourses.dc.html" style="font-weight: 700">Đặt giá</a></li></ul></section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

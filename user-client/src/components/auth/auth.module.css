@@ -1,0 +1,119 @@
+/* Login, register, forgot and reset password (docs/design/canvas/WebAuth.dc.html, AppAuth on phones). */
+
+.page {
+  padding: 40px var(--gutter) 24px;
+  display: flex;
+  justify-content: center;
+}
+.panel {
+  width: 100%;
+  max-width: 440px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.lead {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+/* "Quay lại đăng nhập" under the forgot / reset forms. */
+.back {
+  align-self: center;
+  color: var(--accent);
+  font-size: 15px;
+  font-weight: 700;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+/* Password field with "Quên mật khẩu?" on its label row (WebAuth), under it on phones (AppAuth). */
+.passwordField {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.forgot {
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.switch {
+  margin: 0;
+  font-size: 15px;
+  text-align: center;
+}
+.switch a {
+  color: var(--accent);
+  font-weight: 700;
+}
+.panel .consent {
+  font-size: 14px;
+  line-height: 1.5;
+  padding-top: 0;
+}
+.panel .consent a {
+  color: var(--accent);
+  font-weight: 600;
+}
+.demo {
+  border-top: 1px dashed var(--line);
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.demo p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.demoButtons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 560px) {
+  .page {
+    padding-top: 20px;
+  }
+  .panel {
+    padding: 24px 20px;
+  }
+  .forgot {
+    position: static;
+    align-self: flex-end;
+    margin-top: 10px;
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+  }
+}

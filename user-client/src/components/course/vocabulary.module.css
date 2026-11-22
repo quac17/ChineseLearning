@@ -1,0 +1,85 @@
+/* Lesson vocabulary cards (docs/design/canvas/WebPlayer.dc.html, tab Từ vựng). */
+
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+.card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+.hanzi {
+  font-size: 40px;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+.pinyin {
+  font-size: 16px;
+}
+.meaning {
+  font-size: 14px;
+  line-height: 1.45;
+}
+.example {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.exampleVi {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+}
+.speak,
+.speakSmall {
+  border: 0;
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex: none;
+}
+.speak {
+  width: 36px;
+  height: 36px;
+}
+.speakSmall {
+  width: 26px;
+  height: 26px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.speak:hover,
+.speakSmall:hover {
+  background: var(--neutral-bg);
+}
+.muted {
+  margin: 0;
+  color: var(--muted);
+}
+.practice {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}

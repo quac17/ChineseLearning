@@ -23,6 +23,7 @@ function mapUserRow(row: any) {
     phone: row.phone ?? null,
     bio: row.bio ?? null,
     role: row.role as Role,
+    termsAcceptedAt: row.terms_accepted_at ?? null,
     createdAt: row.created_at,
   };
 }
@@ -47,9 +48,9 @@ export class AuthService {
     const id = generateId('user');
     const passwordHash = await bcrypt.hash(dto.password, 10);
     const created = await this.db.queryOne(
-      `INSERT INTO users (id, email, password_hash, full_name, phone, role)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id, email, full_name, phone, bio, role, created_at`,
+      `INSERT INTO users (id, email, password_hash, full_name, phone, role, terms_accepted_at)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW())
+       RETURNING id, email, full_name, phone, bio, role, terms_accepted_at, created_at`,
       [id, email, passwordHash, dto.fullName.trim(), dto.phone?.trim() || null, Role.STUDENT],
     );
 
@@ -61,7 +62,7 @@ export class AuthService {
   async login(dto: LoginDto) {
     const email = dto.email.trim().toLowerCase();
     const row = await this.db.queryOne(
-      `SELECT id, email, password_hash, full_name, phone, bio, role, is_active, created_at
+      `SELECT id, email, password_hash, full_name, phone, bio, role, is_active, terms_accepted_at, created_at
        FROM users
        WHERE email = $1`,
       [email],
@@ -89,7 +90,7 @@ export class AuthService {
       `UPDATE users
        SET full_name = $1, phone = $2, bio = $3, updated_at = NOW()
        WHERE id = $4
-       RETURNING id, email, full_name, phone, bio, role, created_at`,
+       RETURNING id, email, full_name, phone, bio, role, terms_accepted_at, created_at`,
       [dto.fullName.trim(), dto.phone?.trim() || null, dto.bio?.trim() || null, userId],
     );
 
@@ -115,12 +116,17 @@ export class AuthService {
     }
 
     const newHash = await bcrypt.hash(dto.newPassword, 10);
-    await this.db.query(
-      'UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2',
-      [newHash, userId],
+    // password_changed_at logs out every other session (JwtStrategy). The
+    // app clock is used, not the DB's, because it is compared with JWT iat.
+    const user = await this.db.queryOne(
+      `UPDATE users SET password_hash = $1, password_changed_at = $3, updated_at = NOW() WHERE id = $2
+       RETURNING id, email, role`,
+      [newHash, userId, new Date()],
     );
 
-    return { updated: true };
+    // A fresh token keeps this session logged in.
+    const accessToken = await this.signToken(user.id, user.email, user.role);
+    return { accessToken, result: { updated: true } };
   }
 
   private async signToken(userId: string, email: string, role: Role): Promise<string> {

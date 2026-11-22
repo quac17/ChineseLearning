@@ -1,0 +1,302 @@
+/* Account (docs/design/canvas/WebProfile.dc.html). */
+
+.page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 32px var(--gutter) 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.title {
+  margin: 0;
+  font-size: clamp(26px, 3vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  align-items: flex-start;
+}
+.nav {
+  flex: 1 1 220px;
+  max-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: sticky;
+  top: 140px;
+}
+.navItem {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--ink);
+  font: 400 15px var(--font-sans);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.navItem:hover {
+  background: var(--surface);
+}
+.main {
+  flex: 999 1 560px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.section {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  scroll-margin-top: 140px;
+}
+.section h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+.who {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 32px;
+  background: var(--ink);
+  color: var(--inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  flex: none;
+}
+.muted {
+  color: var(--muted);
+  font-size: 14px;
+}
+.two {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.text {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.55;
+}
+.choices {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.choice {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.choice > span {
+  padding-left: 30px;
+}
+
+/* Phone settings list (AppAccount board); hidden on wider screens. */
+.settings,
+.back {
+  display: none;
+}
+.me {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 8px;
+  text-align: center;
+}
+.meAvatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 36px;
+  background: var(--ink);
+  color: var(--inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+}
+.meName {
+  margin-top: 4px;
+  font-size: 22px;
+  font-weight: 800;
+}
+.group {
+  margin: 18px 0 2px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.row {
+  width: 100%;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: none;
+  padding: 0;
+  color: var(--ink);
+  font: 400 16px var(--font-sans);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.rowEnd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--muted);
+}
+.rowValue {
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 50vw;
+}
+/* A switch row in the phone list ("Nhắc ôn tập mỗi ngày"). */
+.switchItem {
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-bottom: 1px solid var(--line);
+  font-size: 16px;
+}
+.logout {
+  color: var(--error);
+  font-weight: 700;
+  border-bottom: 0;
+}
+.back {
+  align-self: flex-start;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--ink);
+  font: 700 15px var(--font-sans);
+  cursor: pointer;
+}
+.back span {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.table th {
+  text-align: left;
+  font-weight: 700;
+  color: var(--muted);
+  font-size: 13px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.table a {
+  color: var(--accent);
+}
+.nowrap {
+  white-space: nowrap;
+}
+.inlineLink {
+  margin-left: 8px;
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding-top: 16px;
+    gap: 16px;
+  }
+  .two {
+    grid-template-columns: 1fr;
+  }
+  /* The list replaces the side nav; one section at a time. */
+  .nav {
+    display: none;
+  }
+  .title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .page:not([data-open]) .settings {
+    display: block;
+  }
+  .page:not([data-open]) .layout,
+  .section:not([data-open]) {
+    display: none;
+  }
+  .page[data-open] .back {
+    display: flex;
+  }
+  .main {
+    gap: 8px;
+  }
+  .section {
+    border: 0;
+    padding: 0;
+  }
+  .section h2 {
+    font-size: 22px;
+  }
+}

@@ -1,302 +1,273 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
+import { useEffect, useState } from 'react';
+import { Alert, EmptyState, Select, Skeleton } from '@/components/ui';
 import { apiRequest } from '@/lib/api';
-import { AdminStats, Role, User } from '@/lib/types';
+import { formatVnd } from '@/lib/programs';
+import type { AdminDashboardStats, StatsPeriod } from '@/lib/types';
+import { AdminOnly } from './AdminOnly';
+import s from './admin.module.css';
 
-export default function AdminPage() {
-  const { user, loading: authLoading } = useAuth();
-  const [users, setUsers] = useState<User[]>([]);
-  const [stats, setStats] = useState<AdminStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(
-    null,
+const PERIODS: Record<StatsPeriod, string> = {
+  '30d': '30 ngày qua',
+  month: 'Tháng này',
+  year: 'Năm nay',
+};
+
+const count = (n: number) => new Intl.NumberFormat('vi-VN').format(n);
+
+/** "2026-11-05" → "05/11" (day bars) or "11/2026" (month bars). */
+function bucketLabel(start: string, bucket: 'day' | 'month') {
+  const [y, m, d] = start.split('-');
+  return bucket === 'day' ? `${d}/${m}` : `${m}/${y}`;
+}
+
+export default function AdminStatsPage() {
+  return (
+    <AdminOnly>
+      <Stats />
+    </AdminOnly>
   );
+}
 
-  // Create user form
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState<Role>('TEACHER');
-
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [uList, st] = await Promise.all([
-        apiRequest<User[]>('/users'),
-        apiRequest<AdminStats>('/users/stats'),
-      ]);
-      setUsers(uList);
-      setStats(st);
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.message || 'Không thể tải dữ liệu quản trị.' });
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+function Stats() {
+  const [period, setPeriod] = useState<StatsPeriod>('30d');
+  const [stats, setStats] = useState<AdminDashboardStats | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!authLoading && user?.role === 'ADMIN') {
-      loadData();
-    }
-  }, [authLoading, user, loadData]);
+    let cancelled = false;
+    setError('');
+    apiRequest<AdminDashboardStats>(`/admin/stats?period=${period}`)
+      .then((d) => !cancelled && setStats(d))
+      .catch((err: Error) => !cancelled && setError(err.message || 'Không tải được thống kê.'));
+    return () => {
+      cancelled = true;
+    };
+  }, [period]);
 
-  if (authLoading) {
-    return <p className="hint">Đang kiểm tra quyền quản trị...</p>;
-  }
-
-  if (!user || user.role !== 'ADMIN') {
-    return (
-      <div className="card">
-        <h3>Khu vực chỉ dành cho Quản trị viên (Admin)</h3>
-        <p className="hint">Vui lòng đăng nhập bằng tài khoản Admin.</p>
-        <Link href="/login" className="btn">
-          Đăng nhập
-        </Link>
+  return (
+    <div className={s.page}>
+      <div className={s.head}>
+        <div>
+          <h1 className={s.title}>Thống kê</h1>
+          <p className={s.sub}>Mọi số liệu đếm trực tiếp từ cơ sở dữ liệu, không ước tính.</p>
+        </div>
+        <div className={s.filters}>
+          <label htmlFor="stats-period" className="sr-only">
+            Khoảng thời gian
+          </label>
+          <Select id="stats-period" value={period} onChange={(e) => setPeriod(e.target.value as StatsPeriod)}>
+            {(Object.keys(PERIODS) as StatsPeriod[]).map((p) => (
+              <option key={p} value={p}>
+                {PERIODS[p]}
+              </option>
+            ))}
+          </Select>
+        </div>
       </div>
-    );
-  }
 
-  const handleCreateUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setBusy(true);
-    setMessage(null);
-    try {
-      await apiRequest('/users', {
-        method: 'POST',
-        body: JSON.stringify({ fullName, email, password, role }),
-      });
-      setFullName('');
-      setEmail('');
-      setPassword('');
-      await loadData();
-      setMessage({ type: 'success', text: 'Đã tạo tài khoản người dùng mới.' });
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.message });
-    } finally {
-      setBusy(false);
-    }
-  };
+      {error && <Alert tone="error">{error}</Alert>}
 
-  const handleChangeRole = async (id: string, nextRole: Role) => {
-    setBusy(true);
-    setMessage(null);
-    try {
-      await apiRequest(`/users/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ role: nextRole }),
-      });
-      await loadData();
-      setMessage({ type: 'success', text: 'Đã cập nhật vai trò người dùng.' });
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.message });
-    } finally {
-      setBusy(false);
-    }
-  };
+      {!stats ? (
+        !error && (
+          <div className={s.kpis} aria-busy="true">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className={`${s.card} ${s.kpi}`}>
+                <Skeleton height={86} />
+              </div>
+            ))}
+          </div>
+        )
+      ) : (
+        <StatsBody stats={stats} periodLabel={PERIODS[stats.period].toLowerCase()} />
+      )}
+    </div>
+  );
+}
 
-  const handleToggleActive = async (target: User) => {
-    setBusy(true);
-    setMessage(null);
-    try {
-      await apiRequest(`/users/${target.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ isActive: !target.isActive }),
-      });
-      await loadData();
-      setMessage({
-        type: 'success',
-        text: target.isActive ? 'Đã khóa tài khoản.' : 'Đã mở khóa tài khoản.',
-      });
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.message });
-    } finally {
-      setBusy(false);
-    }
-  };
+function Kpi({ label, value, note, testId }: { label: string; value: string; note: string; testId: string }) {
+  return (
+    <div className={`${s.card} ${s.kpi}`} data-testid={testId}>
+      <span className={s.kpiLabel}>{label}</span>
+      <p className={s.kpiValue}>{value}</p>
+      <span className={s.kpiNote}>{note}</span>
+    </div>
+  );
+}
 
-  const handleDeleteUser = async (target: User) => {
-    if (!confirm(`Xóa vĩnh viễn tài khoản ${target.email}?`)) return;
-    setBusy(true);
-    setMessage(null);
-    try {
-      await apiRequest(`/users/${target.id}`, { method: 'DELETE' });
-      await loadData();
-      setMessage({ type: 'success', text: 'Đã xóa tài khoản.' });
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.message });
-    } finally {
-      setBusy(false);
-    }
-  };
+function StatsBody({ stats, periodLabel }: { stats: AdminDashboardStats; periodLabel: string }) {
+  const { users, courses, enrollments, orders, revenueSeries, topCourses } = stats;
+  const attention = [
+    orders.needsReview > 0 && {
+      text: `${count(orders.needsReview)} đơn có khoản tiền chưa khớp, cần kiểm tra`,
+      href: '/admin/orders',
+      action: 'Xem đơn',
+    },
+    ...courses.unpriced.map((c) => ({
+      text: `Khoá “${c.title}” chưa có giá`,
+      href: '/admin/courses',
+      action: 'Đặt giá',
+    })),
+  ].filter(Boolean) as Array<{ text: string; href: string; action: string }>;
 
   return (
     <>
-      <div className="row" style={{ marginTop: 0, justifyContent: 'space-between' }}>
-        <h2 style={{ margin: 0 }}>Bảng điều khiển Quản trị (Admin)</h2>
+      <div className={s.kpis}>
+        <Kpi
+          testId="kpi-revenue"
+          label="Doanh thu"
+          value={formatVnd(orders.revenueVnd)}
+          note={`đơn đã thanh toán, ${periodLabel}`}
+        />
+        <Kpi
+          testId="kpi-paid"
+          label="Đơn đã thanh toán"
+          value={count(orders.paid)}
+          note={`${count(orders.expired)} đơn hết hạn${orders.refunded ? ` · ${count(orders.refunded)} hoàn tiền` : ''}`}
+        />
+        <Kpi
+          testId="kpi-new-users"
+          label="Tài khoản mới"
+          value={count(users.newInPeriod)}
+          note={`tổng ${count(users.total)} tài khoản`}
+        />
+        <Kpi
+          testId="kpi-enrollments"
+          label="Quyền xem đang mở"
+          value={count(enrollments.open)}
+          note={`${count(enrollments.purchased)} mua · ${count(enrollments.manual)} cấp tay`}
+        />
       </div>
-      <p className="hint">
-        Quản lý 3 vai trò Admin, Giáo viên, Học sinh và theo dõi tổng quan hệ thống.
-      </p>
 
-      {message && <div className={`alert ${message.type}`}>{message.text}</div>}
+      <div className={s.kpis}>
+        <Kpi
+          testId="kpi-users"
+          label="Người dùng"
+          value={count(users.total)}
+          note={`${count(users.admins)} admin · ${count(users.teachers)} giáo viên · ${count(users.students)} học viên${
+            users.locked ? ` · ${count(users.locked)} đã khoá` : ''
+          }`}
+        />
+        <Kpi
+          testId="kpi-courses"
+          label="Khoá học"
+          value={count(courses.total)}
+          note={`${count(courses.published)} đang hiển thị`}
+        />
+        <Kpi testId="kpi-lessons" label="Bài giảng" value={count(courses.lessons)} note="video YouTube và tải lên" />
+        <Kpi testId="kpi-documents" label="Tài liệu" value={count(courses.documents)} note="tệp tải về của các khoá" />
+      </div>
 
-      {stats && (
-        <div className="grid" style={{ marginBottom: 20 }}>
-          <div className="stat-card">
-            <small>Tổng tài khoản</small>
-            <strong>{stats.totalUsers}</strong>
-            <small>
-              {stats.admins} Admin · {stats.teachers} GV · {stats.students} HS
-            </small>
-          </div>
-          <div className="stat-card">
-            <small>Khóa học</small>
-            <strong>{stats.courses}</strong>
-            <small>{stats.activeEnrollments} lượt cấp quyền học sinh</small>
-          </div>
-          <div className="stat-card">
-            <small>Bài giảng Video</small>
-            <strong>{stats.lessons}</strong>
-            <small>YouTube & Kho lưu trữ</small>
-          </div>
-          <div className="stat-card">
-            <small>Tài liệu DOC / PPT</small>
-            <strong>{stats.documents}</strong>
-            <small>Tài liệu học tập tải về</small>
-          </div>
-        </div>
-      )}
+      <RevenueChart series={revenueSeries} periodLabel={periodLabel} />
 
-      <div className="split-layout">
-        <div className="card">
-          <h3>Tạo tài khoản mới</h3>
-          <form className="form-grid" onSubmit={handleCreateUser}>
-            <div className="field">
-              <label>Họ và tên</label>
-              <input
-                className="input"
-                required
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Nguyễn Thị Lan"
-              />
-            </div>
-            <div className="field">
-              <label>Email</label>
-              <input
-                type="email"
-                className="input"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="giaovien2@chineselearner.vn"
-              />
-            </div>
-            <div className="field">
-              <label>Mật khẩu</label>
-              <input
-                type="password"
-                className="input"
-                required
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Tối thiểu 6 ký tự"
-              />
-            </div>
-            <div className="field">
-              <label>Vai trò (Role)</label>
-              <select
-                className="select"
-                value={role}
-                onChange={(e) => setRole(e.target.value as Role)}
-              >
-                <option value="STUDENT">Học sinh (STUDENT)</option>
-                <option value="TEACHER">Giáo viên (TEACHER)</option>
-                <option value="ADMIN">Quản trị viên (ADMIN)</option>
-              </select>
-            </div>
-            <button type="submit" className="btn" disabled={busy}>
-              Tạo tài khoản
-            </button>
-          </form>
-        </div>
-
-        <div className="table-wrap">
-          {loading ? (
-            <p className="hint" style={{ padding: 14 }}>
-              Đang tải danh sách người dùng...
-            </p>
+      <div className={s.twoCol}>
+        <section className={`${s.card} ${s.panel}`} aria-labelledby="top-courses">
+          <h2 id="top-courses" className={s.panelTitle}>
+            Khoá bán chạy
+          </h2>
+          {topCourses.length === 0 ? (
+            <p className={s.note}>Chưa có đơn nào được thanh toán trong {periodLabel}.</p>
           ) : (
-            <table className="data-table">
+            <table className={s.table}>
               <thead>
                 <tr>
-                  <th>Họ tên & Email</th>
-                  <th>Vai trò</th>
-                  <th>Trạng thái</th>
-                  <th>Thao tác</th>
+                  <th scope="col">Khoá học</th>
+                  <th scope="col">Đơn</th>
+                  <th scope="col">Doanh thu</th>
                 </tr>
               </thead>
               <tbody>
-                {users.map((u) => {
-                  const isSelf = u.id === user.id;
-                  return (
-                    <tr key={u.id}>
-                      <td>
-                        <b>{u.fullName}</b>
-                        <br />
-                        <small style={{ color: 'var(--mute)' }}>{u.email}</small>
-                      </td>
-                      <td>
-                        <select
-                          className="select"
-                          style={{ width: 'auto', padding: '5px 8px' }}
-                          value={u.role}
-                          disabled={busy || isSelf}
-                          onChange={(e) => handleChangeRole(u.id, e.target.value as Role)}
-                        >
-                          <option value="STUDENT">Học sinh</option>
-                          <option value="TEACHER">Giáo viên</option>
-                          <option value="ADMIN">Admin</option>
-                        </select>
-                      </td>
-                      <td>
-                        <span className={`tag ${u.isActive ? 'free' : 'paid'}`}>
-                          {u.isActive ? 'Hoạt động' : 'Đã khóa'}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="row" style={{ marginTop: 0 }}>
-                          <button
-                            type="button"
-                            className="btn alt sm"
-                            disabled={busy || isSelf}
-                            onClick={() => handleToggleActive(u)}
-                          >
-                            {u.isActive ? 'Khóa' : 'Mở khóa'}
-                          </button>
-                          <button
-                            type="button"
-                            className="btn danger sm"
-                            disabled={busy || isSelf}
-                            onClick={() => handleDeleteUser(u)}
-                          >
-                            Xóa
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {topCourses.map((c) => (
+                  <tr key={c.courseId ?? c.title}>
+                    <td>{c.title}</td>
+                    <td>{count(c.orders)}</td>
+                    <td className={s.nowrap}>{formatVnd(c.revenueVnd)}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           )}
-        </div>
+        </section>
+        <section className={`${s.card} ${s.panel}`} aria-labelledby="attention">
+          <h2 id="attention" className={s.panelTitle}>
+            Cần xử lý
+          </h2>
+          {attention.length === 0 ? (
+            <p className={s.note}>Không có việc gì cần xử lý.</p>
+          ) : (
+            <ul className={s.todo}>
+              {attention.map((a) => (
+                <li key={a.text}>
+                  <span>{a.text}</span>
+                  <Link href={a.href}>{a.action}</Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
     </>
+  );
+}
+
+function RevenueChart({
+  series,
+  periodLabel,
+}: {
+  series: AdminDashboardStats['revenueSeries'];
+  periodLabel: string;
+}) {
+  const max = Math.max(0, ...series.points.map((p) => p.revenueVnd));
+  const unit = series.bucket === 'day' ? 'ngày' : 'tháng';
+  return (
+    <section className={`${s.card} ${s.panel}`} aria-labelledby="revenue-chart">
+      <h2 id="revenue-chart" className={s.panelTitle}>
+        Doanh thu theo {unit}
+      </h2>
+      {max === 0 ? (
+        <EmptyState title="Chưa có doanh thu">Chưa có đơn nào được thanh toán trong {periodLabel}.</EmptyState>
+      ) : (
+        <>
+          <p className={s.note}>Di chuột vào cột để xem số. Cột cao nhất: {formatVnd(max)}.</p>
+          <div className={s.chart} aria-hidden="true">
+            {series.points.map((p) => {
+              const label = `${bucketLabel(p.start, series.bucket)}: ${formatVnd(p.revenueVnd)} · ${count(p.orders)} đơn`;
+              return (
+                <div key={p.start} className={s.barSlot} title={label}>
+                  <span className={s.bar} style={{ height: `${(p.revenueVnd / max) * 100}%` }} />
+                </div>
+              );
+            })}
+          </div>
+          <div className={s.chartAxis} aria-hidden="true">
+            <span>{bucketLabel(series.points[0].start, series.bucket)}</span>
+            <span>{bucketLabel(series.points[series.points.length - 1].start, series.bucket)}</span>
+          </div>
+          <table className="sr-only">
+            <caption>Doanh thu theo {unit}</caption>
+            <thead>
+              <tr>
+                <th scope="col">{unit === 'ngày' ? 'Ngày' : 'Tháng'}</th>
+                <th scope="col">Doanh thu</th>
+                <th scope="col">Đơn</th>
+              </tr>
+            </thead>
+            <tbody>
+              {series.points
+                .filter((p) => p.orders > 0)
+                .map((p) => (
+                  <tr key={p.start}>
+                    <td>{bucketLabel(p.start, series.bucket)}</td>
+                    <td>{formatVnd(p.revenueVnd)}</td>
+                    <td>{count(p.orders)}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </>
+      )}
+    </section>
   );
 }

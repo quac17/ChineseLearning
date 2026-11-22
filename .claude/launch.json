@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "server",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["server:dev"],
+      "port": 4000
+    },
+    {
+      "name": "client",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["client:dev"],
+      "port": 3000
+    }
+  ]
+}

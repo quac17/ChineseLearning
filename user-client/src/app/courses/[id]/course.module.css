@@ -1,0 +1,459 @@
+/* Course detail (docs/design/canvas/WebCourse.dc.html). */
+
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+.col {
+  max-width: 700px;
+}
+
+/* Dark hero band: fixed ink in both themes, like the footer. */
+.hero {
+  background: #1c1d1f;
+  color: #ffffff;
+}
+.heroInner {
+  position: relative;
+  padding-top: 32px;
+  padding-bottom: 40px;
+}
+.heroText {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.crumbs {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #c9cdd1;
+}
+.crumbs a {
+  color: #f3b7ac;
+  text-decoration: none;
+}
+.crumbs a:hover {
+  text-decoration: underline;
+}
+.title {
+  margin: 0;
+  font-size: clamp(26px, 3.2vw, 34px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+.lead {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.45;
+}
+.heroMeta {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: center;
+  font-size: 14px;
+}
+.heroMeta a {
+  color: #f3b7ac;
+  text-decoration: underline;
+}
+/* The shared Rating reads these tokens; the hero is dark in both themes. */
+.heroRating {
+  --muted: #c9cdd1;
+  --rating: #f6c453;
+  font-size: 14px;
+}
+.heroRating > span {
+  font-size: 14px;
+}
+.heroMeta .heroRating a {
+  color: var(--rating);
+  font-weight: 700;
+  text-decoration: none;
+}
+.heroMeta .heroRating a:hover {
+  text-decoration: underline;
+}
+.heroMuted {
+  color: #c9cdd1;
+}
+
+/* Buy box: floats over the hero on wide screens, flows below it on narrow ones. */
+.buy {
+  position: absolute;
+  right: var(--gutter);
+  top: 32px;
+  width: 340px;
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--shadow-float);
+  border-radius: var(--radius);
+  overflow: hidden;
+  z-index: 2;
+}
+.preview {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.coverImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.preview .play,
+.preview > span:last-child {
+  position: relative;
+}
+.coverImg ~ span:last-child {
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+}
+.previewHan {
+  font-family: var(--font-han);
+  font-size: 56px;
+  line-height: 1;
+}
+.play {
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
+  background: #ffffff;
+  color: #1c1d1f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.buyBody {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.price {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+}
+.note {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.includes {
+  margin: 8px 0 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+.includeList {
+  margin: 0;
+  padding: 0 0 0 18px;
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+/* "Bạn sẽ học được" (WebCourse): bordered box, two columns of ticks. */
+.learnBox {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+}
+.learn {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 24px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.learn li {
+  display: flex;
+  gap: 10px;
+}
+.check {
+  flex: none;
+  font-weight: 700;
+}
+
+.body {
+  padding-top: 32px;
+  padding-bottom: 24px;
+}
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.section h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+}
+.sub {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.outline {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.outlineHead {
+  background: var(--surface);
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--line);
+}
+.outlineHead span:last-child {
+  font-weight: 400;
+  font-size: 14px;
+  white-space: nowrap;
+}
+/* Sections ("Phần"): one accordion per section, as in WebCourse. */
+.part + .part {
+  border-top: 1px solid var(--line);
+}
+.partHead {
+  list-style: none;
+  cursor: pointer;
+  background: var(--surface);
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 700;
+}
+.partHead::-webkit-details-marker {
+  display: none;
+}
+.part[open] > .partHead {
+  border-bottom: 1px solid var(--line);
+}
+.partHead:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+}
+.partTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.chevron {
+  flex: none;
+  transition: transform 160ms ease;
+}
+.part:not([open]) .chevron {
+  transform: rotate(-90deg);
+}
+.partMeta {
+  font-weight: 400;
+  font-size: 14px;
+  white-space: nowrap;
+}
+.partEmpty {
+  margin: 0;
+  padding: 14px 20px;
+  font-size: 14px;
+  color: var(--muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
+}
+
+.lessons {
+  list-style: none;
+  margin: 0;
+  padding: 6px 20px 12px;
+}
+.lesson {
+  min-height: 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  font-size: 15px;
+  border-bottom: 1px solid var(--line);
+}
+.lesson:last-child {
+  border-bottom: 0;
+}
+.lessonTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.lessonTitle a {
+  color: var(--ink);
+}
+.lessonSide {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  white-space: nowrap;
+  font-size: 14px;
+  color: var(--muted);
+}
+.previewLink {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: underline;
+}
+.icon {
+  flex: none;
+  color: var(--muted);
+}
+
+.docs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.doc {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.docName {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.docName b {
+  font-size: 15px;
+}
+.docName span {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.description {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.teacher {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 36px;
+  background: var(--ink);
+  color: var(--inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 800;
+  flex: none;
+}
+.teacherName {
+  font-size: 18px;
+  font-weight: 800;
+}
+.teacherBio {
+  margin: 4px 0 0;
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.state {
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+@media (max-width: 1100px) {
+  .buy {
+    position: static;
+    width: auto;
+    max-width: 520px;
+    margin: 24px 0 0;
+  }
+  .col {
+    max-width: none;
+  }
+}
+/* Sticky price bar at phone width (AppCourse board), above the tab bar. */
+.buyBar {
+  display: none;
+}
+@media (max-width: 760px) {
+  .buyBar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    z-index: 44;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 72px;
+    padding: 0 16px;
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+  }
+  /* The footer reads this to keep its last line above both bars. */
+  :global(html):has(.buyBar) {
+    --page-bottom-bar: 72px;
+  }
+  .barPrice {
+    font-size: 22px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+  .barAction {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .learn {
+    grid-template-columns: 1fr;
+  }
+  .learnBox {
+    padding: 16px;
+  }
+  .lead {
+    font-size: 17px;
+  }
+  .lessons {
+    padding: 4px 14px 8px;
+  }
+}

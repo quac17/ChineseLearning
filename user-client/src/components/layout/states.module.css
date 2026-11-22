@@ -1,0 +1,90 @@
+/* Shared states (docs/design/canvas/States.dc.html): 404, error, 403, offline bar. */
+
+.page {
+  display: flex;
+  justify-content: center;
+  padding: 56px var(--gutter) 80px;
+}
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  max-width: 560px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+.kicker {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.han {
+  font-size: 72px;
+  line-height: 1;
+  color: var(--line);
+}
+.title {
+  font-size: 22px;
+  font-weight: 800;
+}
+.body {
+  font-size: 15px;
+  line-height: 1.5;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* Inside the teacher/admin shell the panel sits in the content column. */
+.inline {
+  padding: 0;
+  justify-content: flex-start;
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding: 32px 16px 96px;
+  }
+  .panel {
+    padding: 20px;
+  }
+}
+
+/* Offline bar: pinned above the header while the browser is offline. */
+.offline {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: var(--offline-bar-h);
+  padding: 0 16px;
+  background: var(--ink);
+  color: var(--inverse);
+  font-size: 14px;
+  font-weight: 600;
+}
+.offlineMore {
+  font-weight: 400;
+}
+@media (max-width: 520px) {
+  .offlineMore {
+    display: none;
+  }
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--warning);
+  flex: none;
+}

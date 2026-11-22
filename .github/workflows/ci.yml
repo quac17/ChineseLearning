@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  server:
+    name: Server (build + unit tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+          cache-dependency-path: server/yarn.lock
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
+      - name: Unit tests (Jest)
+        run: |
+          if node -e "process.exit(require('./package.json').scripts?.test ? 0 : 1)"; then
+            yarn test --ci
+          else
+            echo "::warning::server has no test script yet - add Jest (see .agents/skills/tdd)"
+          fi
+
+  client:
+    name: Client (build + type-check)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: user-client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+          cache-dependency-path: user-client/yarn.lock
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:4000/api
+
+  e2e:
+    name: E2E (Playwright)
+    needs: [server, client]
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: vankinh
+          POSTGRES_PASSWORD: vankinh_secret
+          POSTGRES_DB: vankinh_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U vankinh"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5433
+      POSTGRES_USER: vankinh
+      POSTGRES_PASSWORD: vankinh_secret
+      POSTGRES_DB: vankinh_test
+      JWT_SECRET: ci-only-not-a-secret
+      # Ports, NEXT_PUBLIC_API_URL and upload dir come from e2e/env.ts.
+    steps:
+      - uses: actions/checkout@v4
+      # hashFiles() is not allowed in a job-level `if`, so the check is a step.
+      - name: Check for Playwright suite
+        id: suite
+        run: |
+          if [ -f e2e/playwright.config.ts ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No e2e/playwright.config.ts yet - skipping E2E (see .agents/skills/e2e-playwright)"
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.suite.outputs.present == 'true'
+        with:
+          node-version: 20
+      - if: steps.suite.outputs.present == 'true'
+        run: yarn install --frozen-lockfile
+      - if: steps.suite.outputs.present == 'true'
+        run: yarn server:install && yarn client:install
+      - if: steps.suite.outputs.present == 'true'
+        run: npx playwright install --with-deps chromium
+      - if: steps.suite.outputs.present == 'true'
+        run: yarn e2e
+      - uses: actions/upload-artifact@v4
+        if: failure() && steps.suite.outputs.present == 'true'
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

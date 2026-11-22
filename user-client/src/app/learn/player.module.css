@@ -1,0 +1,338 @@
+/* Lesson player (docs/design/canvas/WebPlayer.dc.html). Top bar is fixed ink in both themes. */
+
+.top {
+  position: sticky;
+  top: var(--offline-bar-h);
+  z-index: 40;
+  background: #1c1d1f;
+  color: #ffffff;
+  height: 56px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.top a {
+  color: #ffffff;
+}
+.sep {
+  width: 1px;
+  height: 24px;
+  background: #3e4143;
+  flex: none;
+}
+.courseTitle {
+  font-size: 15px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.courseTitle:hover {
+  text-decoration: underline;
+}
+.position {
+  font-size: 13px;
+  white-space: nowrap;
+  color: #c9cdd1;
+}
+
+.layout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.main {
+  flex: 999 1 640px;
+  min-width: 0;
+}
+.side {
+  flex: 1 1 340px;
+  min-width: 0;
+  border-left: 1px solid var(--line);
+  position: sticky;
+  top: 56px;
+  max-height: calc(100vh - 56px);
+  overflow-y: auto;
+}
+
+.stage {
+  aspect-ratio: 16 / 9;
+  background: #000000;
+  color: #ffffff;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stage iframe,
+.stage video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #000000;
+}
+.locked {
+  max-width: 460px;
+  padding: 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.locked h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+.locked p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #c9cdd1;
+}
+.lockedActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 4px;
+}
+/* Outline buttons sit on black here. */
+.onDark {
+  color: #ffffff !important;
+  box-shadow: inset 0 0 0 1px #ffffff !important;
+}
+.onDark:hover {
+  background: #2e3033 !important;
+}
+
+.content {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.lessonTitle {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+.nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.tabPanel {
+  padding-top: 4px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.tabPanel p {
+  margin: 0;
+}
+.docs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.doc {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 15px;
+}
+.muted {
+  color: var(--muted);
+}
+
+.sideHead {
+  margin: 0;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 800;
+  border-bottom: 1px solid var(--line);
+}
+.sideSub {
+  background: var(--surface);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--muted);
+}
+.items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+/* Section headings ("Phần") in the lesson list. */
+.partHead {
+  margin: 0;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.partCount {
+  flex: none;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.partEmpty {
+  margin: 0;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+}
+.partLabel {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.itemRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding-left: 16px;
+  border-bottom: 1px solid var(--line);
+}
+.itemRow[data-current='true'] {
+  background: var(--info-bg);
+}
+.itemRow .itemIcon,
+.tick {
+  margin-top: 14px;
+}
+.tick {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  accent-color: var(--ink);
+  cursor: pointer;
+}
+.subtitleRow {
+  max-width: 220px;
+}
+.titleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.item {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  gap: 12px;
+  padding: 12px 16px 12px 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ink);
+  text-decoration: none;
+}
+.itemRow:hover {
+  background: var(--surface);
+}
+.item[aria-current='page'] {
+  font-weight: 600;
+}
+.itemIcon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--muted);
+}
+.itemText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.itemMeta {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.state {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px 16px;
+}
+
+/* Phone "Từ vựng & tài liệu" tab: vocabulary, then documents. */
+.study {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.studyHead {
+  margin: 0 0 8px;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+@media (max-width: 760px) {
+  /* AppPlayer board: the top bar scrolls away, the video stays at the top. */
+  .top {
+    position: static;
+  }
+  .stagePlaying {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+  .side {
+    border-left: 0;
+    position: static;
+    max-height: none;
+  }
+  .content {
+    padding: 16px;
+  }
+  /* Equal-width tabs across the screen, like the board. */
+  .phoneTabs [role='tablist'] {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 0;
+    margin: 0 -16px;
+  }
+  .phoneTabs [role='tab'] {
+    min-height: 48px;
+    padding: 8px 6px 10px;
+    font-size: 15px;
+    line-height: 1.25;
+    white-space: normal;
+    text-align: center;
+  }
+  /* The lesson list runs edge to edge under the tabs, like the board. */
+  .phoneList {
+    margin: -4px -16px 0;
+  }
+  .lessonTitle {
+    font-size: 20px;
+  }
+  .top {
+    padding: 0 12px;
+    gap: 10px;
+  }
+}

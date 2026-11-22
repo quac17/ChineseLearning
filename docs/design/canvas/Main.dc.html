@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Hệ thống thiết kế Vân Kính</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&amp;family=Noto+Serif+SC:wght@600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C2321C}a:hover{color:#9E2715}
+.han{font-family:'Noto Serif SC',serif}
+.sec{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:24px;row-gap:20px}
+.h2{grid-column:1 / span 12;margin:0;font-size:28px;font-weight:700;letter-spacing:-0.02em}
+.lbl{margin:0;font-size:14px;color:#6A6F73}
+.btn{height:48px;padding:0 20px;border:0;border-radius:4px;font:700 16px 'Be Vietnam Pro',sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.btn:focus-visible,.field:focus-visible,.sw:focus-visible,.dd:focus-visible{outline:3px solid #1F4FA0;outline-offset:2px}
+.field{height:48px;width:100%;box-sizing:border-box;padding:0 14px;border:1px solid #6A6F73;border-radius:4px;background:#FFFFFF;font:400 16px 'Be Vietnam Pro',sans-serif;color:#1C1D1F}
+.opt{display:flex;align-items:center;gap:12px;min-height:44px;font-size:16px;cursor:pointer}
+.opt input{width:20px;height:20px;accent-color:#1C1D1F;margin:0}
+.sw{width:48px;height:28px;border:0;border-radius:14px;padding:3px;cursor:pointer;display:flex;box-sizing:border-box}
+.swatch{display:flex;flex-direction:column;gap:8px}
+.swatch div{height:80px;border-radius:4px}
+.swatch p{margin:0;font-size:14px;line-height:1.4}
+.card{display:flex;flex-direction:column;gap:6px}
+.thumb{aspect-ratio:16 / 9;border-radius:4px;display:flex;align-items:flex-end;justify-content:space-between;padding:12px;box-sizing:border-box;color:#FFFFFF}
+</style>
+</helmet>
+<div style="width: 1440px; height: 2600px; box-sizing: border-box; padding: 72px 80px; background: #FFFFFF; color: #1C1D1F; font-family: 'Be Vietnam Pro', system-ui, sans-serif; display: flex; flex-direction: column; gap: 64px">
+
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <h1 style="margin: 0; font-size: 56px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; display: flex; align-items: center; gap: 20px"><svg width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Logo Vân Kính"><defs><clipPath id="lg1"><circle cx="32" cy="32" r="30"></circle></clipPath></defs><g clip-path="url(#lg1)"><rect width="64" height="64" fill="#C2321C"></rect><path d="M0 44 L13 37 L22 41 L33 34 L46 40 L64 33 V64 H0 Z" fill="#9E2715"></path><path d="M14 64 C 22 59, 34 57, 34 52 C 34 47.5, 27.5 46.5, 27.5 43 C 27.5 40, 31.4 38.5, 31.6 35.5 H33 C 33.2 38.5, 32.2 40.5, 32.2 43 C 32.2 45.5, 44 47.5, 44 52.5 C 44 57.5, 40 60, 44 64 Z" fill="#FFFFFF"></path><path d="M18 30 H46 A5.5 5.5 0 0 0 44.5 19.6 A8 8 0 0 0 29.5 16.5 A6.5 6.5 0 0 0 18 30 Z" fill="#FFFFFF"></path></g></svg>Vân Kính · Hệ thống thiết kế</h1>
+    <p style="margin: 0; font-size: 19px; line-height: 1.5; max-width: 80ch">Kiểu chợ khoá học: nền trắng, chữ gần đen, viền xám mảnh, một màu nhấn son cho nút mua. Màu 4 chương trình học chỉ còn dùng cho ảnh bìa và nhãn. Bo góc 4px, chữ đậm 700 cho tiêu đề. Dùng chung cho web và app.</p>
+  </div>
+
+  <div class="sec">
+    <h2 class="h2">1. Màu nền tảng</h2>
+    <div class="swatch" style="grid-column: span 2"><div style="background: #FFFFFF; box-shadow: inset 0 0 0 1px #D1D7DC"></div><p><b>bg</b> · nền trang<br>#FFFFFF</p></div>
+    <div class="swatch" style="grid-column: span 2"><div style="background: #F7F9FA; box-shadow: inset 0 0 0 1px #D1D7DC"></div><p><b>surface</b> · khối phụ, hộp<br>#F7F9FA</p></div>
+    <div class="swatch" style="grid-column: span 2"><div style="background: #D1D7DC"></div><p><b>line</b> · viền thẻ, chia mục<br>#D1D7DC</p></div>
+    <div class="swatch" style="grid-column: span 2"><div style="background: #6A6F73"></div><p><b>muted</b> · chữ phụ (5,1:1)<br>#6A6F73</p></div>
+    <div class="swatch" style="grid-column: span 2"><div style="background: #1C1D1F"></div><p><b>ink</b> · chữ, nút đen, footer<br>#1C1D1F</p></div>
+    <div class="swatch" style="grid-column: span 2"><div style="background: {{accent}}"></div><p><b>accent</b> · nút mua, link<br>{{accent}}</p></div>
+
+    <h2 class="h2" style="margin-top: 12px">2. Màu trạng thái và đánh giá</h2>
+    <div class="swatch" style="grid-column: span 2"><div style="background: #9E2715"></div><p><b>accent-press</b> · hover / nhấn<br>#9E2715</p></div>
+    <div class="swatch" style="grid-column: span 2"><div style="background: #B4690E"></div><p><b>rating</b> · sao, điểm<br>#B4690E</p></div>
+    <div class="swatch" style="grid-column: span 2"><div style="background: #FCE8C3"></div><p><b>badge</b> · nhãn “Nổi bật”<br>#FCE8C3 / chữ #5A3A00</p></div>
+    <div class="swatch" style="grid-column: span 2"><div style="background: #1E6E5C"></div><p><b>success</b> · đã mua, xong<br>#1E6E5C</p></div>
+    <div class="swatch" style="grid-column: span 2"><div style="background: #8C1D40"></div><p><b>error</b> · lỗi<br>#8C1D40</p></div>
+    <div class="swatch" style="grid-column: span 2"><div style="background: #1F4FA0"></div><p><b>info / focus</b><br>#1F4FA0</p></div>
+
+    <h2 class="h2" style="margin-top: 12px">3. Màu chương trình (ảnh bìa, nhãn)</h2>
+    <div class="swatch" style="grid-column: span 3"><div style="background: #4E8A2E"></div><p><b>Easy Steps</b> 易 · #4E8A2E</p></div>
+    <div class="swatch" style="grid-column: span 3"><div style="background: #C46A12"></div><p><b>YCT</b> 少 · #C46A12</p></div>
+    <div class="swatch" style="grid-column: span 3"><div style="background: #1F4FA0"></div><p><b>HSK</b> 考 · #1F4FA0</p></div>
+    <div class="swatch" style="grid-column: span 3"><div style="background: #1E6E5C"></div><p><b>Giao tiếp</b> 说 · #1E6E5C</p></div>
+    <p class="lbl" style="grid-column: 1 / span 12">Bốn màu đều đủ đậm để đặt chữ trắng lên ảnh bìa (≥ 4,5:1). Chế độ tối: bg #16171A, surface #222428, line #3E4143, ink #F2F3F5, muted #A6ABAF, accent #E0553E.</p>
+  </div>
+
+  <div class="sec">
+    <h2 class="h2">4. Chữ</h2>
+    <div style="grid-column: span 7; display: flex; flex-direction: column; gap: 10px">
+      <p style="margin: 0; font-size: 48px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1">Học tiếng Trung theo cách của bạn</p>
+      <p class="lbl">H1 · 40–56 · 800</p>
+      <p style="margin: 6px 0 0; font-size: 28px; font-weight: 700; letter-spacing: -0.02em">Khoá học nổi bật</p>
+      <p class="lbl">H2 · 24–32 · 700</p>
+      <p style="margin: 6px 0 0; font-size: 17px; font-weight: 700">HSK 1: nền tảng và 150 từ vựng</p>
+      <p class="lbl">Tiêu đề thẻ · 16–17 · 700, tối đa 2 dòng</p>
+      <p style="margin: 6px 0 0; font-size: 16px; line-height: 1.55">Nội dung · 16 · 400, giãn dòng 1,55.</p>
+      <p style="margin: 6px 0 0; font-size: 13px; color: #6A6F73">Phụ · 13–14 · tên giáo viên, số bài, thời lượng</p>
+    </div>
+    <div style="grid-column: span 5; background: #F7F9FA; border: 1px solid #D1D7DC; border-radius: 4px; padding: 28px; box-sizing: border-box; display: flex; flex-direction: column; gap: 6px; justify-content: center">
+      <p class="han" style="margin: 0; font-size: 80px; line-height: 1.05">你好</p>
+      <p style="margin: 0; font-size: 24px; font-weight: 600">nǐ hǎo</p>
+      <p style="margin: 0; font-size: 17px">xin chào</p>
+      <p class="lbl" style="margin-top: 10px">Be Vietnam Pro cho chữ Việt, Noto Serif SC cho chữ Hán.</p>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h2 class="h2">5. Nút</h2>
+    <div style="grid-column: 1 / span 12; display: flex; flex-wrap: wrap; gap: 14px; align-items: center">
+      <button class="btn" style="background: {{accent}}; color: #FFFFFF">Mua ngay bằng QR</button>
+      <button class="btn" style="background: #9E2715; color: #FFFFFF">Hover / nhấn</button>
+      <button class="btn" style="background: #1C1D1F; color: #FFFFFF">Đăng ký</button>
+      <button class="btn" style="background: #FFFFFF; color: #1C1D1F; box-shadow: inset 0 0 0 1px #1C1D1F">Mua ngay</button>
+      <button class="btn" style="background: transparent; color: {{accent}}; padding: 0 8px">Xem tất cả</button>
+      <button class="btn" disabled="" style="background: #D1D7DC; color: #6A6F73; cursor: not-allowed">Hết hạn</button>
+      <button class="btn" aria-label="Yêu thích" style="width: 48px; padding: 0; justify-content: center; background: #FFFFFF; box-shadow: inset 0 0 0 1px #1C1D1F"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z" fill="none" stroke="#1C1D1F" stroke-width="2"></path></svg></button>
+      <button class="btn" style="height: 40px; padding: 0 14px; font-size: 14px; background: #1C1D1F; color: #FFFFFF">Nhỏ 40</button>
+      <button class="btn" style="height: 56px; padding: 0 28px; font-size: 17px; background: {{accent}}; color: #FFFFFF">Lớn 56</button>
+    </div>
+    <p class="lbl" style="grid-column: 1 / span 12">Nút son = mua khoá (không có giỏ hàng). Nút đen = đăng ký, đăng nhập. Nút viền = hành động phụ. Bo 4px, chữ 700, cao 48 mặc định.</p>
+  </div>
+
+  <div class="sec">
+    <h2 class="h2">6. Ô nhập, tìm kiếm, dropdown</h2>
+    <div style="grid-column: span 6; display: flex; flex-direction: column; gap: 8px">
+      <label for="q" style="font-size: 15px; font-weight: 700">Thanh tìm kiếm</label>
+      <div style="position: relative"><input id="q" class="field" placeholder="Tìm khoá học: HSK 1, YCT, giao tiếp…" style="border-radius: 24px; padding-left: 48px; background: #F7F9FA; border-color: #1C1D1F"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" style="position: absolute; left: 18px; top: 14px"><circle cx="11" cy="11" r="7" fill="none" stroke="#1C1D1F" stroke-width="2"></circle><path d="M16 16l5 5" stroke="#1C1D1F" stroke-width="2"></path></svg></div>
+    </div>
+    <div style="grid-column: span 3; display: flex; flex-direction: column; gap: 8px; position: relative">
+      <span id="ddl" style="font-size: 15px; font-weight: 700">Sắp xếp (bấm thử)</span>
+      <button class="dd field" aria-haspopup="listbox" aria-expanded="{{ ddOpen }}" aria-labelledby="ddl" onClick="{{ toggleDd }}" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; text-align: left">{{ sort }}<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="#1C1D1F" stroke-width="2.4"></path></svg></button>
+      <sc-if value="{{ ddOpen }}" hint-placeholder-val="{{ true }}">
+        <div role="listbox" aria-labelledby="ddl" style="position: absolute; top: 82px; left: 0; right: 0; z-index: 2; background: #FFFFFF; border: 1px solid #D1D7DC; border-radius: 4px; box-shadow: 0 8px 24px rgba(28,29,31,0.16); padding: 6px 0; display: flex; flex-direction: column">
+          <sc-for list="{{ sorts }}" as="o" hint-placeholder-count="4">
+            <button role="option" aria-selected="{{ o.selected }}" onClick="{{ o.pick }}" style="height: 44px; border: 0; padding: 0 16px; text-align: left; font: {{ o.font }}; cursor: pointer; background: {{ o.bg }}; color: #1C1D1F">{{ o.label }}</button>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+    <div style="grid-column: span 3; display: flex; flex-direction: column; gap: 8px">
+      <label for="em" style="font-size: 15px; font-weight: 700">Email</label>
+      <input id="em" class="field" value="lan@" aria-describedby="eme" style="border-color: #8C1D40; box-shadow: inset 0 0 0 1px #8C1D40">
+      <p id="eme" style="margin: 0; font-size: 14px; color: #8C1D40">Email chưa đúng định dạng.</p>
+    </div>
+    <div style="grid-column: span 3; display: flex; flex-direction: column; gap: 8px">
+      <label for="nm" style="font-size: 15px; font-weight: 700">Họ và tên</label>
+      <input id="nm" class="field" value="Nguyễn Lan" style="border-color: #1C1D1F; box-shadow: inset 0 0 0 1px #1C1D1F">
+      <p class="lbl">Focus: viền đen 2px</p>
+    </div>
+    <div style="grid-column: span 3; display: flex; flex-direction: column; gap: 8px">
+      <label for="cp" style="font-size: 15px; font-weight: 700">Mã giảm giá</label>
+      <div style="display: flex; gap: 8px"><input id="cp" class="field" placeholder="Nhập mã"><button class="btn" style="background: #1C1D1F; color: #FFFFFF">Áp dụng</button></div>
+    </div>
+    <div style="grid-column: span 6; display: flex; flex-direction: column; gap: 8px">
+      <label for="nt" style="font-size: 15px; font-weight: 700">Ghi chú bài học</label>
+      <textarea id="nt" class="field" style="height: 88px; padding: 12px 14px; resize: vertical">Thanh 3 xuống rồi lên.</textarea>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h2 class="h2">7. Radio, checkbox, công tắc, bộ lọc</h2>
+    <fieldset style="grid-column: span 3; border: 0; margin: 0; padding: 0; display: flex; flex-direction: column">
+      <legend style="font-size: 15px; font-weight: 700; padding: 0 0 6px">Cấp độ (radio)</legend>
+      <label class="opt"><input type="radio" name="lv" checked="{{ lvAll }}" onChange="{{ pickAll }}">Mọi cấp độ</label>
+      <label class="opt"><input type="radio" name="lv" checked="{{ lvNew }}" onChange="{{ pickNew }}">Mới bắt đầu</label>
+      <label class="opt"><input type="radio" name="lv" checked="{{ lvMid }}" onChange="{{ pickMid }}">Trung cấp</label>
+    </fieldset>
+    <fieldset style="grid-column: span 3; border: 0; margin: 0; padding: 0; display: flex; flex-direction: column">
+      <legend style="font-size: 15px; font-weight: 700; padding: 0 0 6px">Chương trình (checkbox)</legend>
+      <label class="opt"><input type="checkbox" checked="{{ cHsk }}" onChange="{{ tHsk }}">HSK</label>
+      <label class="opt"><input type="checkbox" checked="{{ cYct }}" onChange="{{ tYct }}">YCT</label>
+      <label class="opt"><input type="checkbox">Giao tiếp</label>
+    </fieldset>
+    <div style="grid-column: span 3; display: flex; flex-direction: column; gap: 6px">
+      <p style="margin: 0 0 6px; font-size: 15px; font-weight: 700">Công tắc (bấm thử)</p>
+      <div style="display: flex; align-items: center; justify-content: space-between; min-height: 44px"><span id="s1" style="font-size: 16px">Nhắc học mỗi ngày</span><button class="sw" role="switch" aria-checked="{{ notify }}" aria-labelledby="s1" onClick="{{ tNotify }}" style="background: {{ swBg }}; justify-content: {{ swJ }}"><span style="width: 22px; height: 22px; border-radius: 11px; background: #FFFFFF; display: block"></span></button></div>
+      <div style="display: flex; align-items: center; justify-content: space-between; min-height: 44px"><span id="s2" style="font-size: 16px">Tự phát bài tiếp</span><button class="sw" role="switch" aria-checked="{{ auto }}" aria-labelledby="s2" onClick="{{ tAuto }}" style="background: {{ sw2Bg }}; justify-content: {{ sw2J }}"><span style="width: 22px; height: 22px; border-radius: 11px; background: #FFFFFF; display: block"></span></button></div>
+    </div>
+    <div style="grid-column: span 3; display: flex; flex-direction: column; gap: 10px">
+      <p style="margin: 0; font-size: 15px; font-weight: 700">Chip lọc</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px">
+        <button style="height: 40px; padding: 0 16px; border-radius: 20px; border: 0; background: #1C1D1F; color: #FFFFFF; font: 700 14px 'Be Vietnam Pro', sans-serif">HSK 1</button>
+        <button style="height: 40px; padding: 0 16px; border-radius: 20px; border: 1px solid #1C1D1F; background: #FFFFFF; font: 700 14px 'Be Vietnam Pro', sans-serif">HSK 2</button>
+        <button style="height: 40px; padding: 0 16px; border-radius: 20px; border: 1px solid #1C1D1F; background: #FFFFFF; font: 700 14px 'Be Vietnam Pro', sans-serif">YCT</button>
+        <button style="height: 40px; padding: 0 16px; border-radius: 20px; border: 1px solid #1C1D1F; background: #FFFFFF; font: 700 14px 'Be Vietnam Pro', sans-serif">Miễn phí</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h2 class="h2">8. Tab, nhãn, đánh giá, tiến độ, thông báo</h2>
+    <div style="grid-column: span 6; display: flex; flex-direction: column; gap: 22px">
+      <div role="tablist" aria-label="Tab" style="display: flex; gap: 28px; font-size: 16px; font-weight: 700; border-bottom: 1px solid #D1D7DC">
+        <button role="tab" aria-selected="true" style="border: 0; background: none; padding: 0 0 12px; font: inherit; box-shadow: inset 0 -2px 0 #1C1D1F; cursor: pointer">Tổng quan</button>
+        <button role="tab" aria-selected="false" style="border: 0; background: none; padding: 0 0 12px; font: inherit; color: #6A6F73; cursor: pointer">Hỏi đáp</button>
+        <button role="tab" aria-selected="false" style="border: 0; background: none; padding: 0 0 12px; font: inherit; color: #6A6F73; cursor: pointer">Ghi chú</button>
+        <button role="tab" aria-selected="false" style="border: 0; background: none; padding: 0 0 12px; font: inherit; color: #6A6F73; cursor: pointer">Tài liệu</button>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+        <span style="padding: 4px 8px; background: #FCE8C3; color: #5A3A00; font-size: 13px; font-weight: 700; border-radius: 4px">Nổi bật</span>
+        <span style="padding: 4px 8px; background: #E1F0EC; color: #12483C; font-size: 13px; font-weight: 700; border-radius: 4px">Mới</span>
+        <span style="padding: 4px 8px; background: #E4ECF8; color: #173B78; font-size: 13px; font-weight: 700; border-radius: 4px">Học thử</span>
+        <span style="padding: 4px 8px; background: #1C1D1F; color: #FFFFFF; font-size: 13px; font-weight: 700; border-radius: 4px">Đã mua</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px"><div style="display: flex; align-items: center; gap: 6px; font-size: 14px; flex-wrap: wrap"><b style="color: #B4690E">4,5 ★</b><span style="color: #6A6F73">· khảo sát 120 học viên lớp offline 2025</span></div><span style="font-size: 13px; color: #6A6F73">Đánh giá chỉ hiện khi có nguồn thật đi kèm; không có thì ẩn cả khối.</span></div>
+        <span style="align-self: flex-start; padding: 4px 8px; background: #FFF3D6; color: #5A3A00; border: 1px dashed #B4690E; font-size: 12px; font-weight: 700; border-radius: 4px">Cần backend</span>
+      <div style="display: flex; flex-direction: column; gap: 6px; max-width: 420px">
+        <div role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" aria-label="Tiến độ" style="height: 6px; background: #D1D7DC; border-radius: 3px"><div style="width: 40%; height: 6px; background: {{accent}}; border-radius: 3px"></div></div>
+        <span style="font-size: 13px; color: #6A6F73">Đã học 40% · 6 / 15 bài</span>
+      </div>
+    </div>
+    <div style="grid-column: span 6; display: flex; flex-direction: column; gap: 10px">
+      <div role="status" style="border: 1px solid #1E6E5C; background: #E1F0EC; border-radius: 4px; padding: 14px 16px; font-size: 15px; line-height: 1.45"><b>Thanh toán thành công.</b> Khoá HSK 1 đã có trong “Khoá học của tôi”.</div>
+      <div role="alert" style="border: 1px solid #8C1D40; background: #F7E6EB; border-radius: 4px; padding: 14px 16px; font-size: 15px; line-height: 1.45"><b>Chưa thanh toán được.</b> Mã QR đã hết hạn, hãy tạo mã mới.</div>
+      <div role="status" style="border: 1px solid #B4690E; background: #FCF2E2; border-radius: 4px; padding: 14px 16px; font-size: 15px; line-height: 1.45"><b>Ưu đãi kết thúc sau 2 ngày.</b> [nếu bạn có chương trình giảm giá]</div>
+      <div style="background: #1C1D1F; color: #FFFFFF; border-radius: 4px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 24px rgba(28,29,31,0.25); max-width: 400px"><span style="font-size: 15px">Đã lưu ghi chú</span><button style="border: 0; background: none; color: #FFFFFF; font: 700 15px 'Be Vietnam Pro', sans-serif; min-height: 44px; cursor: pointer">Hoàn tác</button></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <h2 class="h2">9. Thẻ khoá học và hàng bài giảng</h2>
+    <div class="card" style="grid-column: span 3">
+      <div class="thumb" style="background: #1F4FA0"><span style="font-size: 13px; font-weight: 700">[Ảnh bìa khoá]</span><span class="han" style="font-size: 44px; line-height: 1">考</span></div>
+      <p style="margin: 4px 0 0; font-size: 16px; font-weight: 700; line-height: 1.3">HSK 1: nền tảng và 150 từ vựng</p>
+      <p style="margin: 0; font-size: 13px; color: #6A6F73">GV [Tên giáo viên]</p>
+      <div style="display: flex; align-items: center; gap: 4px; font-size: 13px; flex-wrap: wrap"><b style="color: #B4690E">[4,5] ★</b><span style="color: #6A6F73">· [nguồn]</span></div>
+      <p style="margin: 0; font-size: 16px; font-weight: 800">[GIÁ] ₫</p>
+      <span style="align-self: flex-start; padding: 4px 8px; background: #FCE8C3; color: #5A3A00; font-size: 12px; font-weight: 700; border-radius: 4px">Nổi bật</span>
+    </div>
+    <div style="grid-column: 5 / span 8; border: 1px solid #D1D7DC; border-radius: 4px">
+      <div style="background: #F7F9FA; padding: 14px 18px; display: flex; justify-content: space-between; font-size: 16px; font-weight: 700; border-bottom: 1px solid #D1D7DC"><span>Phần 1: Phát âm và chào hỏi</span><span style="font-weight: 400; font-size: 14px">3 bài · 38 phút</span></div>
+      <div style="padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; font-size: 15px"><span style="display: flex; gap: 10px; align-items: center"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="#1C1D1F" stroke-width="2"></rect><path d="M10 9l5 3-5 3z" fill="#1C1D1F"></path></svg>Xin chào 你好</span><span style="display: flex; gap: 16px"><a href="#" style="font-weight: 700">Xem thử</a><span>12:00</span></span></div>
+      <div style="padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; font-size: 15px"><span style="display: flex; gap: 10px; align-items: center"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="#1C1D1F" stroke-width="2"></rect><path d="M10 9l5 3-5 3z" fill="#1C1D1F"></path></svg>Bốn thanh điệu</span><span>14:00</span></div>
+      <div style="padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; font-size: 15px"><span style="display: flex; gap: 10px; align-items: center"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z" fill="none" stroke="#1C1D1F" stroke-width="2"></path></svg>Tài liệu: bảng thanh mẫu (.docx)</span><span>Tải về</span></div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#C2321C","options":["#C2321C","#1C1D1F","#1F4FA0","#1E6E5C"]},"$preview":{"width":1440,"height":2600}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { ddOpen: false, sort: 'Phổ biến nhất', lv: 'all', hsk: true, yct: false, notify: true, auto: false };
+  }
+  renderVals() {
+    const s = this.state;
+    const opts = ['Phổ biến nhất', 'Mới nhất', 'Giá thấp đến cao', 'Giá cao đến thấp'];
+    return {
+      accent: this.props.accent ?? '#C2321C',
+      ddOpen: s.ddOpen,
+      sort: s.sort,
+      toggleDd: () => this.setState({ ddOpen: !s.ddOpen }),
+      sorts: opts.map((o) => ({
+        label: o,
+        selected: o === s.sort,
+        bg: o === s.sort ? '#F7F9FA' : '#FFFFFF',
+        font: o === s.sort ? "700 15px 'Be Vietnam Pro', sans-serif" : "400 15px 'Be Vietnam Pro', sans-serif",
+        pick: () => this.setState({ sort: o, ddOpen: false })
+      })),
+      lvAll: s.lv === 'all', lvNew: s.lv === 'new', lvMid: s.lv === 'mid',
+      pickAll: () => this.setState({ lv: 'all' }),
+      pickNew: () => this.setState({ lv: 'new' }),
+      pickMid: () => this.setState({ lv: 'mid' }),
+      cHsk: s.hsk, cYct: s.yct,
+      tHsk: () => this.setState({ hsk: !s.hsk }),
+      tYct: () => this.setState({ yct: !s.yct }),
+      notify: s.notify, auto: s.auto,
+      tNotify: () => this.setState({ notify: !s.notify }),
+      tAuto: () => this.setState({ auto: !s.auto }),
+      swBg: s.notify ? '#1C1D1F' : '#D1D7DC', swJ: s.notify ? 'flex-end' : 'flex-start',
+      sw2Bg: s.auto ? '#1C1D1F' : '#D1D7DC', sw2J: s.auto ? 'flex-end' : 'flex-start'
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,4 +1,7 @@
-import { IsEmail, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { Equals, IsEmail, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+
+export const TERMS_REQUIRED_MESSAGE =
+  'Bạn cần đồng ý với Điều khoản sử dụng và Chính sách bảo mật để tạo tài khoản.';
 
 export class LoginDto {
   @IsEmail({}, { message: 'Email không hợp lệ' })
@@ -25,6 +28,10 @@ export class RegisterDto {
   @IsString()
   @MaxLength(30)
   phone?: string;
+
+  /** The register form's consent box; the account is only created when it is ticked. */
+  @Equals(true, { message: TERMS_REQUIRED_MESSAGE })
+  acceptTerms: boolean;
 }
 
 export class UpdateProfileDto {
@@ -52,4 +59,22 @@ export class ChangePasswordDto {
   @IsString()
   @MinLength(6, { message: 'Mật khẩu mới tối thiểu 6 ký tự' })
   newPassword: string;
+}
+
+export class ForgotPasswordDto {
+  @IsEmail({}, { message: 'Email không hợp lệ' })
+  @MaxLength(255)
+  email: string;
+}
+
+export class ResetPasswordDto {
+  @IsString()
+  @MinLength(20, { message: 'Đường dẫn đặt lại mật khẩu không hợp lệ' })
+  @MaxLength(200, { message: 'Đường dẫn đặt lại mật khẩu không hợp lệ' })
+  token: string;
+
+  @IsString()
+  @MinLength(6, { message: 'Mật khẩu mới tối thiểu 6 ký tự' })
+  @MaxLength(128, { message: 'Mật khẩu mới tối đa 128 ký tự' })
+  password: string;
 }
