@@ -148,10 +148,11 @@ function PendingPanel({
       </h1>
       <CourseLine order={order} />
       <div>
-        <div className={s.kv}>
+        <div className={`${s.kv} ${s.kvPrice}`}>
           <span>Giá khoá học</span>
           <b>{formatVnd(order.amountVnd)}</b>
         </div>
+        {/* Price and total are equal (no discounts); phones show the total only. */}
         <div className={s.kv} style={{ borderBottom: 0 }}>
           <b>Tổng thanh toán</b>
           <b>{formatVnd(order.amountVnd)}</b>
@@ -172,15 +173,23 @@ function PendingPanel({
           )}
         </div>
         <div className={s.payText}>
-          <b>Quét mã bằng app ngân hàng</b>
-          <span>Số tiền và nội dung chuyển khoản đã có sẵn trong mã, bạn không cần gõ lại.</span>
+          <b className={s.wideOnly}>Quét mã bằng app ngân hàng</b>
+          <span className={s.wideOnly}>Số tiền và nội dung chuyển khoản đã có sẵn trong mã, bạn không cần gõ lại.</span>
+          <span className={s.phoneOnly}>
+            {order.checkoutUrl
+              ? 'Lưu ảnh mã rồi mở app ngân hàng để quét, hoặc bấm nút dưới để mở thẳng app ngân hàng.'
+              : 'Lưu ảnh mã rồi mở app ngân hàng để quét. Số tiền và nội dung chuyển khoản đã có sẵn trong mã.'}
+          </span>
           <span className={s.muted} aria-live="off">
             Mã hết hạn sau <b className={s.timer}>{formatLeft(left)}</b>
+            <span className={s.phoneOnly}> · Đơn {order.code}</span>
           </span>
-          <span className={s.muted} role="status">
-            Trang tự cập nhật khi nhận được tiền.
+          <span className={s.waiting} role="status">
+            <span className={s.spinner} aria-hidden="true" />
+            Đang chờ xác nhận
           </span>
-          <div className={s.actions}>
+          <span className={s.muted}>Trang tự cập nhật khi nhận được tiền.</span>
+          <div className={`${s.actions} ${s.wideOnly}`}>
             {order.checkoutUrl && (
               <LinkButton href={order.checkoutUrl} variant="outline" size="sm" rel="noopener">
                 Mở trang thanh toán PayOS
@@ -193,6 +202,26 @@ function PendingPanel({
             )}
           </div>
         </div>
+      </div>
+
+      {/* Phone (AppCheckout board): nobody can scan a QR shown on their own
+          screen, so opening the bank app through PayOS comes first. */}
+      <div className={s.payBar} data-testid="mobile-pay-actions">
+        {order.checkoutUrl && (
+          <LinkButton href={order.checkoutUrl} variant="accent" block rel="noopener">
+            Mở app ngân hàng
+          </LinkButton>
+        )}
+        {qrSrc && (
+          <LinkButton
+            href={qrSrc}
+            variant={order.checkoutUrl ? 'outline' : 'ink'}
+            block
+            download={`${order.code}.png`}
+          >
+            Lưu mã QR
+          </LinkButton>
+        )}
       </div>
 
       {order.canSimulate && (
