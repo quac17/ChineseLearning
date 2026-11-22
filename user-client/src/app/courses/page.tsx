@@ -18,11 +18,22 @@ import {
 } from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
 import { useModule } from '@/context/ModuleContext';
-import { apiRequest } from '@/lib/api';
-import { courseMeta, hasPreview, isOnSale, parseProgram, routes } from '@/lib/courses';
+import { apiRequest, buildMediaUrl } from '@/lib/api';
+import {
+  DURATION_BUCKETS,
+  LEVELS,
+  LEVEL_ORDER,
+  courseMeta,
+  durationBucket,
+  hasPreview,
+  isOnSale,
+  parseProgram,
+  routes,
+  type DurationBucket,
+} from '@/lib/courses';
 import { PROGRAMS, PROGRAM_ORDER, formatVnd } from '@/lib/programs';
 import { addRecentSearch, loadRecentSearches, saveRecentSearches } from '@/lib/recentSearches';
-import type { CourseItem, ProgramModule } from '@/lib/types';
+import type { CourseItem, CourseLevel, ProgramModule } from '@/lib/types';
 import s from './catalog.module.css';
 
 type SortKey = 'relevant' | 'newest' | 'title' | 'price';
@@ -70,6 +81,9 @@ function Catalog() {
     }
     setRecent(list);
   }, [q]);
+  const [levels, setLevels] = useState<CourseLevel[]>([]);
+  const [durations, setDurations] = useState<DurationBucket[]>([]);
+  const toggle = <T,>(list: T[], value: T, on: boolean) => (on ? [...list, value] : list.filter((v) => v !== value));
 
   // Old links were /courses?courseId=…; the course now has its own page.
   useEffect(() => {
@@ -104,6 +118,11 @@ function Catalog() {
       if (onlyFree && !onlyPaid && !c.isFree) return false;
       if (onlyPaid && !onlyFree && c.isFree) return false;
       if (withPreview && !hasPreview(c)) return false;
+      if (levels.length && !(c.level && levels.includes(c.level))) return false;
+      if (durations.length) {
+        const bucket = durationBucket(c.totalDurationMinutes);
+        if (!bucket || !durations.includes(bucket)) return false;
+      }
       return true;
     });
     if (sort === 'newest') list = [...list].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -113,13 +132,15 @@ function Catalog() {
       list = [...list].sort((a, b) => price(a) - price(b));
     }
     return list;
-  }, [courses, onlyFree, onlyPaid, withPreview, sort]);
+  }, [courses, onlyFree, onlyPaid, withPreview, levels, durations, sort]);
 
-  const filtersOn = onlyFree || onlyPaid || withPreview;
+  const filtersOn = onlyFree || onlyPaid || withPreview || levels.length > 0 || durations.length > 0;
   const clearFilters = () => {
     setOnlyFree(false);
     setOnlyPaid(false);
     setWithPreview(false);
+    setLevels([]);
+    setDurations([]);
   };
   const clearAll = () => {
     clearFilters();
@@ -136,6 +157,16 @@ function Catalog() {
     ...(onlyFree ? [{ key: 'free', label: 'Miễn phí', remove: () => setOnlyFree(false) }] : []),
     ...(onlyPaid ? [{ key: 'paid', label: 'Trả phí', remove: () => setOnlyPaid(false) }] : []),
     ...(withPreview ? [{ key: 'preview', label: 'Có học thử', remove: () => setWithPreview(false) }] : []),
+    ...levels.map((id) => ({
+      key: `level-${id}`,
+      label: LEVELS[id].label,
+      remove: () => setLevels((l) => l.filter((v) => v !== id)),
+    })),
+    ...durations.map((id) => ({
+      key: `duration-${id}`,
+      label: DURATION_BUCKETS.find((b) => b.id === id)!.label,
+      remove: () => setDurations((d) => d.filter((v) => v !== id)),
+    })),
   ];
 
   const onSearch = (e: FormEvent) => {
@@ -159,6 +190,23 @@ function Catalog() {
       <Checkbox label="Có bài học thử" checked={withPreview} onChange={(e) => setWithPreview(e.target.checked)} />
     </>
   );
+
+  const levelFilters = LEVEL_ORDER.map((id) => (
+    <Checkbox
+      key={id}
+      label={`${LEVELS[id].hint} · ${LEVELS[id].label}`}
+      checked={levels.includes(id)}
+      onChange={(e) => setLevels((l) => toggle(l, id, e.target.checked))}
+    />
+  ));
+  const durationFilters = DURATION_BUCKETS.map((b) => (
+    <Checkbox
+      key={b.id}
+      label={b.label}
+      checked={durations.includes(b.id)}
+      onChange={(e) => setDurations((d) => toggle(d, b.id, e.target.checked))}
+    />
+  ));
 
   const heading = q
     ? courses
@@ -243,8 +291,16 @@ function Catalog() {
             )}
           </div>
           <fieldset className={s.group}>
+            <legend>Cấp độ</legend>
+            {levelFilters}
+          </fieldset>
+          <fieldset className={s.group}>
             <legend>Giá</legend>
             {priceFilters}
+          </fieldset>
+          <fieldset className={s.group}>
+            <legend>Thời lượng</legend>
+            {durationFilters}
           </fieldset>
         </aside>
 
@@ -349,8 +405,16 @@ function Catalog() {
               ))}
             </fieldset>
             <fieldset className={s.group}>
+              <legend>Cấp độ</legend>
+              {levelFilters}
+            </fieldset>
+            <fieldset className={s.group}>
               <legend>Giá</legend>
               {priceFilters}
+            </fieldset>
+            <fieldset className={s.group}>
+              <legend>Thời lượng</legend>
+              {durationFilters}
             </fieldset>
           </>
         )}
@@ -364,13 +428,18 @@ function CourseRow({ course }: { course: CourseItem }) {
   return (
     <Link href={routes.course(course.id)} className={s.row}>
       <div className={s.thumb} style={{ background: p.color }}>
-        <span className={s.thumbHan} aria-hidden="true">
-          {p.han}
-        </span>
+        {course.coverUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={buildMediaUrl(course.coverUrl)} alt="" loading="lazy" className={s.thumbImg} />
+        ) : (
+          <span className={s.thumbHan} aria-hidden="true">
+            {p.han}
+          </span>
+        )}
       </div>
       <div className={s.rowBody}>
         <span className={s.rowTitle}>{course.title}</span>
-        {course.description && <span className={s.rowDesc}>{course.description}</span>}
+        {(course.subtitle || course.description) && <span className={s.rowDesc}>{course.subtitle || course.description}</span>}
         {course.teacher && <span className={s.rowMeta}>GV {course.teacher.fullName}</span>}
         <span className={s.rowMeta}>
           {p.name} · {courseMeta(course)}

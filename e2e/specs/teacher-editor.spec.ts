@@ -63,7 +63,7 @@ test.describe('course editor', () => {
     await page.getByRole('button', { name: '+ Thêm bài' }).click();
     await form.getByLabel('Tiêu đề').fill('Bài 2: Thanh điệu');
     await form.getByLabel('Tệp video').setInputFiles({ name: 'bai2.mp4', mimeType: 'video/mp4', buffer: Buffer.alloc(4096, 1) });
-    await form.getByLabel('Thời lượng').fill('12 phút');
+    await form.getByLabel('Thời lượng (phút)').fill('12');
     await form.getByRole('button', { name: 'Lưu bài' }).click();
     await expect(form).toHaveCount(0);
 

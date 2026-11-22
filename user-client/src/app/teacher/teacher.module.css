@@ -306,6 +306,13 @@
   font-size: 14px;
   font-weight: 700;
 }
+.coverImg {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
 .coverPreview > span {
   width: 100%;
   font-size: 56px;

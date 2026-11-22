@@ -18,7 +18,7 @@ import {
   useToast,
 } from '@/components/ui';
 import { apiRequest } from '@/lib/api';
-import { courseOutline, hasSections, sectionHeading } from '@/lib/courses';
+import { courseOutline, hasSections, lessonDuration, sectionHeading } from '@/lib/courses';
 import type { CourseSection, LessonItem } from '@/lib/types';
 import { FileDrop } from '../../../FileDrop';
 import { move } from '../../../shared';
@@ -146,7 +146,7 @@ export default function CourseLessonsTab() {
                           <span className={exposed ? s.warnText : s.rowMeta}>
                             {exposed
                               ? 'YouTube trong bài trả phí: ai có link cũng xem được'
-                              : [l.duration, `${l.vocabularyCount ?? 0} từ vựng`].filter(Boolean).join(' · ')}
+                              : [lessonDuration(l), `${l.vocabularyCount ?? 0} từ vựng`].filter(Boolean).join(' · ')}
                           </span>
                         </span>
                         <span className={s.rowSource}>
@@ -370,7 +370,7 @@ function LessonForm({
   const [source, setSource] = useState<Source>(lesson?.sourceType ?? 'UPLOAD');
   const [youtubeUrl, setYoutubeUrl] = useState(lesson?.youtubeUrl ?? '');
   const [file, setFile] = useState<File | null>(null);
-  const [duration, setDuration] = useState(lesson?.duration ?? '');
+  const [minutes, setMinutes] = useState(lesson?.durationMinutes ? String(lesson.durationMinutes) : '');
   const [isFree, setIsFree] = useState(lesson?.isFree ?? false);
   const [sectionId, setSectionId] = useState(lesson?.sectionId ?? '');
   const [description, setDescription] = useState(lesson?.description ?? '');
@@ -389,7 +389,11 @@ function LessonForm({
     if (source === 'YOUTUBE' && !youtubeUrl.trim()) return setError('Nhập link hoặc ID video YouTube');
     if (source === 'UPLOAD' && !file && !(lesson && lesson.sourceType === 'UPLOAD')) return setError('Chọn file video để tải lên');
 
-    const fields = { title: title.trim(), description, duration, isFree, ...(sections.length ? { sectionId: sectionId || null } : {}) };
+    const parsedMinutes = minutes.trim() === '' ? null : Number(minutes.trim());
+    if (parsedMinutes !== null && (!Number.isInteger(parsedMinutes) || parsedMinutes < 1 || parsedMinutes > 600)) {
+      return setError('Thời lượng là số phút từ 1 đến 600');
+    }
+    const fields = { title: title.trim(), description, durationMinutes: parsedMinutes, isFree, ...(sections.length ? { sectionId: sectionId || null } : {}) };
     setProgress(source === 'UPLOAD' && file ? 0 : null);
     let savedId = lesson?.id ?? null;
     try {
@@ -398,7 +402,7 @@ function LessonForm({
         if (!lesson) fd.append('courseId', courseId);
         fd.append('title', fields.title);
         fd.append('description', description);
-        fd.append('duration', duration);
+        fd.append('durationMinutes', parsedMinutes === null ? '' : String(parsedMinutes));
         fd.append('isFree', String(isFree));
         if (sections.length) fd.append('sectionId', sectionId);
         fd.append('file', file);
@@ -508,9 +512,8 @@ function LessonForm({
           </Field>
         )}
         <div className={s.twoCols}>
-          {/* TODO(course fields issue): numeric duration replaces this free text. */}
-          <Field label="Thời lượng">
-            <Input value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="15 phút" maxLength={50} />
+          <Field label="Thời lượng (phút)">
+            <Input value={minutes} onChange={(e) => setMinutes(e.target.value)} inputMode="numeric" placeholder="15" maxLength={3} />
           </Field>
           <Checkbox label="Học thử: cho xem miễn phí" checked={isFree} onChange={(e) => setIsFree(e.target.checked)} />
         </div>

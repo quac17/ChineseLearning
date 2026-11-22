@@ -167,6 +167,8 @@ ul.chips {
   text-decoration: underline;
 }
 .thumb {
+  position: relative;
+  overflow: hidden;
   aspect-ratio: 16 / 9;
   border-radius: var(--radius);
   display: flex;
@@ -174,6 +176,13 @@ ul.chips {
   justify-content: flex-end;
   padding: 10px;
   color: #fff;
+}
+.thumbImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .thumbHan {
   font-family: var(--font-han);

@@ -15,8 +15,7 @@ Làm lại theo các board `Teacher*.dc.html`, trong khung `DashboardShell`
 (`src/components/layout/`), dùng bộ component `@/components/ui`. Đã xong: Tổng quan
 (`/teacher`), danh sách khoá (`/teacher/courses`) và trình sửa khoá 6 tab
 (`/teacher/courses/:id/info|lessons|vocabulary|documents|students|pricing`). Còn chờ
-API của các issue khác (đánh dấu `TODO(...)` trong code): mô tả ngắn, cấp độ,
-"Bạn sẽ học được", ảnh bìa, thời lượng dạng số, phụ đề.
+API của các issue khác (đánh dấu `TODO(...)` trong code): phụ đề.
 
 API Phần (chương) (#27, đã nối vào tab Bài giảng): `GET /courses/:id` trả `sections: [{ id, title, sortOrder, lessonIds }]`
 theo thứ tự, `lessons[]` đã xếp theo Phần (bài chưa có Phần ở cuối), mỗi bài có `sectionId`;
@@ -26,6 +25,13 @@ khoá chưa có Phần thì `sections: []`. Chỉ giáo viên của khoá hoặc
 một lần), `DELETE /courses/:courseId/sections/:sectionId` (bài vẫn giữ). Gán bài:
 `PATCH /lessons/:id` `{ sectionId }` (`null` = bỏ khỏi Phần); `POST /lessons/youtube|upload` cũng
 nhận `sectionId`. Tên Phần lưu không kèm số; giao diện tự thêm "Phần 1: ".
+
+API thông tin khoá (#28, đã nối vào tab Thông tin và Bài giảng): `PATCH /courses/:id` nhận thêm `subtitle` (≤ 120 ký tự, `""`/`null` = xoá),
+`level` (`BEGINNER` | `INTERMEDIATE` | `ADVANCED` | `null`) và `outcomes` (tối đa 12 ý, mỗi ý ≤ 160
+ký tự). Ảnh bìa: `POST /courses/:id/cover` (multipart `file`, .jpg/.png/.webp, tối đa
+`MAX_COVER_SIZE_MB` = 2), `DELETE /courses/:id/cover`; khoá trả `coverUrl` (dùng `buildMediaUrl`).
+Thời lượng bài: `durationMinutes` (1–600) trên `POST /lessons/youtube|upload` và `PATCH /lessons/:id`;
+bỏ trống thì server đọc từ ô chữ `duration`. Khoá có `totalDurationMinutes`.
 
 ## Chủ dự án
 

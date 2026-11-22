@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, CourseCard, EmptyState, LinkButton, ProgressBar, Skeleton, Tabs } from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
-import { apiRequest } from '@/lib/api';
+import { apiRequest, buildMediaUrl } from '@/lib/api';
 import { courseMeta, isOnSale, routes } from '@/lib/courses';
 import { PROGRAMS } from '@/lib/programs';
 import { SUPPORT_CONTACT } from '@/lib/site';
@@ -267,6 +267,7 @@ function CourseGrid({ courses, error, empty }: { courses: CourseItem[] | null; e
           title={c.title}
           program={c.module}
           teacherName={c.teacher?.fullName}
+          coverUrl={c.coverUrl ? buildMediaUrl(c.coverUrl) : null}
           isFree={c.isFree}
           priceVnd={isOnSale(c) ? c.priceVnd : null}
           meta={courseMeta(c)}

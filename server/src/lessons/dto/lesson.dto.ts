@@ -5,6 +5,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  Max,
   Min,
   MinLength,
   ValidateIf,
@@ -15,6 +16,10 @@ import { Transform, Type } from 'class-transformer';
 const toSectionId = ({ value }: { value: unknown }) =>
   value === '' || value === 'null' ? null : typeof value === 'string' ? value.trim() : value;
 
+/** "" / "null" (multipart) = clear; numeric strings become numbers. */
+const toMinutes = ({ value }: { value: unknown }) =>
+  value === '' || value === 'null' || value === null ? null : typeof value === 'string' ? Number(value) : value;
+
 /** Optional section ("Phần") of the same course; null = no section. */
 class WithSection {
   @IsOptional()
@@ -22,6 +27,18 @@ class WithSection {
   @ValidateIf((_, value) => value !== null)
   @IsString({ message: 'Mã phần không hợp lệ' })
   sectionId?: string | null;
+
+  /**
+   * Length in whole minutes (drives totals and the catalog filter). When left
+   * out, it is read from the free-text `duration` ("12 phút", "14:00").
+   */
+  @IsOptional()
+  @Transform(toMinutes)
+  @ValidateIf((_, value) => value !== null)
+  @IsInt({ message: 'Thời lượng phải là số phút' })
+  @Min(1, { message: 'Thời lượng tối thiểu 1 phút' })
+  @Max(600, { message: 'Thời lượng tối đa 600 phút' })
+  durationMinutes?: number | null;
 }
 
 export class CreateYoutubeLessonDto extends WithSection {
