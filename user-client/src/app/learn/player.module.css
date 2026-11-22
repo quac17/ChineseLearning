@@ -242,14 +242,55 @@
   padding: 40px 16px;
 }
 
+/* Phone "Từ vựng & tài liệu" tab: vocabulary, then documents. */
+.study {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.studyHead {
+  margin: 0 0 8px;
+  font-size: 17px;
+  font-weight: 800;
+}
+
 @media (max-width: 760px) {
+  /* AppPlayer board: the top bar scrolls away, the video stays at the top. */
+  .top {
+    position: static;
+  }
+  .stagePlaying {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
   .side {
     border-left: 0;
     position: static;
     max-height: none;
   }
   .content {
-    padding: 20px 16px;
+    padding: 16px;
+  }
+  /* Equal-width tabs across the screen, like the board. */
+  .phoneTabs [role='tablist'] {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 0;
+    margin: 0 -16px;
+  }
+  .phoneTabs [role='tab'] {
+    min-height: 48px;
+    padding: 8px 6px 10px;
+    font-size: 15px;
+    line-height: 1.25;
+    white-space: normal;
+    text-align: center;
+  }
+  /* The lesson list runs edge to edge under the tabs, like the board. */
+  .phoneList {
+    margin: -4px -16px 0;
   }
   .lessonTitle {
     font-size: 20px;

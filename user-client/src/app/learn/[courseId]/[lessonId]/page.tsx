@@ -13,10 +13,13 @@ import { buildMediaUrl, formatFileSize } from '@/lib/api';
 import { BuyButton } from '@/components/course/BuyButton';
 import { isOnSale, lessonDuration, previewLesson, routes, sortedLessons } from '@/lib/courses';
 import { formatVnd } from '@/lib/programs';
+import { PHONE_QUERY, useMediaQuery } from '@/lib/useMediaQuery';
 import type { CourseItem, LessonItem } from '@/lib/types';
 import s from '../../player.module.css';
 
 type TabId = 'vocab' | 'overview' | 'docs';
+/** Phone tabs (docs/design/canvas/AppPlayer.dc.html). */
+type PhoneTabId = 'lessons' | 'study';
 
 export default function LessonPage() {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
@@ -102,6 +105,8 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
   const [tab, setTab] = useState<TabId>(hasVocab ? 'vocab' : 'overview');
   // Moving to another lesson reuses this component: reset the tab for it.
   useEffect(() => setTab(hasVocab ? 'vocab' : 'overview'), [lesson0.id, hasVocab]);
+  const [phoneTab, setPhoneTab] = useState<PhoneTabId>('lessons');
+  const phone = useMediaQuery(PHONE_QUERY);
   const toast = useToast();
   const { progress, save, byLesson, enabled: tracking } = useCourseProgress(course.id);
   const lesson = lessons[index];
@@ -118,6 +123,9 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
       toast.show((err as Error).message || 'Không lưu được tiến độ.');
     }
   };
+
+  const curriculum = { course, lessons, index, tracking, done, toggle };
+  const summary = tracking && progress ? `${doneCount} / ${watchable.length} bài đã học` : `${lessons.length} bài giảng`;
 
   const position = tracking && progress
     ? `Bài ${index + 1} / ${lessons.length} · Đã học ${doneCount} / ${watchable.length}`
@@ -149,32 +157,83 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
                 </Button>
               )}
             </div>
-            <Tabs<TabId>
-              label="Nội dung bài"
-              idPrefix="lesson-tab"
-              value={tab}
-              onChange={setTab}
-              items={[
-                ...(hasVocab ? [{ id: 'vocab' as const, label: `Từ vựng (${lesson.vocabularyCount})` }] : []),
-                { id: 'overview', label: 'Tổng quan' },
-                { id: 'docs', label: `Tài liệu (${course.documents.length})` },
-              ]}
-            />
-            <div
-              className={s.tabPanel}
-              role="tabpanel"
-              id={`lesson-tab-panel-${tab}`}
-              aria-labelledby={`lesson-tab-${tab}`}
-              tabIndex={0}
-            >
-              {tab === 'vocab' && hasVocab ? (
-                <VocabularyList lessonId={lesson.id} />
-              ) : tab === 'docs' ? (
-                <Documents course={course} />
-              ) : (
-                <p>{lesson.description?.trim() || 'Bài học này chưa có mô tả.'}</p>
-              )}
-            </div>
+            {phone ? (
+              <>
+                <div className={s.phoneTabs}>
+                  <Tabs<PhoneTabId>
+                    label="Nội dung bài"
+                    idPrefix="phone-tab"
+                    value={phoneTab}
+                    onChange={setPhoneTab}
+                    items={[
+                      { id: 'lessons', label: 'Bài giảng' },
+                      { id: 'study', label: 'Từ vựng & tài liệu' },
+                    ]}
+                  />
+                </div>
+                <div
+                  className={s.tabPanel}
+                  role="tabpanel"
+                  id={`phone-tab-panel-${phoneTab}`}
+                  aria-labelledby={`phone-tab-${phoneTab}`}
+                  tabIndex={0}
+                >
+                  {phoneTab === 'lessons' ? (
+                    <div className={s.phoneList}>
+                      <div className={s.sideSub}>{summary}</div>
+                      <Curriculum {...curriculum} />
+                    </div>
+                  ) : (
+                    <div className={s.study}>
+                      {lesson.description?.trim() && <p>{lesson.description.trim()}</p>}
+                      {hasVocab && (
+                        <section aria-labelledby="study-vocab">
+                          <h2 id="study-vocab" className={s.studyHead}>
+                            Từ vựng ({lesson.vocabularyCount})
+                          </h2>
+                          <VocabularyList lessonId={lesson.id} />
+                        </section>
+                      )}
+                      <section aria-labelledby="study-docs">
+                        <h2 id="study-docs" className={s.studyHead}>
+                          Tài liệu ({course.documents.length})
+                        </h2>
+                        <Documents course={course} />
+                      </section>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <Tabs<TabId>
+                  label="Nội dung bài"
+                  idPrefix="lesson-tab"
+                  value={tab}
+                  onChange={setTab}
+                  items={[
+                    ...(hasVocab ? [{ id: 'vocab' as const, label: `Từ vựng (${lesson.vocabularyCount})` }] : []),
+                    { id: 'overview', label: 'Tổng quan' },
+                    { id: 'docs', label: `Tài liệu (${course.documents.length})` },
+                  ]}
+                />
+                <div
+                  className={s.tabPanel}
+                  role="tabpanel"
+                  id={`lesson-tab-panel-${tab}`}
+                  aria-labelledby={`lesson-tab-${tab}`}
+                  tabIndex={0}
+                >
+                  {tab === 'vocab' && hasVocab ? (
+                    <VocabularyList lessonId={lesson.id} />
+                  ) : tab === 'docs' ? (
+                    <Documents course={course} />
+                  ) : (
+                    <p>{lesson.description?.trim() || 'Bài học này chưa có mô tả.'}</p>
+                  )}
+                </div>
+              </>
+            )}
             <nav className={s.nav} aria-label="Chuyển bài">
               {prev ? (
                 <LinkButton href={routes.learn(course.id, prev.id)} variant="outline" size="sm">
@@ -191,48 +250,69 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
             </nav>
           </div>
         </main>
-        <aside className={s.side} aria-label="Nội dung khoá học">
-          <h2 className={s.sideHead}>Nội dung khoá học</h2>
-          <div className={s.sideSub}>
-            {tracking && progress ? `${doneCount} / ${watchable.length} bài đã học` : `${lessons.length} bài giảng`}
-          </div>
-          <ol className={s.items}>
-            {lessons.map((l, i) => {
-              const label = `${i + 1}. ${l.title}`;
-              const meta = [lessonDuration(l), i === index ? 'đang xem' : '', !l.canWatch ? 'đã khoá' : '']
-                .filter(Boolean)
-                .join(' · ');
-              const showTick = tracking && l.canWatch;
-              return (
-                <li key={l.id} className={s.itemRow} data-current={i === index || undefined}>
-                  {showTick ? (
-                    <input
-                      type="checkbox"
-                      className={s.tick}
-                      checked={done(l.id)}
-                      onChange={(e) => toggle(l.id, e.target.checked)}
-                      aria-label={`Đã học: ${label}`}
-                    />
-                  ) : (
-                    <span className={s.itemIcon}>{l.canWatch ? <PlayIcon size={14} /> : <LockIcon size={14} />}</span>
-                  )}
-                  <Link
-                    href={routes.learn(course.id, l.id)}
-                    className={s.item}
-                    aria-current={i === index ? 'page' : undefined}
-                  >
-                    <span className={s.itemText}>
-                      <span>{label}</span>
-                      {meta && <span className={s.itemMeta}>{meta}</span>}
-                    </span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ol>
-        </aside>
+        {!phone && (
+          <aside className={s.side} aria-label="Nội dung khoá học">
+            <h2 className={s.sideHead}>Nội dung khoá học</h2>
+            <div className={s.sideSub}>{summary}</div>
+            <Curriculum {...curriculum} />
+          </aside>
+        )}
       </div>
     </>
+  );
+}
+
+/** Lesson list with completion ticks: the desktop sidebar and the phone "Bài giảng" tab. */
+function Curriculum({
+  course,
+  lessons,
+  index,
+  tracking,
+  done,
+  toggle,
+}: {
+  course: CourseItem;
+  lessons: LessonItem[];
+  index: number;
+  tracking: boolean;
+  done: (id: string) => boolean;
+  toggle: (id: string, completed: boolean) => void;
+}) {
+  return (
+    <ol className={s.items}>
+      {lessons.map((l, i) => {
+        const label = `${i + 1}. ${l.title}`;
+        const meta = [lessonDuration(l), i === index ? 'đang xem' : '', !l.canWatch ? 'đã khoá' : '']
+          .filter(Boolean)
+          .join(' · ');
+        const showTick = tracking && l.canWatch;
+        return (
+          <li key={l.id} className={s.itemRow} data-current={i === index || undefined}>
+            {showTick ? (
+              <input
+                type="checkbox"
+                className={s.tick}
+                checked={done(l.id)}
+                onChange={(e) => toggle(l.id, e.target.checked)}
+                aria-label={`Đã học: ${label}`}
+              />
+            ) : (
+              <span className={s.itemIcon}>{l.canWatch ? <PlayIcon size={14} /> : <LockIcon size={14} />}</span>
+            )}
+            <Link
+              href={routes.learn(course.id, l.id)}
+              className={s.item}
+              aria-current={i === index ? 'page' : undefined}
+            >
+              <span className={s.itemText}>
+                <span>{label}</span>
+                {meta && <span className={s.itemMeta}>{meta}</span>}
+              </span>
+            </Link>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 
@@ -296,7 +376,7 @@ function Stage({
 
   if (lesson.sourceType === 'YOUTUBE' && lesson.youtubeId) {
     return (
-      <div className={s.stage}>
+      <div className={`${s.stage} ${s.stagePlaying}`}>
         <iframe
           key={lesson.id}
           src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(lesson.youtubeId)}?rel=0`}
@@ -310,7 +390,7 @@ function Stage({
 
   if (lesson.sourceType === 'UPLOAD' && lesson.streamPath) {
     return (
-      <div className={s.stage}>
+      <div className={`${s.stage} ${s.stagePlaying}`}>
         <UploadedVideo
           key={lesson.id}
           src={buildMediaUrl(lesson.streamPath)}
