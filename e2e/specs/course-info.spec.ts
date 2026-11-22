@@ -10,7 +10,7 @@ const PNG = Buffer.from(
 
 async function newCourse(teacher: APIRequestContext, data: Record<string, unknown> = {}) {
   const res = await teacher.post('courses', {
-    data: { title: `E2E thông tin khoá ${uniq()}`, module: 'hsk', isFree: true, ...data },
+    data: { title: `E2E thông tin khoá ${uniq()}`, module: 'hsk', isFree: true, isPublished: false, ...data },
   });
   expect(res.status(), await res.text()).toBe(201);
   return (await res.json()) as { id: string; title: string };
@@ -138,13 +138,13 @@ test.describe('course info in the learner pages', () => {
   test('catalog filters by level and total duration', async ({ page }) => {
     const teacher = await apiAs('teacher');
     const tag = uniq();
-    const long = await newCourse(teacher, { title: `E2E lọc dài ${tag}`, level: 'ADVANCED' });
+    const long = await newCourse(teacher, { title: `E2E lọc dài ${tag}`, level: 'ADVANCED', isFree: false, isPublished: true });
     for (let i = 0; i < 2; i++) {
       await teacher.post('lessons/youtube', {
         data: { courseId: long.id, title: `Bài ${i}`, youtubeUrl: 'dQw4w9WgXcQ', isFree: true, durationMinutes: 400 },
       });
     }
-    await newCourse(teacher, { title: `E2E lọc ngắn ${tag}`, level: 'BEGINNER' });
+    await newCourse(teacher, { title: `E2E lọc ngắn ${tag}`, level: 'BEGINNER', isFree: false, isPublished: true });
 
     await page.goto(`/courses?q=${encodeURIComponent(tag)}`);
     const results = page.getByRole('region', { name: 'Kết quả' }).getByRole('listitem');
