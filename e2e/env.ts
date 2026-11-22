@@ -65,5 +65,10 @@ export function serverEnv(): Record<string, string> {
     PAYMENT_GATEWAY: 'fake',
     FAKE_PAYMENT_CHECKSUM_KEY: FAKE_CHECKSUM_KEY,
     APP_URL: WEB_URL,
+    // Console mailer with the in-memory outbox (GET /api/dev/mails): specs read reset links there.
+    MAIL_TRANSPORT: 'console',
+    MAIL_DEV_OUTBOX: 'true',
+    // Every spec calls from 127.0.0.1, so the per-IP limit is lifted; the per-account limit stays real.
+    PASSWORD_RESET_MAX_PER_IP: '1000',
   };
 }

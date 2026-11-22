@@ -2,8 +2,9 @@
  * Settings a production server must not start without (NODE_ENV=production).
  * Checked in main.ts before Nest boots, so a bad Cloud Run revision fails its
  * health check instead of serving with dev defaults (dev JWT secret, insecure
- * cookie, a CORS origin of `*`). PayOS keys are checked by PaymentsModule and
- * the bucket name by StorageService.
+ * cookie, a CORS origin of `*`, the console mailer). PayOS keys are checked by
+ * PaymentsModule and the bucket name by StorageService; MailModule refuses the
+ * console mailer again on its own.
  */
 
 type Env = Record<string, string | undefined>;
@@ -68,8 +69,18 @@ export function checkProductionEnv(env: Env): EnvReport {
     );
   }
 
-  if (!env.MAIL_TRANSPORT) {
-    warnings.push('MAIL_TRANSPORT is not set: emails (password reset) cannot be sent.');
+  if ((env.MAIL_TRANSPORT || 'console').toLowerCase() !== 'smtp') {
+    errors.push('MAIL_TRANSPORT must be "smtp" in production (the console mailer only logs: no password reset email would arrive).');
+  } else {
+    const missing = ['SMTP_HOST', 'SMTP_USER', 'SMTP_PASS', 'MAIL_FROM'].filter((k) => !env[k]);
+    if (missing.length) errors.push(`MAIL_TRANSPORT=smtp needs ${missing.join(', ')}.`);
+  }
+  if (env.MAIL_DEV_OUTBOX === 'true') {
+    errors.push('MAIL_DEV_OUTBOX must not be "true" in production: it would expose password reset links.');
+  }
+
+  if (!env.TRUST_PROXY) {
+    warnings.push('TRUST_PROXY is not set: behind Cloud Run every request looks like it comes from the proxy, so the per-IP password reset limit counts everyone together.');
   }
 
   return { errors, warnings };

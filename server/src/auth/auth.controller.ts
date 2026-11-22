@@ -1,11 +1,14 @@
-import { Body, Controller, Get, Patch, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
+import { PasswordResetService } from './password-reset.service';
 import {
   ChangePasswordDto,
+  ForgotPasswordDto,
   LoginDto,
   RegisterDto,
+  ResetPasswordDto,
   UpdateProfileDto,
 } from './dto/auth.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -19,6 +22,7 @@ export class AuthController {
 
   constructor(
     private readonly authService: AuthService,
+    private readonly passwordResets: PasswordResetService,
     configService: ConfigService,
   ) {
     this.cookieName = configService.get<string>('COOKIE_NAME') || 'vankinh_token';
@@ -67,6 +71,23 @@ export class AuthController {
       path: '/',
     });
     return { loggedOut: true };
+  }
+
+  /**
+   * Public: the learner is logged out. Same answer whether the email exists
+   * or not; rate limited per account and per IP (PasswordResetService).
+   */
+  @Post('forgot-password')
+  @HttpCode(200)
+  forgotPassword(@Body() dto: ForgotPasswordDto, @Req() req: Request) {
+    return this.passwordResets.requestReset(dto.email, req.ip ?? null);
+  }
+
+  /** Public: the token from the mailed link is the credential. */
+  @Post('reset-password')
+  @HttpCode(200)
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.passwordResets.resetPassword(dto.token, dto.password);
   }
 
   @UseGuards(JwtAuthGuard)

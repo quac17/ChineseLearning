@@ -60,3 +60,21 @@ export class ChangePasswordDto {
   @MinLength(6, { message: 'Mật khẩu mới tối thiểu 6 ký tự' })
   newPassword: string;
 }
+
+export class ForgotPasswordDto {
+  @IsEmail({}, { message: 'Email không hợp lệ' })
+  @MaxLength(255)
+  email: string;
+}
+
+export class ResetPasswordDto {
+  @IsString()
+  @MinLength(20, { message: 'Đường dẫn đặt lại mật khẩu không hợp lệ' })
+  @MaxLength(200, { message: 'Đường dẫn đặt lại mật khẩu không hợp lệ' })
+  token: string;
+
+  @IsString()
+  @MinLength(6, { message: 'Mật khẩu mới tối thiểu 6 ký tự' })
+  @MaxLength(128, { message: 'Mật khẩu mới tối đa 128 ký tự' })
+  password: string;
+}

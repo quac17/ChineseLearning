@@ -331,6 +331,21 @@ CREATE TABLE IF NOT EXISTS course_reviews (
   CONSTRAINT course_reviews_hidden_by_id_fkey FOREIGN KEY (hidden_by_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
+-- Forgot password (#31): one row per reset link sent. Only the SHA-256 hash
+-- of the token is stored; a link expires after 30 minutes and works once.
+CREATE TABLE IF NOT EXISTS password_resets (
+  id VARCHAR(64) NOT NULL,
+  user_id VARCHAR(64) NOT NULL,
+  token_hash CHAR(64) NOT NULL,
+  requested_ip VARCHAR(64),
+  expires_at TIMESTAMPTZ NOT NULL,
+  used_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT password_resets_pkey PRIMARY KEY (id),
+  CONSTRAINT uq_password_resets_token_hash UNIQUE (token_hash),
+  CONSTRAINT password_resets_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_documents_course ON public.course_documents USING btree (course_id, sort_order);
 CREATE INDEX IF NOT EXISTS idx_enrollments_course ON public.course_enrollments USING btree (course_id);
@@ -352,3 +367,5 @@ CREATE INDEX IF NOT EXISTS idx_lesson_notes_user_lesson ON public.lesson_notes U
 CREATE INDEX IF NOT EXISTS idx_lesson_questions_lesson ON public.lesson_questions USING btree (lesson_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_lesson_answers_question ON public.lesson_answers USING btree (question_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_course_reviews_course ON public.course_reviews USING btree (course_id, is_hidden, created_at);
+CREATE INDEX IF NOT EXISTS idx_password_resets_user ON public.password_resets USING btree (user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_password_resets_ip ON public.password_resets USING btree (requested_ip, created_at);

@@ -1,4 +1,4 @@
-/* Login and register (docs/design/canvas/WebAuth.dc.html). */
+/* Login, register, forgot and reset password (docs/design/canvas/WebAuth.dc.html, AppAuth on phones). */
 
 .page {
   padding: 40px var(--gutter) 24px;
@@ -27,6 +27,43 @@
   color: var(--muted);
   font-size: 15px;
   line-height: 1.5;
+}
+.text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+/* "Quay lại đăng nhập" under the forgot / reset forms. */
+.back {
+  align-self: center;
+  color: var(--accent);
+  font-size: 15px;
+  font-weight: 700;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+/* Password field with "Quên mật khẩu?" on its label row (WebAuth), under it on phones (AppAuth). */
+.passwordField {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.forgot {
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
 }
 .switch {
   margin: 0;
@@ -70,5 +107,13 @@
   }
   .panel {
     padding: 24px 20px;
+  }
+  .forgot {
+    position: static;
+    align-self: flex-end;
+    margin-top: 10px;
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
   }
 }
