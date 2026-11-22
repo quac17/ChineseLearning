@@ -159,16 +159,18 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
             </div>
             {phone ? (
               <>
-                <Tabs<PhoneTabId>
-                  label="Nội dung bài"
-                  idPrefix="phone-tab"
-                  value={phoneTab}
-                  onChange={setPhoneTab}
-                  items={[
-                    { id: 'lessons', label: 'Bài giảng' },
-                    { id: 'study', label: 'Từ vựng & tài liệu' },
-                  ]}
-                />
+                <div className={s.phoneTabs}>
+                  <Tabs<PhoneTabId>
+                    label="Nội dung bài"
+                    idPrefix="phone-tab"
+                    value={phoneTab}
+                    onChange={setPhoneTab}
+                    items={[
+                      { id: 'lessons', label: 'Bài giảng' },
+                      { id: 'study', label: 'Từ vựng & tài liệu' },
+                    ]}
+                  />
+                </div>
                 <div
                   className={s.tabPanel}
                   role="tabpanel"
