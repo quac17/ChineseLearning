@@ -12,15 +12,11 @@ Cập nhật: 2026-11-22.
 ### Khu giáo viên (`/teacher`)
 
 Làm lại theo các board `Teacher*.dc.html`, trong khung `DashboardShell`
-(`src/components/layout/`), dùng bộ component `@/components/ui`. Đã có Tổng quan
-(`/teacher`), danh sách khoá (`/teacher/courses`) và trình sửa khoá
-(`/teacher/courses/:id/info|lessons|vocabulary|documents`). Cấp quyền học viên tạm ở trang cũ
-`/teacher/legacy` cho tới khi có tab Học viên.
-
-- [ ] Trình sửa khoá học, các tab còn lại:
-  - [ ] Học viên: cấp và thu hồi quyền (`TeacherStudents`).
-  - [ ] Giá & bán: **chỉ xem**, đọc `priceVnd` của khoá. Giáo viên không đặt giá
-        và không thấy doanh thu.
+(`src/components/layout/`), dùng bộ component `@/components/ui`. Đã xong: Tổng quan
+(`/teacher`), danh sách khoá (`/teacher/courses`) và trình sửa khoá 6 tab
+(`/teacher/courses/:id/info|lessons|vocabulary|documents|students|pricing`). Còn chờ
+API của các issue khác (đánh dấu `TODO(...)` trong code): mô tả ngắn, cấp độ,
+"Bạn sẽ học được", ảnh bìa, thời lượng dạng số, phần/chương, phụ đề.
 
 ### Khu admin (`/admin`)
 
@@ -35,8 +31,8 @@ Làm lại theo các board `Admin*.dc.html`. **Không làm lại** hai trang đ�
 
 ### Kiểm tra
 
-- [ ] Viết e2e cho các trang mới (skill `e2e-playwright`): giáo viên cấp quyền,
-      admin khoá tài khoản qua giao diện.
+- [ ] Viết e2e cho các trang admin mới (skill `e2e-playwright`): admin khoá tài khoản
+      qua giao diện. (Giáo viên cấp quyền qua giao diện: `teacher-students.spec.ts`.)
 
 ## Chủ dự án
 

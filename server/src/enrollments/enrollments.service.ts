@@ -4,6 +4,7 @@ import { CoursesService } from '../courses/courses.service';
 import { AuthUser } from '../common/decorators/current-user.decorator';
 import { generateId, Role } from '../common/types/domain.types';
 import { SetCourseAccessDto } from './dto/enrollment.dto';
+import { displayCode } from '../payments/payments.service';
 
 @Injectable()
 export class EnrollmentsService {
@@ -18,9 +19,18 @@ export class EnrollmentsService {
   async getCourseGrantedStudents(courseId: string, user: AuthUser) {
     await this.coursesService.assertCanManageCourse(courseId, user);
 
+    // paid_order_code: the learner's latest PAID order for this course (no
+    // amount: teachers never see revenue). completed_lessons: lesson ticks.
     const rows = await this.db.queryAll(
       `SELECT u.id AS student_id, u.full_name, u.email, u.phone,
-              e.can_view, e.note, e.updated_at, g.full_name AS granted_by
+              e.can_view, e.note, e.updated_at, g.full_name AS granted_by,
+              (SELECT o.order_code FROM orders o
+                 WHERE o.course_id = e.course_id AND o.user_id = e.student_id AND o.status = 'PAID'
+                 ORDER BY o.paid_at DESC NULLS LAST LIMIT 1) AS paid_order_code,
+              (SELECT count(*)::int FROM lesson_progress p
+                 JOIN lessons l ON l.id = p.lesson_id
+                 WHERE p.course_id = e.course_id AND p.user_id = e.student_id
+                   AND p.completed_at IS NOT NULL) AS completed_lessons
        FROM course_enrollments e
        JOIN users u ON u.id = e.student_id
        LEFT JOIN users g ON g.id = e.granted_by_id
@@ -38,6 +48,8 @@ export class EnrollmentsService {
       note: r.note ?? null,
       grantedBy: r.granted_by ?? null,
       updatedAt: r.updated_at ?? null,
+      paidOrderCode: r.paid_order_code ? displayCode(r.paid_order_code) : null,
+      completedLessons: r.completed_lessons ?? 0,
     }));
   }
 
