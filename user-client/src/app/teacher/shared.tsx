@@ -37,6 +37,7 @@ export type EditorTab = 'info' | 'lessons' | 'vocabulary' | 'documents' | 'stude
 export const EDITOR_TABS: Array<{ id: EditorTab; label: string }> = [
   { id: 'info', label: 'Thông tin' },
   { id: 'lessons', label: 'Bài giảng' },
+  { id: 'vocabulary', label: 'Từ vựng' },
   { id: 'documents', label: 'Tài liệu' },
 ];
 
