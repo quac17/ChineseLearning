@@ -73,6 +73,7 @@ function CourseDetail({ course }: { course: CourseItem }) {
           <BuyBox course={course} />
         </div>
       </section>
+      <MobileBuyBar course={course} />
 
       <div className={`${s.wrap} ${s.body}`}>
         <div className={`${s.col} ${s.sections}`}>
@@ -260,6 +261,33 @@ function BuyBox({ course }: { course: CourseItem }) {
         </ul>
       </div>
     </aside>
+  );
+}
+
+/**
+ * Phone-width bar fixed above the tab bar (docs/design/canvas/AppCourse.dc.html):
+ * price + "Mua bằng QR", or "Vào học" once the learner has access. Not shown
+ * when the course is not on sale. Hidden by CSS above 760px.
+ */
+function MobileBuyBar({ course }: { course: CourseItem }) {
+  const start = firstLesson(course);
+  if (course.hasAccess) {
+    if (!start) return null;
+    return (
+      <div className={s.buyBar} data-testid="mobile-buy-bar">
+        <span className={s.barPrice}>{course.isFree ? 'Miễn phí' : 'Đã mở khoá'}</span>
+        <LinkButton href={routes.learn(course.id, start.id)} variant="ink" className={s.barAction}>
+          Vào học
+        </LinkButton>
+      </div>
+    );
+  }
+  if (!isOnSale(course)) return null;
+  return (
+    <div className={s.buyBar} data-testid="mobile-buy-bar">
+      <span className={s.barPrice}>{formatVnd(course.priceVnd!)}</span>
+      <BuyButton courseId={course.id} label="Mua bằng QR" className={s.barAction} />
+    </div>
   );
 }
 
