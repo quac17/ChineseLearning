@@ -42,6 +42,9 @@ If `e2e/` does not exist yet, create this layout first, add
   Locally the client is `next dev`; in CI it is `next build && next start`.
   `reuseExistingServer: !process.env.CI`. If a run times out waiting for a
   web server, look for a stale process on 3100/4100 (`lsof -iTCP:3100`).
+- Several checkouts at once (worktrees, parallel agents): give each its own
+  `E2E_DB=vankinh_test_<name>`, `E2E_API_PORT` and `E2E_WEB_PORT`, e.g.
+  `E2E_DB=vankinh_test_search E2E_API_PORT=4120 E2E_WEB_PORT=3120 yarn e2e`.
 - `env.ts` pins `DATABASE_URL` to `vankinh_test` too, because dotenv never
   overrides and a `DATABASE_URL` in `server/.env` would otherwise win.
 - Refuse to run if `POSTGRES_DB` is not `vankinh_test`. A reset on the dev DB
