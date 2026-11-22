@@ -333,6 +333,12 @@
   .sideBrand {
     padding: 0 8px 0 0;
   }
+  /* The nav scrolls sideways on phones: keep each item on one line. */
+  .sideBrand,
+  .sideLink {
+    flex: none;
+    white-space: nowrap;
+  }
   .sideFoot {
     margin: 0 0 0 auto;
     flex-direction: row;

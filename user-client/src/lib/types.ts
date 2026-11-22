@@ -72,6 +72,8 @@ export interface CourseItem {
   };
   hasAccess: boolean;
   createdAt: string;
+  /** Last change to the course's own fields (not its lessons or documents). */
+  updatedAt?: string;
   lessons: LessonItem[];
   documents: CourseDocumentItem[];
   enrollments?: Array<{

@@ -7,6 +7,11 @@ import { MobileTabBar } from './MobileTabBar';
 import { SiteFooter } from './SiteFooter';
 import { SiteHeader } from './SiteHeader';
 
+const TEACHER_NAV = [
+  { href: '/teacher', label: 'Tổng quan' },
+  { href: '/teacher/courses', label: 'Khoá học' },
+];
+
 const ADMIN_NAV = [
   { href: '/admin', label: 'Tổng quan' },
   { href: '/admin/prices', label: 'Giá khoá học' },
@@ -29,8 +34,8 @@ export function AppChrome({ children }: { children: ReactNode }) {
 
   if (pathname.startsWith('/teacher')) {
     return (
-      <DashboardShell area="teacher" nav={[{ href: '/teacher', label: 'Khoá học' }]}>
-        <div className="legacy-dash">{children}</div>
+      <DashboardShell area="teacher" nav={TEACHER_NAV}>
+        {children}
       </DashboardShell>
     );
   }
