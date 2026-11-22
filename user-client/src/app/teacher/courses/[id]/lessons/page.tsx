@@ -43,7 +43,8 @@ export default function CourseLessonsTab() {
   const sections = course.sections ?? [];
   const parts = hasSections(course);
   // With sections the lessons arrive section by section; arrows move a lesson inside its own section.
-  const groups = courseOutline(course);
+  // Without sections, keep the local order as is so an optimistic reorder shows at once.
+  const groups = parts ? courseOutline(course) : [{ section: null, number: 0, lessons }];
 
   const reorder = async (from: number, to: number) => {
     const next = move(lessons, from, to);
