@@ -1,326 +1,365 @@
 'use client';
 
-import { Suspense, useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { useModule } from '@/context/ModuleContext';
-import { DEMO_QUIZZES, QuizDeck } from '@/lib/modules';
+import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Button, Input, LinkButton, Skeleton, useToast } from '@/components/ui';
+import { PracticeHub, PracticeShell, SetState, usePracticeSet, usePracticeSource } from '@/components/practice/shared';
+import s from '@/components/practice/practice.module.css';
+import { useAuth } from '@/context/AuthContext';
+import { practiceRoutes, saveReviews, type PracticeSet, type PracticeSource, type PracticeWord } from '@/lib/practice';
+import { buildQuiz, fillIsRight, orderIsRight, type Question } from '@/lib/quiz';
 
-function normalizePinyin(s: string) {
-  return s
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim();
+export default function QuizPage() {
+  return (
+    <Suspense fallback={<Skeleton height={320} />}>
+      <QuizRoute />
+    </Suspense>
+  );
 }
 
-function shuffle<T>(arr: T[]): T[] {
-  const copy = [...arr];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
+function QuizRoute() {
+  const src = usePracticeSource();
+  if (!src) return <PracticeHub focus="quiz" />;
+  return <Loader key={'due' in src ? 'due' : src.lessonId} src={src} />;
 }
 
-function QuizRunner({ quiz, onBack }: { quiz: QuizDeck; onBack: () => void }) {
-  const [index, setIndex] = useState(0);
+function Loader({ src }: { src: PracticeSource }) {
+  const { set, error } = usePracticeSet(src);
+  const [round, setRound] = useState(0);
+  if (!set || set.words.length === 0) return <SetState set={set} error={error} eyebrow="Quiz" />;
+  return <Quiz key={round} set={set} src={src} onRestart={() => setRound((r) => r + 1)} />;
+}
+
+type Verdict = { right: boolean; text: string } | null;
+
+function Quiz({ set, src, onRestart }: { set: PracticeSet; src: PracticeSource; onRestart: () => void }) {
+  const { user } = useAuth();
+  const toast = useToast();
+  const questions = useMemo(() => buildQuiz(set), [set]);
+  const [pos, setPos] = useState(0);
+  const [verdict, setVerdict] = useState<Verdict>(null);
   const [score, setScore] = useState(0);
-  const [checked, setChecked] = useState<{ ok: boolean; answer: string } | null>(null);
+  const [wrongWords, setWrongWords] = useState<PracticeWord[]>([]);
+  const done = pos >= questions.length;
 
-  const q = quiz.questions[index];
-
-  // Question state
-  const [selectedChoice, setSelectedChoice] = useState<Set<number>>(new Set());
-  const [placedOrder, setPlacedOrder] = useState<Array<[string, number]>>([]);
-  const [orderPool, setOrderPool] = useState<Array<[string, number]>>(() =>
-    q?.type === 'order' ? shuffle(q.answer.map((w, i) => [w, i])) : [],
-  );
-  const [fillVal, setFillVal] = useState('');
-  const [pairs, setPairs] = useState<Record<number, number>>({});
-  const [pickLeft, setPickLeft] = useState<number | null>(null);
-  const [rightMap, setRightMap] = useState<number[]>(() =>
-    q?.type === 'match' ? shuffle(q.right.map((_, i) => i)) : [],
-  );
-
-  const resetForIndex = (nextIdx: number) => {
-    const nq = quiz.questions[nextIdx];
-    setIndex(nextIdx);
-    setChecked(null);
-    setSelectedChoice(new Set());
-    setPlacedOrder([]);
-    setFillVal('');
-    setPairs({});
-    setPickLeft(null);
-    setOrderPool(nq?.type === 'order' ? shuffle(nq.answer.map((w, i) => [w, i])) : []);
-    setRightMap(nq?.type === 'match' ? shuffle(nq.right.map((_, i) => i)) : []);
+  const record = (right: boolean, words: PracticeWord[], text: string) => {
+    if (right) setScore((n) => n + 1);
+    else setWrongWords((w) => [...w, ...words.filter((x) => !w.some((y) => y.id === x.id))]);
+    setVerdict({ right, text });
+    saveReviews(
+      Boolean(user),
+      words.map((w) => ({ vocabularyId: w.id, outcome: right ? 'quiz_correct' : 'quiz_wrong' })),
+    ).catch(() => toast.show('Không lưu được kết quả quiz.'));
   };
 
-  if (!q) {
+  const next = () => {
+    setVerdict(null);
+    setPos((p) => p + 1);
+  };
+
+  if (questions.length === 0) {
     return (
-      <div className="q">
-        <h3>Hoàn thành bài Quiz!</h3>
-        <p style={{ fontSize: 30, margin: '8px 0' }}>
-          {score}/{quiz.questions.length} câu đúng
-        </p>
-        <div className="row">
-          <button
-            type="button"
-            className="btn"
-            onClick={() => {
-              setScore(0);
-              resetForIndex(0);
-            }}
-          >
-            Làm lại
-          </button>
-          <button type="button" className="btn alt" onClick={onBack}>
-            Danh sách quiz
-          </button>
-        </div>
-      </div>
+      <PracticeShell eyebrow={`Quiz · ${set.title}`} title="Chưa đủ từ để làm quiz">
+        <p className={s.muted}>Bài này cần thêm từ vựng (ít nhất 4 nghĩa khác nhau) để tạo câu hỏi.</p>
+        <LinkButton href={practiceRoutes.flashcards(src)} variant="outline">
+          Ôn bằng flashcard
+        </LinkButton>
+      </PracticeShell>
     );
   }
 
-  const handleCheck = () => {
-    let ok = false;
-    let ans = '';
+  if (done) {
+    return (
+      <PracticeShell eyebrow={`Quiz · ${set.title}`} title="Xong bài quiz">
+        <section className={s.panel} aria-live="polite">
+          <span className={s.score}>
+            {score}/{questions.length}
+          </span>
+          <p className={s.question}>
+            Bạn đúng {score} / {questions.length} câu.
+          </p>
+          {wrongWords.length > 0 && (
+            <p className={s.muted}>
+              {wrongWords.length} từ cần ôn thêm:{' '}
+              {wrongWords.map((w) => `${w.hanzi} ${w.pinyin}`).join(', ')}.
+            </p>
+          )}
+          <div className={s.row}>
+            {wrongWords.length > 0 && (
+              <LinkButton href={user ? practiceRoutes.flashcards({ due: true }) : practiceRoutes.flashcards(src)} variant="ink">
+                Ôn {wrongWords.length} từ sai bằng flashcard
+              </LinkButton>
+            )}
+            <Button variant="outline" onClick={onRestart}>
+              Làm lại quiz
+            </Button>
+            <LinkButton href={practiceRoutes.hub} variant="outline">
+              Về Ôn tập
+            </LinkButton>
+          </div>
+        </section>
+      </PracticeShell>
+    );
+  }
 
-    if (q.type === 'choice') {
-      const target = new Set(q.answer);
-      ok =
-        target.size === selectedChoice.size &&
-        q.answer.every((x) => selectedChoice.has(x));
-      ans = q.answer.map((x) => q.options[x]).join(', ');
-    } else if (q.type === 'order') {
-      ok = placedOrder.map((p) => p[0]).join('|') === q.answer.join('|');
-      ans = q.answer.join(' ');
-    } else if (q.type === 'fill') {
-      const v = fillVal.trim();
-      ok = q.answers.some((a) => a.trim() === v || normalizePinyin(a) === normalizePinyin(v));
-      ans = q.answers[0];
-    } else if (q.type === 'match') {
-      ok = q.left.every((_, i) => pairs[i] === q.pairs[i]);
-      ans = q.left.map((x, i) => `${x} → ${q.right[q.pairs[i]]}`).join('; ');
-    }
+  const q = questions[pos];
+  return (
+    <PracticeShell
+      eyebrow={`Quiz · ${set.title}`}
+      title="Kiểm tra từ vựng"
+      aside={
+        <span className={s.count}>
+          Câu {pos + 1} / {questions.length}
+        </span>
+      }
+    >
+      <section className={s.panel}>
+        {q.kind === 'choice' && <Choice key={pos} q={q} locked={!!verdict} onAnswer={record} />}
+        {q.kind === 'order' && <Order key={pos} q={q} locked={!!verdict} onAnswer={record} />}
+        {q.kind === 'fill' && <Fill key={pos} q={q} locked={!!verdict} onAnswer={record} />}
+        {q.kind === 'match' && <Match key={pos} q={q} onAnswer={record} />}
 
-    if (ok) setScore((s) => s + 1);
-    setChecked({ ok, answer: ans });
+        {verdict && (
+          <div className={`${s.feedback} ${verdict.right ? s.feedbackRight : s.feedbackWrong}`} role="status">
+            {verdict.text}
+          </div>
+        )}
+        {verdict && (
+          <div>
+            <Button variant="ink" onClick={next} autoFocus>
+              {pos + 1 < questions.length ? 'Câu tiếp' : 'Xem kết quả'}
+            </Button>
+          </div>
+        )}
+      </section>
+    </PracticeShell>
+  );
+}
+
+type OnAnswer = (right: boolean, words: PracticeWord[], text: string) => void;
+const explain = (w: PracticeWord) => `${w.hanzi} ${w.pinyin} (${w.meaningVi})`;
+
+function Choice({ q, locked, onAnswer }: { q: Extract<Question, { kind: 'choice' }>; locked: boolean; onAnswer: OnAnswer }) {
+  const [picked, setPicked] = useState<number | null>(null);
+
+  const pick = (i: number) => {
+    if (locked) return;
+    setPicked(i);
+    const right = i === q.answer;
+    onAnswer(right, [q.word], right ? `Chính xác. ${explain(q.word)}.` : `Chưa đúng. Đáp án: ${explain(q.word)}.`);
   };
 
-  const usedOrderIds = new Set(placedOrder.map((p) => p[1]));
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const n = Number(e.key);
+      if (n >= 1 && n <= q.options.length) pick(n - 1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
 
   return (
     <>
-      <p style={{ margin: '0 0 8px', color: 'var(--mute)' }}>
-        {quiz.title} · Câu {index + 1}/{quiz.questions.length}
+      <p className={s.type}>Dạng 1 · Chọn đáp án</p>
+      <p className={s.question}>
+        “<span className="han" lang="zh-CN">{q.word.hanzi}</span>” nghĩa là gì?
       </p>
-      <div className="q">
-        <h3>{q.q}</h3>
-        {q.hint && <div className="hint">{q.hint}</div>}
-
-        {q.type === 'choice' && (
-          <div>
-            {q.options.map((opt, idx) => (
-              <button
-                key={idx}
-                type="button"
-                className={`opt ${selectedChoice.has(idx) ? 'sel' : ''}`}
-                disabled={Boolean(checked)}
-                onClick={() => {
-                  if (q.answer.length === 1) {
-                    setSelectedChoice(new Set([idx]));
-                  } else {
-                    const next = new Set(selectedChoice);
-                    if (next.has(idx)) next.delete(idx);
-                    else next.add(idx);
-                    setSelectedChoice(next);
-                  }
-                }}
-              >
-                {opt}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {q.type === 'order' && (
-          <div>
-            <div className="slot">
-              {placedOrder.map((item, idx) => (
-                <button
-                  key={`${item[1]}-${idx}`}
-                  type="button"
-                  className="chip han"
-                  disabled={Boolean(checked)}
-                  onClick={() =>
-                    setPlacedOrder((prev) => prev.filter((_, i) => i !== idx))
-                  }
-                >
-                  {item[0]}
-                </button>
-              ))}
-            </div>
-            <div className="row">
-              {orderPool
-                .filter((p) => !usedOrderIds.has(p[1]))
-                .map((item) => (
-                  <button
-                    key={item[1]}
-                    type="button"
-                    className="chip han"
-                    disabled={Boolean(checked)}
-                    onClick={() => setPlacedOrder((prev) => [...prev, item])}
-                  >
-                    {item[0]}
-                  </button>
-                ))}
-            </div>
-          </div>
-        )}
-
-        {q.type === 'fill' && (
-          <p className="han" style={{ fontSize: 24, margin: '8px 0' }}>
-            {q.text.split('___')[0]}
-            <input
-              className="fill han"
-              value={fillVal}
-              disabled={Boolean(checked)}
-              onChange={(e) => setFillVal(e.target.value)}
-              aria-label="Đáp án"
-              autoComplete="off"
-            />
-            {q.text.split('___')[1] || ''}
-          </p>
-        )}
-
-        {q.type === 'match' && (
-          <div className="pair">
-            <div>
-              {q.left.map((item, li) => (
-                <button
-                  key={li}
-                  type="button"
-                  className={`opt ${pairs[li] != null ? `p${li % 3}` : ''} ${
-                    pickLeft === li ? 'sel' : ''
-                  }`}
-                  disabled={Boolean(checked)}
-                  onClick={() => setPickLeft(li)}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-            <div>
-              {rightMap.map((ri) => {
-                const owner = Object.keys(pairs).find((k) => pairs[Number(k)] === ri);
-                return (
-                  <button
-                    key={ri}
-                    type="button"
-                    className={`opt ${owner != null ? `p${Number(owner) % 3}` : ''}`}
-                    disabled={Boolean(checked)}
-                    onClick={() => {
-                      if (pickLeft == null) return;
-                      const next = { ...pairs };
-                      Object.keys(next).forEach((k) => {
-                        if (next[Number(k)] === ri) delete next[Number(k)];
-                      });
-                      next[pickLeft] = ri;
-                      setPairs(next);
-                      setPickLeft(null);
-                    }}
-                  >
-                    {q.right[ri]}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        <div className="row" style={{ marginTop: 14 }}>
-          {!checked ? (
-            <button type="button" className="btn" onClick={handleCheck}>
-              Kiểm tra
-            </button>
-          ) : (
+      <ul className={s.options}>
+        {q.options.map((opt, i) => (
+          <li key={opt}>
             <button
               type="button"
-              className="btn"
-              onClick={() => resetForIndex(index + 1)}
+              className={s.option}
+              disabled={locked}
+              data-state={locked ? (i === q.answer ? 'right' : i === picked ? 'wrong' : undefined) : undefined}
+              onClick={() => pick(i)}
             >
-              {index === quiz.questions.length - 1 ? 'Xem kết quả' : 'Câu tiếp'}
+              <span className={s.key} aria-hidden="true">
+                {locked && i === q.answer ? '✓' : i + 1}
+              </span>
+              {opt}
             </button>
-          )}
-          <button type="button" className="btn alt" onClick={onBack}>
-            Quay lại
-          </button>
-        </div>
-
-        {checked && (
-          <div className="res">
-            {checked.ok ? (
-              <span className="good">Chính xác!</span>
-            ) : (
-              <span className="bad">Chưa đúng. Đáp án: {checked.answer}</span>
-            )}
-          </div>
-        )}
-      </div>
+          </li>
+        ))}
+      </ul>
     </>
   );
 }
 
-function QuizContent() {
-  const searchParams = useSearchParams();
-  const initialQuizId = searchParams.get('quiz');
-  const { activeModule } = useModule();
+function Order({ q, locked, onAnswer }: { q: Extract<Question, { kind: 'order' }>; locked: boolean; onAnswer: OnAnswer }) {
+  const [picked, setPicked] = useState<number[]>([]);
+  const text = (id: number) => q.pieces.find((p) => p.id === id)!.text;
+  const full = q.answer.map(text).join('');
 
-  const quizzes = useMemo(
-    () => DEMO_QUIZZES.filter((q) => activeModule === 'all' || q.module === activeModule),
-    [activeModule],
-  );
-
-  const [selectedId, setSelectedId] = useState<string>(initialQuizId || '');
-  const activeQuiz = quizzes.find((q) => q.id === selectedId) || null;
-
-  if (activeQuiz) {
-    return <QuizRunner quiz={activeQuiz} onBack={() => setSelectedId('')} />;
-  }
+  const check = () => {
+    const right = orderIsRight(q, picked);
+    onAnswer(
+      right,
+      [q.word],
+      right ? `Chính xác. ${q.word.exampleZh}${q.word.exampleVi ? ` · ${q.word.exampleVi}` : ''}` : `Chưa đúng. Câu đúng: ${full}${q.word.exampleVi ? ` (${q.word.exampleVi})` : ''}.`,
+    );
+  };
 
   return (
     <>
-      <h2 style={{ marginTop: 0 }}>Quiz ôn tập</h2>
-      {quizzes.length === 0 ? (
-        <p className="hint">Chưa có bài quiz nào cho chương trình này.</p>
-      ) : (
-        <div className="lessons">
-          {quizzes.map((qz) => (
-            <div className="les" key={qz.id}>
-              <div className="t">
-                <b>{qz.title}</b>
-                <br />
-                <small>{qz.questions.length} câu hỏi tương tác</small>
-              </div>
-              <button
-                type="button"
-                className="btn alt sm"
-                onClick={() => setSelectedId(qz.id)}
-              >
-                Làm bài
-              </button>
-            </div>
-          ))}
+      <p className={s.type}>Dạng 2 · Sắp xếp thành câu</p>
+      <p className={s.question}>Xếp thành câu “{q.word.exampleVi || q.word.meaningVi}”</p>
+      <div className={s.slots} aria-label="Câu bạn đã xếp" aria-live="polite">
+        {picked.length === 0 && <span className={s.muted}>Bấm các từ bên dưới theo đúng thứ tự.</span>}
+        {picked.map((id, i) => (
+          <button
+            key={`${id}-${i}`}
+            type="button"
+            className={s.chip}
+            disabled={locked}
+            onClick={() => setPicked((p) => p.filter((_, j) => j !== i))}
+            aria-label={`Bỏ ${text(id)}`}
+            lang="zh-CN"
+          >
+            {text(id)}
+          </button>
+        ))}
+      </div>
+      <div className={s.row}>
+        {q.pieces.map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            className={s.chip}
+            disabled={locked || picked.includes(p.id)}
+            onClick={() => setPicked((x) => [...x, p.id])}
+            lang="zh-CN"
+          >
+            {p.text}
+          </button>
+        ))}
+      </div>
+      <p className={s.muted}>Bấm từ để thêm, bấm lại để bỏ. Dùng được bằng bàn phím.</p>
+      {!locked && (
+        <div className={s.row}>
+          <Button variant="outline" onClick={() => setPicked([])} disabled={picked.length === 0}>
+            Làm lại
+          </Button>
+          <Button variant="ink" onClick={check} disabled={picked.length !== q.pieces.length}>
+            Kiểm tra
+          </Button>
         </div>
       )}
     </>
   );
 }
 
-export default function QuizPage() {
+function Fill({ q, locked, onAnswer }: { q: Extract<Question, { kind: 'fill' }>; locked: boolean; onAnswer: OnAnswer }) {
+  const [typed, setTyped] = useState('');
+  const check = () => {
+    const right = fillIsRight(q.word, typed);
+    onAnswer(right, [q.word], right ? `Chính xác. ${explain(q.word)}.` : `Chưa đúng. Đáp án: ${explain(q.word)}.`);
+  };
   return (
-    <Suspense fallback={<p className="hint">Đang tải bài quiz...</p>}>
-      <QuizContent />
-    </Suspense>
+    <>
+      <p className={s.type}>Dạng 3 · Điền từ</p>
+      <p className={s.question}>Điền từ còn thiếu</p>
+      <p className={`han ${s.question}`} lang="zh-CN" style={{ fontWeight: 600 }}>
+        {q.before}
+        <span aria-label="chỗ trống"> ___ </span>
+        {q.after}
+      </p>
+      {q.word.exampleVi && <p className={s.muted}>{q.word.exampleVi}</p>}
+      <form
+        className={s.row}
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!locked && typed.trim()) check();
+        }}
+      >
+        <label htmlFor="fill-answer" className="sr-only">
+          Từ còn thiếu
+        </label>
+        <Input
+          id="fill-answer"
+          value={typed}
+          onChange={(e) => setTyped(e.target.value)}
+          placeholder="Gõ chữ Hán hoặc pinyin"
+          disabled={locked}
+          autoComplete="off"
+          style={{ maxWidth: 280 }}
+          autoFocus
+        />
+        {!locked && (
+          <Button type="submit" variant="ink" disabled={!typed.trim()}>
+            Kiểm tra
+          </Button>
+        )}
+      </form>
+    </>
+  );
+}
+
+function Match({ q, onAnswer }: { q: Extract<Question, { kind: 'match' }>; onAnswer: OnAnswer }) {
+  const [left, setLeft] = useState<string | null>(null);
+  const [matched, setMatched] = useState<string[]>([]);
+  const [missed, setMissed] = useState<string[]>([]);
+  const [flash, setFlash] = useState<string | null>(null);
+
+  const pickRight = (id: string) => {
+    if (!left || matched.includes(id)) return;
+    if (id === left) {
+      const nextMatched = [...matched, id];
+      setMatched(nextMatched);
+      setLeft(null);
+      if (nextMatched.length === q.words.length) {
+        const wrong = q.words.filter((w) => missed.includes(w.id));
+        onAnswer(
+          wrong.length === 0,
+          q.words,
+          wrong.length === 0 ? 'Chính xác, nối đúng cả 4 cặp.' : `Đã nối xong, nhưng nhầm ở: ${wrong.map((w) => w.hanzi).join(', ')}.`,
+        );
+      }
+    } else {
+      setMissed((m) => (m.includes(left) ? m : [...m, left]));
+      setFlash(id);
+      setTimeout(() => setFlash(null), 600);
+    }
+  };
+
+  return (
+    <>
+      <p className={s.type}>Dạng 4 · Nối cặp</p>
+      <p className={s.question}>Nối chữ Hán với nghĩa</p>
+      <div className={s.pairs}>
+        <div className={s.pairCol}>
+          {q.words.map((w) => (
+            <button
+              key={w.id}
+              type="button"
+              className={s.option}
+              aria-pressed={left === w.id}
+              data-state={matched.includes(w.id) ? 'right' : undefined}
+              disabled={matched.includes(w.id)}
+              onClick={() => setLeft(w.id)}
+              lang="zh-CN"
+            >
+              <span className="han" style={{ fontSize: 22 }}>
+                {w.hanzi}
+              </span>
+            </button>
+          ))}
+        </div>
+        <div className={s.pairCol}>
+          {q.meanings.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              className={s.option}
+              data-state={matched.includes(m.id) ? 'right' : flash === m.id ? 'wrong' : undefined}
+              disabled={matched.includes(m.id)}
+              onClick={() => pickRight(m.id)}
+            >
+              {m.text}
+            </button>
+          ))}
+        </div>
+      </div>
+      <p className={s.muted}>Chọn một ô bên trái rồi một ô bên phải. Cặp đúng chuyển màu xanh và khoá lại.</p>
+    </>
   );
 }

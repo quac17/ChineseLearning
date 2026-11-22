@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Alert, Skeleton, useToast } from '@/components/ui';
+import { Alert, LinkButton, Skeleton, useToast } from '@/components/ui';
+import { practiceRoutes } from '@/lib/practice';
 import { apiRequest } from '@/lib/api';
 import { canSpeakChinese, speakChinese } from '@/lib/speech';
 import type { VocabularyItem } from '@/lib/types';
@@ -94,6 +95,17 @@ export function VocabularyList({ lessonId }: { lessonId: string }) {
         ))}
       </ul>
       {!voice && <p className={s.muted}>Thiết bị này chưa có giọng đọc tiếng Trung nên không phát âm được.</p>}
+      <div className={s.practice}>
+        <LinkButton href={practiceRoutes.flashcards({ lessonId })} variant="outline" size="sm">
+          Ôn {items.length} từ bằng flashcard
+        </LinkButton>
+        <LinkButton href={practiceRoutes.quiz({ lessonId })} variant="outline" size="sm">
+          Quiz
+        </LinkButton>
+        <LinkButton href={practiceRoutes.writing({ lessonId })} variant="outline" size="sm">
+          Luyện viết
+        </LinkButton>
+      </div>
     </>
   );
 }

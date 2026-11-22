@@ -199,6 +199,26 @@ CREATE TABLE IF NOT EXISTS lesson_progress (
   CONSTRAINT lesson_progress_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Leitner boxes per learner and word (flashcards and quizzes). Box 1–5 waits
+-- 1, 2, 4, 8, 16 days; a forgotten or wrong word goes back to box 1, due now.
+CREATE TABLE IF NOT EXISTS vocab_reviews (
+  id VARCHAR(64) NOT NULL,
+  user_id VARCHAR(64) NOT NULL,
+  vocabulary_id VARCHAR(64) NOT NULL,
+  box SMALLINT NOT NULL DEFAULT 1,
+  due_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  last_reviewed_at TIMESTAMPTZ,
+  correct_count INTEGER NOT NULL DEFAULT 0,
+  wrong_count INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT vocab_reviews_pkey PRIMARY KEY (id),
+  CONSTRAINT uq_vocab_reviews_user_word UNIQUE (user_id, vocabulary_id),
+  CONSTRAINT vocab_reviews_box_check CHECK (box BETWEEN 1 AND 5),
+  CONSTRAINT vocab_reviews_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT vocab_reviews_vocabulary_id_fkey FOREIGN KEY (vocabulary_id) REFERENCES lesson_vocabulary(id) ON DELETE CASCADE
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_documents_course ON public.course_documents USING btree (course_id, sort_order);
 CREATE INDEX IF NOT EXISTS idx_enrollments_course ON public.course_enrollments USING btree (course_id);
@@ -213,3 +233,4 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_payment_events_key ON public.payment_events
 CREATE INDEX IF NOT EXISTS idx_payment_events_order ON public.payment_events USING btree (order_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_lesson_progress_user_course ON public.lesson_progress USING btree (user_id, course_id, updated_at);
 CREATE INDEX IF NOT EXISTS idx_lesson_vocabulary_lesson ON public.lesson_vocabulary USING btree (lesson_id, sort_order);
+CREATE INDEX IF NOT EXISTS idx_vocab_reviews_user_due ON public.vocab_reviews USING btree (user_id, due_at);
