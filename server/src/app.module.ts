@@ -13,6 +13,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { ProgressModule } from './progress/progress.module';
 import { VocabularyModule } from './vocabulary/vocabulary.module';
 import { PracticeModule } from './practice/practice.module';
+import { NotesQaModule } from './notes-qa/notes-qa.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { PracticeModule } from './practice/practice.module';
     ProgressModule,
     VocabularyModule,
     PracticeModule,
+    NotesQaModule,
   ],
   controllers: [HealthController],
 })

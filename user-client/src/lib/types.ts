@@ -210,3 +210,46 @@ export interface VocabularyItem {
   exampleVi: string | null;
   sortOrder: number;
 }
+
+/** A private note on a lesson (GET /notes/lessons/:lessonId). */
+export interface LessonNote {
+  id: string;
+  lessonId: string;
+  courseId: string;
+  body: string;
+  /** Second of the uploaded video the note refers to, or null. */
+  videoSeconds: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface QaAuthor {
+  fullName: string;
+  role: Role;
+}
+
+export interface LessonAnswer {
+  id: string;
+  body: string;
+  createdAt: string;
+  author: QaAuthor;
+  canDelete: boolean;
+}
+
+export interface LessonQuestion {
+  id: string;
+  lessonId: string;
+  body: string;
+  createdAt: string;
+  author: QaAuthor;
+  mine: boolean;
+  canDelete: boolean;
+  answers: LessonAnswer[];
+}
+
+/** GET /questions/lessons/:lessonId */
+export interface LessonQuestionList {
+  /** The caller is the course's teacher or an admin. */
+  canAnswer: boolean;
+  questions: LessonQuestion[];
+}

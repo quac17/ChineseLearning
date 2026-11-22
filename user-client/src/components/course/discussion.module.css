@@ -1,0 +1,105 @@
+/* Notes and Q&A tabs of the player (docs/design/canvas/WebPlayer.dc.html). */
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.formRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.formRow > :last-child {
+  margin-left: auto;
+}
+.list,
+.answers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.item {
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.answers {
+  gap: 10px;
+  margin-top: 4px;
+}
+.answer {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.author {
+  color: var(--ink);
+  font-size: 14px;
+}
+.time {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 2px 8px;
+  cursor: pointer;
+}
+.time:hover {
+  border-color: var(--accent);
+}
+.time:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.body {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.actions {
+  display: flex;
+  gap: 16px;
+}
+.muted {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+.empty p {
+  margin: 0;
+}
