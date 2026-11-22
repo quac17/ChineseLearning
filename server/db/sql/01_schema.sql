@@ -3,6 +3,9 @@
 -- Dumped from current DB at: 2026-11-19T17:55:51.185Z
 -- ============================================================================
 
+-- Accent-insensitive course search ("giao tiep" finds "Giao tiếp", đ → d).
+CREATE EXTENSION IF NOT EXISTS unaccent;
+
 CREATE TABLE IF NOT EXISTS roles (
   code VARCHAR(20) NOT NULL,
   name VARCHAR(100) NOT NULL,
