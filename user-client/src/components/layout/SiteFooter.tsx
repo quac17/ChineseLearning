@@ -1,5 +1,9 @@
+'use client';
+
 import Link from 'next/link';
 import { Logo } from '@/components/ui';
+import { useAuth } from '@/context/AuthContext';
+import { SUPPORT_CONTACT } from '@/lib/site';
 import s from './layout.module.css';
 
 /** Credit line for the stock photos in public/images/stock (see CREDITS.md there). */
@@ -7,6 +11,7 @@ export const STOCK_PHOTO_CREDITS =
   'Ảnh qua Wikimedia Commons: “20090529 Great Wall 8219”, Jakub Hałun, CC BY-SA 3.0 · “Chinese Brush for Writing Calligraphy”, epSos .de, CC BY 2.0 · “Reading book Ada Zangemann school France 2024 01”, FramaKa, CC BY-SA 4.0 · “Wikimedia Foundation Photography Collection 2023 006”, Wikimedia Foundation, CC BY-SA 4.0 · “Teochew Kanghu tea preparation”, James Creegan, CC BY 2.0 · “Beijing hutong 1”, lyng883, CC BY 2.0.';
 
 export function SiteFooter({ showPhotoCredits = false }: { showPhotoCredits?: boolean }) {
+  const { user } = useAuth();
   return (
     <footer className={s.footer}>
       <div className="container">
@@ -28,14 +33,23 @@ export function SiteFooter({ showPhotoCredits = false }: { showPhotoCredits?: bo
           </nav>
           <nav aria-label="Tài khoản">
             <ul>
-              <li><Link href="/account">Tài khoản</Link></li>
-              <li><Link href="/login">Đăng nhập</Link></li>
-              <li><Link href="/register">Tạo tài khoản</Link></li>
+              {user ? (
+                <>
+                  {user.role === 'STUDENT' && <li><Link href="/my-courses">Khoá học của tôi</Link></li>}
+                  <li><Link href="/account">Tài khoản</Link></li>
+                </>
+              ) : (
+                <>
+                  <li><Link href="/login">Đăng nhập</Link></li>
+                  <li><Link href="/register">Tạo tài khoản</Link></li>
+                </>
+              )}
             </ul>
           </nav>
           <div>
             <p style={{ lineHeight: 1.6 }}>
-              Đăng ký học và mở khoá khoá học: liên hệ giáo viên phụ trách hoặc quản trị viên.
+              Học thử miễn phí, mua từng khoá bằng mã QR ngân hàng qua PayOS.
+              {SUPPORT_CONTACT ? ` Hỗ trợ: ${SUPPORT_CONTACT}.` : ''}
             </p>
           </div>
         </div>

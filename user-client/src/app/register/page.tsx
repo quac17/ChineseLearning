@@ -1,97 +1,99 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState, type FormEvent } from 'react';
+import { Alert, Button, Field, Input, LinkButton } from '@/components/ui';
+import { readNext, withNext } from '@/components/auth/useNext';
+import s from '@/components/auth/auth.module.css';
 import { useAuth } from '@/context/AuthContext';
+import { routes } from '@/lib/courses';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register } = useAuth();
+  const { user, register } = useAuth();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [loginHref, setLoginHref] = useState('/login');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => setLoginHref(withNext('/login')), []);
+
+  const tooShort = password.length > 0 && password.length < 6;
+
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
     setSubmitting(true);
     try {
-      await register(fullName, email, password);
-      router.push('/courses');
-    } catch (err: any) {
-      setError(err.message || 'Đăng ký thất bại.');
-    } finally {
+      await register(fullName.trim(), email.trim(), password);
+      router.push(readNext() ?? routes.catalog());
+    } catch (err) {
+      setError((err as Error).message || 'Đăng ký thất bại.');
       setSubmitting(false);
     }
   };
 
-  return (
-    <div style={{ maxWidth: 460, margin: '12px auto' }}>
-      <div className="card">
-        <h2 style={{ marginTop: 0 }}>Đăng ký tài khoản Học sinh</h2>
-        <p className="hint">
-          Tài khoản mới sẽ có vai trò Học sinh. Giáo viên có thể cấp quyền xem khóa học cho bạn ngay sau khi đăng ký.
-        </p>
-
-        {error && <div className="alert error">{error}</div>}
-
-        <form className="form-grid" onSubmit={handleSubmit}>
-          <div className="field">
-            <label htmlFor="fullName">Họ và tên</label>
-            <input
-              id="fullName"
-              type="text"
-              className="input"
-              required
-              minLength={2}
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="Nguyễn Minh Anh"
-            />
-          </div>
-
-          <div className="field">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              className="input"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="hocsinh@example.com"
-            />
-          </div>
-
-          <div className="field">
-            <label htmlFor="password">Mật khẩu (tối thiểu 6 ký tự)</label>
-            <input
-              id="password"
-              type="password"
-              className="input"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-            />
-          </div>
-
-          <button type="submit" className="btn" disabled={submitting}>
-            {submitting ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
-          </button>
-        </form>
-
-        <p style={{ fontSize: 14, marginTop: 14 }}>
-          Đã có tài khoản?{' '}
-          <Link href="/login" style={{ color: 'var(--red)', fontWeight: 600 }}>
-            Đăng nhập
-          </Link>
-        </p>
+  if (user && !submitting) {
+    return (
+      <div className={s.page}>
+        <section className={s.panel}>
+          <h1 className={s.title}>Bạn đã có tài khoản</h1>
+          <p className={s.lead}>Đang đăng nhập bằng {user.email}.</p>
+          <LinkButton href={readNext() ?? routes.myCourses} variant="ink" block>
+            Tiếp tục
+          </LinkButton>
+        </section>
       </div>
+    );
+  }
+
+  return (
+    <div className={s.page}>
+      <form className={s.panel} onSubmit={onSubmit} aria-labelledby="register-title" noValidate>
+        <h1 id="register-title" className={s.title}>
+          Tạo tài khoản
+        </h1>
+        <p className={s.lead}>Miễn phí. Xem ngay các bài học thử, lưu tiến độ và từ đã nhớ.</p>
+        {error && <Alert tone="error">{error}</Alert>}
+        <Field label="Họ và tên">
+          <Input value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" required minLength={2} />
+        </Field>
+        <Field label="Email">
+          <Input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            required
+            placeholder="ban@email.com"
+          />
+        </Field>
+        <Field label="Mật khẩu" hint="Tối thiểu 6 ký tự." error={tooShort ? 'Mật khẩu cần ít nhất 6 ký tự.' : undefined}>
+          <Input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password"
+            required
+            minLength={6}
+          />
+        </Field>
+        <Button
+          type="submit"
+          variant="accent"
+          block
+          loading={submitting}
+          disabled={fullName.trim().length < 2 || !email || password.length < 6}
+        >
+          Tạo tài khoản
+        </Button>
+        <p className={s.switch}>
+          Đã có tài khoản? <Link href={loginHref}>Đăng nhập</Link>
+        </p>
+      </form>
     </div>
   );
 }
