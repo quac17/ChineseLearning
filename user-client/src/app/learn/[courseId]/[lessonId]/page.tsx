@@ -561,6 +561,30 @@ function UploadedVideo({
   const ref = useRef<HTMLVideoElement | null>(null);
   const lastSaved = useRef(0);
   const resumed = useRef(false);
+  const subtitleUrl = useSubtitleBlob(subtitleSrc);
+  // In production the stream redirects to a signed URL that expires after
+  // ~15 minutes; when it does, ask the API again and continue where we were.
+  const [attempt, setAttempt] = useState(0);
+  const retries = useRef(0);
+  const continueAt = useRef<{ at: number; play: boolean } | null>(null);
+  const videoSrc = attempt === 0 ? src : `${src}${src.includes('?') ? '&' : '?'}r=${attempt}`;
+
+  const retryAfterError = () => {
+    const v = ref.current;
+    if (!v || retries.current >= MAX_STREAM_RETRIES) return;
+    retries.current += 1;
+    continueAt.current = { at: v.currentTime, play: !v.paused };
+    setAttempt((n) => n + 1);
+  };
+
+  const continueAfterRetry = () => {
+    const v = ref.current;
+    const target = continueAt.current;
+    if (!v || !target) return;
+    continueAt.current = null;
+    if (target.at > 0) v.currentTime = target.at;
+    if (target.play) v.play().catch(() => undefined);
+  };
 
   const report = (force: boolean, ended = false) => {
     const v = ref.current;
@@ -600,21 +624,55 @@ function UploadedVideo({
       controls
       controlsList="nodownload"
       preload="metadata"
-      src={src}
-      // The API is another origin: the subtitle request must carry the login cookie.
-      crossOrigin={subtitleSrc ? 'use-credentials' : undefined}
+      src={videoSrc}
       onLoadedMetadata={() => {
         resume();
+        continueAfterRetry();
         applySubtitles();
       }}
+      onPlaying={() => {
+        retries.current = 0;
+      }}
+      onError={retryAfterError}
       onTimeUpdate={() => report(false)}
       onPause={() => report(true)}
       onEnded={() => report(true, true)}
     >
-      {subtitleSrc && <track kind="subtitles" srcLang="zh-Latn" label="Pinyin" src={subtitleSrc} default={subtitlesOn} />}
+      {subtitleUrl && <track kind="subtitles" srcLang="zh-Latn" label="Pinyin" src={subtitleUrl} default={subtitlesOn} />}
       Trình duyệt của bạn không hỗ trợ phát video.
     </video>
   );
+}
+
+/** A failing stream is re-requested this many times before the error is left to the browser. */
+const MAX_STREAM_RETRIES = 3;
+
+/**
+ * Fetches the access-checked WebVTT with the login cookie and gives the
+ * <track> a same-origin blob: URL. That way the <video> needs no CORS mode
+ * and can follow the API's redirect to a signed storage URL.
+ */
+function useSubtitleBlob(src: string | null): string | null {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    setUrl(null);
+    if (!src) return;
+    let objectUrl: string | null = null;
+    let cancelled = false;
+    fetch(src, { credentials: 'include', cache: 'no-store' })
+      .then((res) => (res.ok ? res.text() : Promise.reject(new Error(String(res.status)))))
+      .then((text) => {
+        if (cancelled) return;
+        objectUrl = URL.createObjectURL(new Blob([text], { type: 'text/vtt' }));
+        setUrl(objectUrl);
+      })
+      .catch(() => undefined); // No subtitle: the video still plays.
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [src]);
+  return url;
 }
 
 const PINYIN_KEY = 'vankinh_pinyin_subtitles';

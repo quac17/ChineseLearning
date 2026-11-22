@@ -16,6 +16,7 @@
     "db:seed": "yarn --cwd server db:seed",
     "db:demo": "yarn --cwd server db:demo && node scripts/demo/make-videos.mjs",
     "db:dump": "yarn --cwd server db:dump",
+    "storage:to-gcs": "yarn --cwd server storage:to-gcs",
     "server:install": "yarn --cwd server install",
     "server:dev": "yarn --cwd server dev",
     "server:build": "yarn --cwd server build",

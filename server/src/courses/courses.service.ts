@@ -451,7 +451,7 @@ export class CoursesService {
     if (!type) throw new BadRequestException('Ảnh bìa phải là tệp JPG, PNG hoặc WebP.');
 
     const key = this.storage.generateStorageKey('covers', `cover.${type}`);
-    await this.storage.saveBuffer(key, file.buffer);
+    await this.storage.saveBuffer(key, file.buffer, COVER_CONTENT_TYPES[type]);
     try {
       await this.db.query('UPDATE courses SET cover_key = $1, updated_at = NOW() WHERE id = $2', [key, courseId]);
     } catch (err) {
@@ -472,7 +472,7 @@ export class CoursesService {
   /** The cover file to stream (public). */
   async getCover(courseId: string): Promise<{ key: string; contentType: string }> {
     const row = await this.db.queryOne('SELECT cover_key FROM courses WHERE id = $1', [courseId]);
-    if (!row?.cover_key || !this.storage.fileExists(row.cover_key)) {
+    if (!row?.cover_key || !(await this.storage.fileExists(row.cover_key))) {
       throw new NotFoundException('Khoá học chưa có ảnh bìa.');
     }
     const ext = path.extname(row.cover_key).slice(1) as CoverImageType;

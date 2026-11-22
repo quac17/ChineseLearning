@@ -139,7 +139,7 @@ export class CoursesController {
     res.setHeader('Content-Type', contentType);
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Cache-Control', 'public, max-age=86400');
-    this.storage.createReadStream(key).pipe(res);
+    this.storage.pipeTo(res, key);
   }
 
   /** Admins only: a rating needs its real source (DECISIONS.md); both null hides it. */

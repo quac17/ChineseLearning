@@ -70,6 +70,27 @@ test.describe('uploaded paid lesson and document', () => {
   });
 });
 
+test.describe('video upload ticket (step 1 of a direct upload)', () => {
+  test('only the course owner gets one; the local backend says "use multipart"', async () => {
+    const teacher = await apiAs('teacher');
+    const { courseId } = await createPaidCourse(teacher);
+    const ticket = { courseId, fileName: 'bai-1.mp4', contentType: 'video/mp4', fileSize: 4096 };
+
+    expect((await (await anonymousApi()).post('lessons/upload-url', { data: ticket })).status()).toBe(401);
+    expect((await (await apiAs('studentA')).post('lessons/upload-url', { data: ticket })).status()).toBe(403);
+    expect((await teacher.post('lessons/upload-url', { data: { ...ticket, fileName: 'bai.exe' } })).status()).toBe(400);
+
+    const res = await teacher.post('lessons/upload-url', { data: ticket });
+    expect(res.status(), await res.text()).toBe(201);
+    expect(await res.json()).toEqual({ direct: false });
+    // Without a valid ticket, nothing can be attached as a lesson.
+    const confirm = await teacher.post('lessons/upload/confirm', {
+      data: { courseId, title: 'Bài giả', storageKey: 'videos/1700000000000-0123456789ab.mp4', uploadToken: 'x', originalFileName: 'a.mp4' },
+    });
+    expect(confirm.status()).toBe(400);
+  });
+});
+
 test.describe('learner pages show the locked state', () => {
   test('logged out: course page offers the preview, player locks the paid lesson', async ({ page }) => {
     await page.goto(`/courses/${SEED.hsk1}`);

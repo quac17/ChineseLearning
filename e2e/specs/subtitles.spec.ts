@@ -77,10 +77,15 @@ test.describe('subtitles in the player', () => {
     const { courseId, lessonId } = await createPaidCourse(teacher);
     expect((await teacher.post(`lessons/${lessonId}/subtitle`, vttFile())).status()).toBe(201);
 
+    // The page fetches the access-checked file with the login cookie and hands the
+    // track a blob: URL, so the <video> needs no CORS mode and can follow a
+    // redirect to a signed storage URL in production.
+    const subtitleRequest = page.waitForResponse(`${API_URL}/lessons/${lessonId}/subtitle`);
     await page.goto(`/learn/${courseId}/${lessonId}`);
+    expect((await subtitleRequest).status()).toBe(200);
     const track = page.locator('video track[kind="subtitles"]');
-    await expect(track).toHaveAttribute('src', `${API_URL}/lessons/${lessonId}/subtitle`);
-    await expect(page.locator('video')).toHaveAttribute('crossorigin', 'use-credentials');
+    await expect(track).toHaveAttribute('src', /^blob:/);
+    await expect(page.locator('video')).not.toHaveAttribute('crossorigin', /.*/);
 
     const toggle = page.getByRole('switch', { name: 'Phụ đề pinyin' });
     await expect(toggle).toHaveAttribute('aria-checked', 'true');
