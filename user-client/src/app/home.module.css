@@ -204,24 +204,103 @@
   color: #1c1d1f !important;
 }
 
+/* "Học tiếp" for logged-in students (AppHome board). */
+.continueHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.continueHead h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.continueHead a {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 15px;
+}
+.continueList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.continueItem {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  height: 100%;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink);
+  text-decoration: none;
+}
+.continueItem:hover b {
+  text-decoration: underline;
+}
+.continueCover {
+  flex: none;
+  width: 96px;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius);
+  color: #ffffff;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 4px 6px;
+  font-size: 20px;
+  line-height: 1;
+}
+.continueText {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.continueText b {
+  font-size: 15px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.continueMeta {
+  color: var(--muted);
+  font-size: 13px;
+}
+
 @media (max-width: 1100px) {
   .grid5 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 @media (max-width: 900px) {
+  .continueList {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
   .grid5,
   .goals {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 @media (max-width: 760px) {
+  /* Spacing and type at 375px follow the AppHome board. */
   .page {
-    gap: 40px;
+    gap: 32px;
     padding-top: 12px;
   }
   .heroImg {
-    height: 220px;
+    height: 180px;
   }
   .heroCard {
     position: static;
@@ -229,9 +308,61 @@
     box-shadow: none;
     padding: 16px 0 0;
     background: transparent;
+    gap: 10px;
+  }
+  .heroCard h1 {
+    font-size: 26px;
+    line-height: 1.2;
+  }
+  .heroCard p {
+    font-size: 15px;
+  }
+  .sectionHead {
+    margin-bottom: 12px;
+  }
+  .sectionHead h2,
+  .teach h2 {
+    font-size: 20px;
+  }
+  .sectionHead p,
+  .boxHead p,
+  .why p,
+  .teach p {
+    font-size: 14px;
+  }
+  .boxHead h3 {
+    font-size: 18px;
+  }
+  .grid5,
+  .goals {
+    gap: 12px;
+  }
+  .goal {
+    font-size: 15px;
+  }
+  .teach {
+    padding: 20px;
   }
   .box {
     padding: 20px 16px;
+  }
+  /* Phone list per AppHome: plain rows. */
+  .continueHead {
+    margin-bottom: 4px;
+  }
+  .continueHead h2 {
+    font-size: 20px;
+  }
+  .continueHead a {
+    font-size: 14px;
+  }
+  .continueItem {
+    border: 0;
+    border-radius: 0;
+    padding: 8px 0;
+  }
+  .continueText b {
+    font-size: 14px;
   }
   .why {
     grid-template-columns: 1fr;
