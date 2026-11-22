@@ -133,6 +133,71 @@ INSERT INTO lessons (id, course_id, title, description, duration, sort_order, is
   ('demo-l-hsk4-1', 'demo-course-hsk4-draft', 'Bài 1: Giới thiệu HSK 4', 'Bản nháp.', '8 phút', 0, TRUE, 'UPLOAD', 'videos/demo-l-hsk4-1.webm', 'demo-l-hsk4-1.webm', 'video/webm');
 
 -- ---------------------------------------------------------------------------
+-- Vocabulary (real HSK words) for some demo lessons. Deleted with the lessons
+-- above (ON DELETE CASCADE).
+-- ---------------------------------------------------------------------------
+INSERT INTO lesson_vocabulary (id, lesson_id, hanzi, pinyin, meaning_vi, example_zh, example_vi, sort_order) VALUES
+  ('demo-v-easy2-1-01', 'demo-l-easy2-1', '一', 'yī', 'một', NULL, NULL, 0),
+  ('demo-v-easy2-1-02', 'demo-l-easy2-1', '二', 'èr', 'hai', NULL, NULL, 1),
+  ('demo-v-easy2-1-03', 'demo-l-easy2-1', '三', 'sān', 'ba', NULL, NULL, 2),
+  ('demo-v-easy2-1-04', 'demo-l-easy2-1', '四', 'sì', 'bốn', NULL, NULL, 3),
+  ('demo-v-easy2-1-05', 'demo-l-easy2-1', '五', 'wǔ', 'năm', NULL, NULL, 4),
+  ('demo-v-easy2-1-06', 'demo-l-easy2-1', '六', 'liù', 'sáu', NULL, NULL, 5),
+  ('demo-v-easy2-1-07', 'demo-l-easy2-1', '七', 'qī', 'bảy', NULL, NULL, 6),
+  ('demo-v-easy2-1-08', 'demo-l-easy2-1', '八', 'bā', 'tám', NULL, NULL, 7),
+  ('demo-v-easy2-1-09', 'demo-l-easy2-1', '九', 'jiǔ', 'chín', NULL, NULL, 8),
+  ('demo-v-easy2-1-10', 'demo-l-easy2-1', '十', 'shí', 'mười', '我有十本书。', 'Tôi có mười quyển sách.', 9),
+  ('demo-v-easy2-3-01', 'demo-l-easy2-3', '颜色', 'yánsè', 'màu sắc', '这是什么颜色？', 'Đây là màu gì?', 0),
+  ('demo-v-easy2-3-02', 'demo-l-easy2-3', '红色', 'hóngsè', 'màu đỏ', NULL, NULL, 1),
+  ('demo-v-easy2-3-03', 'demo-l-easy2-3', '蓝色', 'lánsè', 'màu xanh dương', NULL, NULL, 2),
+  ('demo-v-easy2-3-04', 'demo-l-easy2-3', '绿色', 'lǜsè', 'màu xanh lá', NULL, NULL, 3),
+  ('demo-v-easy2-3-05', 'demo-l-easy2-3', '黄色', 'huángsè', 'màu vàng', NULL, NULL, 4),
+  ('demo-v-easy2-3-06', 'demo-l-easy2-3', '白色', 'báisè', 'màu trắng', NULL, NULL, 5),
+  ('demo-v-easy2-3-07', 'demo-l-easy2-3', '黑色', 'hēisè', 'màu đen', NULL, NULL, 6),
+  ('demo-v-pinyin-3-01', 'demo-l-pinyin-3', '妈', 'mā', 'mẹ (thanh 1)', NULL, NULL, 0),
+  ('demo-v-pinyin-3-02', 'demo-l-pinyin-3', '麻', 'má', 'cây gai (thanh 2)', NULL, NULL, 1),
+  ('demo-v-pinyin-3-03', 'demo-l-pinyin-3', '马', 'mǎ', 'con ngựa (thanh 3)', NULL, NULL, 2),
+  ('demo-v-pinyin-3-04', 'demo-l-pinyin-3', '骂', 'mà', 'mắng (thanh 4)', NULL, NULL, 3),
+  ('demo-v-pinyin-3-05', 'demo-l-pinyin-3', '吗', 'ma', 'trợ từ nghi vấn (thanh nhẹ)', '你好吗？', 'Bạn khoẻ không?', 4),
+  ('demo-v-grammar-1-01', 'demo-l-grammar-1', '是', 'shì', 'là', '我是学生。', 'Tôi là học sinh.', 0),
+  ('demo-v-grammar-1-02', 'demo-l-grammar-1', '不', 'bù', 'không', '他不是老师。', 'Anh ấy không phải là giáo viên.', 1),
+  ('demo-v-grammar-1-03', 'demo-l-grammar-1', '也', 'yě', 'cũng', '我也是越南人。', 'Tôi cũng là người Việt Nam.', 2),
+  ('demo-v-grammar-1-04', 'demo-l-grammar-1', '都', 'dōu', 'đều', '我们都是学生。', 'Chúng tôi đều là học sinh.', 3),
+  ('demo-v-hsk2-1-01', 'demo-l-hsk2-1', '学习', 'xuéxí', 'học, học tập', '我学习汉语。', 'Tôi học tiếng Trung.', 0),
+  ('demo-v-hsk2-1-02', 'demo-l-hsk2-1', '汉语', 'Hànyǔ', 'tiếng Hán, tiếng Trung', NULL, NULL, 1),
+  ('demo-v-hsk2-1-03', 'demo-l-hsk2-1', '考试', 'kǎoshì', 'thi, kỳ thi', NULL, NULL, 2),
+  ('demo-v-hsk2-1-04', 'demo-l-hsk2-1', '准备', 'zhǔnbèi', 'chuẩn bị', NULL, NULL, 3),
+  ('demo-v-hsk2-1-05', 'demo-l-hsk2-1', '开始', 'kāishǐ', 'bắt đầu', NULL, NULL, 4),
+  ('demo-v-hsk2-2-01', 'demo-l-hsk2-2', '比', 'bǐ', 'so với, hơn', '我比他高。', 'Tôi cao hơn anh ấy.', 0),
+  ('demo-v-hsk2-2-02', 'demo-l-hsk2-2', '高', 'gāo', 'cao', NULL, NULL, 1),
+  ('demo-v-hsk2-2-03', 'demo-l-hsk2-2', '矮', 'ǎi', 'thấp', NULL, NULL, 2),
+  ('demo-v-hsk2-2-04', 'demo-l-hsk2-2', '冷', 'lěng', 'lạnh', NULL, NULL, 3),
+  ('demo-v-hsk2-2-05', 'demo-l-hsk2-2', '热', 'rè', 'nóng', NULL, NULL, 4),
+  ('demo-v-hsk2-2-06', 'demo-l-hsk2-2', '今天', 'jīntiān', 'hôm nay', '今天比昨天冷。', 'Hôm nay lạnh hơn hôm qua.', 5),
+  ('demo-v-hsk2-2-07', 'demo-l-hsk2-2', '昨天', 'zuótiān', 'hôm qua', NULL, NULL, 6),
+  ('demo-v-hsk2-4-01', 'demo-l-hsk2-4', '买', 'mǎi', 'mua', NULL, NULL, 0),
+  ('demo-v-hsk2-4-02', 'demo-l-hsk2-4', '卖', 'mài', 'bán', NULL, NULL, 1),
+  ('demo-v-hsk2-4-03', 'demo-l-hsk2-4', '贵', 'guì', 'đắt', '太贵了！', 'Đắt quá!', 2),
+  ('demo-v-hsk2-4-04', 'demo-l-hsk2-4', '便宜', 'piányi', 'rẻ', '便宜一点儿吧。', 'Rẻ hơn một chút đi.', 3),
+  ('demo-v-hsk2-4-05', 'demo-l-hsk2-4', '块', 'kuài', 'đồng (đơn vị tiền, khẩu ngữ)', NULL, NULL, 4),
+  ('demo-v-hsk2-4-06', 'demo-l-hsk2-4', '多少钱', 'duōshao qián', 'bao nhiêu tiền', NULL, NULL, 5),
+  ('demo-v-travel-1-01', 'demo-l-travel-1', '机场', 'jīchǎng', 'sân bay', NULL, NULL, 0),
+  ('demo-v-travel-1-02', 'demo-l-travel-1', '飞机', 'fēijī', 'máy bay', NULL, NULL, 1),
+  ('demo-v-travel-1-03', 'demo-l-travel-1', '护照', 'hùzhào', 'hộ chiếu', '请给我看一下护照。', 'Vui lòng cho tôi xem hộ chiếu.', 2),
+  ('demo-v-travel-1-04', 'demo-l-travel-1', '行李', 'xíngli', 'hành lý', NULL, NULL, 3),
+  ('demo-v-travel-1-05', 'demo-l-travel-1', '登机口', 'dēngjīkǒu', 'cửa ra máy bay', NULL, NULL, 4),
+  ('demo-v-travel-3-01', 'demo-l-travel-3', '菜单', 'càidān', 'thực đơn', NULL, NULL, 0),
+  ('demo-v-travel-3-02', 'demo-l-travel-3', '点菜', 'diǎn cài', 'gọi món', NULL, NULL, 1),
+  ('demo-v-travel-3-03', 'demo-l-travel-3', '辣', 'là', 'cay', '不要太辣。', 'Đừng cay quá.', 2),
+  ('demo-v-travel-3-04', 'demo-l-travel-3', '好吃', 'hǎochī', 'ngon', NULL, NULL, 3),
+  ('demo-v-travel-3-05', 'demo-l-travel-3', '买单', 'mǎidān', 'thanh toán (ở nhà hàng)', '服务员，买单！', 'Em ơi, tính tiền!', 4),
+  ('demo-v-office-1-01', 'demo-l-office-1', '认识', 'rènshi', 'quen biết', '很高兴认识您。', 'Rất vui được làm quen với ông/bà.', 0),
+  ('demo-v-office-1-02', 'demo-l-office-1', '高兴', 'gāoxìng', 'vui', NULL, NULL, 1),
+  ('demo-v-office-1-03', 'demo-l-office-1', '名片', 'míngpiàn', 'danh thiếp', NULL, NULL, 2),
+  ('demo-v-office-1-04', 'demo-l-office-1', '公司', 'gōngsī', 'công ty', NULL, NULL, 3),
+  ('demo-v-office-1-05', 'demo-l-office-1', '经理', 'jīnglǐ', 'giám đốc, quản lý', NULL, NULL, 4);
+
+-- ---------------------------------------------------------------------------
 -- Documents (files written by `yarn db:demo`; file_size filled in there).
 -- ---------------------------------------------------------------------------
 INSERT INTO course_documents (id, course_id, title, description, original_file_name, storage_key, file_type, mime_type, file_size, sort_order, is_free) VALUES

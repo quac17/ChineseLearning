@@ -28,6 +28,50 @@ INSERT INTO "lessons" ("id", "course_id", "title", "description", "duration", "s
 INSERT INTO "lessons" ("id", "course_id", "title", "description", "duration", "sort_order", "is_free", "source_type", "youtube_id", "youtube_url", "storage_key", "original_file_name", "mime_type", "file_size", "created_at", "updated_at") VALUES ('lesson-hsk1-b1', 'course-hsk1', 'HSK 1 – Bài 1: Xin chào (你好)', 'Làm quen thanh mẫu, vận mẫu, thanh điệu và mẫu câu chào hỏi cơ bản.', '12 phút', 0, TRUE, 'YOUTUBE', 'dQw4w9WgXcQ', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', NULL, NULL, NULL, NULL, '2026-11-19T17:25:59.869Z', '2026-11-19T17:27:51.668Z') ON CONFLICT ("id") DO UPDATE SET "course_id" = EXCLUDED."course_id", "title" = EXCLUDED."title", "description" = EXCLUDED."description", "duration" = EXCLUDED."duration", "sort_order" = EXCLUDED."sort_order", "is_free" = EXCLUDED."is_free", "source_type" = EXCLUDED."source_type", "youtube_id" = EXCLUDED."youtube_id", "youtube_url" = EXCLUDED."youtube_url", "storage_key" = EXCLUDED."storage_key", "original_file_name" = EXCLUDED."original_file_name", "mime_type" = EXCLUDED."mime_type", "file_size" = EXCLUDED."file_size", "created_at" = EXCLUDED."created_at", "updated_at" = EXCLUDED."updated_at";
 INSERT INTO "lessons" ("id", "course_id", "title", "description", "duration", "sort_order", "is_free", "source_type", "youtube_id", "youtube_url", "storage_key", "original_file_name", "mime_type", "file_size", "created_at", "updated_at") VALUES ('lesson-hsk1-b2', 'course-hsk1', 'HSK 1 – Bài 2: Giới thiệu bản thân & Quốc tịch', 'Học cách hỏi tên, giới thiệu nghề nghiệp và quốc tịch (Việt Nam / Trung Quốc).', '15 phút', 1, FALSE, 'YOUTUBE', 'ysz5S6PUM-U', 'https://www.youtube.com/watch?v=ysz5S6PUM-U', NULL, NULL, NULL, NULL, '2026-11-19T17:25:59.869Z', '2026-11-19T17:27:51.676Z') ON CONFLICT ("id") DO UPDATE SET "course_id" = EXCLUDED."course_id", "title" = EXCLUDED."title", "description" = EXCLUDED."description", "duration" = EXCLUDED."duration", "sort_order" = EXCLUDED."sort_order", "is_free" = EXCLUDED."is_free", "source_type" = EXCLUDED."source_type", "youtube_id" = EXCLUDED."youtube_id", "youtube_url" = EXCLUDED."youtube_url", "storage_key" = EXCLUDED."storage_key", "original_file_name" = EXCLUDED."original_file_name", "mime_type" = EXCLUDED."mime_type", "file_size" = EXCLUDED."file_size", "created_at" = EXCLUDED."created_at", "updated_at" = EXCLUDED."updated_at";
 
+-- Lesson vocabulary (real HSK/YCT words; e2e relies on lesson-hsk1-b1 being free and b2 paid)
+INSERT INTO "lesson_vocabulary" ("id", "lesson_id", "hanzi", "pinyin", "meaning_vi", "example_zh", "example_vi", "sort_order") VALUES
+  ('vocab-hsk1-b1-01', 'lesson-hsk1-b1', '你', 'nǐ', 'bạn, anh, chị (ngôi thứ hai)', NULL, NULL, 0),
+  ('vocab-hsk1-b1-02', 'lesson-hsk1-b1', '好', 'hǎo', 'tốt, khoẻ', NULL, NULL, 1),
+  ('vocab-hsk1-b1-03', 'lesson-hsk1-b1', '你好', 'nǐ hǎo', 'xin chào', '你好，我是老师。', 'Xin chào, tôi là giáo viên.', 2),
+  ('vocab-hsk1-b1-04', 'lesson-hsk1-b1', '您', 'nín', 'ông, bà, ngài (lịch sự)', '您好！', 'Xin chào ông/bà!', 3),
+  ('vocab-hsk1-b1-05', 'lesson-hsk1-b1', '谢谢', 'xièxie', 'cảm ơn', '谢谢你！', 'Cảm ơn bạn!', 4),
+  ('vocab-hsk1-b1-06', 'lesson-hsk1-b1', '不客气', 'bú kèqi', 'không có gì (đáp lời cảm ơn)', NULL, NULL, 5),
+  ('vocab-hsk1-b1-07', 'lesson-hsk1-b1', '再见', 'zàijiàn', 'tạm biệt', '老师，再见！', 'Tạm biệt thầy/cô!', 6),
+  ('vocab-hsk1-b1-08', 'lesson-hsk1-b1', '对不起', 'duìbuqǐ', 'xin lỗi', NULL, NULL, 7),
+  ('vocab-hsk1-b1-09', 'lesson-hsk1-b1', '没关系', 'méi guānxi', 'không sao', NULL, NULL, 8),
+  ('vocab-hsk1-b2-01', 'lesson-hsk1-b2', '我', 'wǒ', 'tôi', NULL, NULL, 0),
+  ('vocab-hsk1-b2-02', 'lesson-hsk1-b2', '是', 'shì', 'là', '我是越南人。', 'Tôi là người Việt Nam.', 1),
+  ('vocab-hsk1-b2-03', 'lesson-hsk1-b2', '叫', 'jiào', 'gọi, tên là', '我叫兰。', 'Tôi tên là Lan.', 2),
+  ('vocab-hsk1-b2-04', 'lesson-hsk1-b2', '什么', 'shénme', 'gì, cái gì', '你叫什么名字？', 'Bạn tên là gì?', 3),
+  ('vocab-hsk1-b2-05', 'lesson-hsk1-b2', '名字', 'míngzi', 'tên', NULL, NULL, 4),
+  ('vocab-hsk1-b2-06', 'lesson-hsk1-b2', '人', 'rén', 'người', NULL, NULL, 5),
+  ('vocab-hsk1-b2-07', 'lesson-hsk1-b2', '越南', 'Yuènán', 'Việt Nam', NULL, NULL, 6),
+  ('vocab-hsk1-b2-08', 'lesson-hsk1-b2', '中国', 'Zhōngguó', 'Trung Quốc', '他是中国人。', 'Anh ấy là người Trung Quốc.', 7),
+  ('vocab-hsk1-b2-09', 'lesson-hsk1-b2', '老师', 'lǎoshī', 'giáo viên', NULL, NULL, 8),
+  ('vocab-hsk1-b2-10', 'lesson-hsk1-b2', '学生', 'xuésheng', 'học sinh', NULL, NULL, 9),
+  ('vocab-easy1-b1-01', 'lesson-easy1-b1', '爸爸', 'bàba', 'bố', NULL, NULL, 0),
+  ('vocab-easy1-b1-02', 'lesson-easy1-b1', '妈妈', 'māma', 'mẹ', '妈妈，你好！', 'Con chào mẹ!', 1),
+  ('vocab-easy1-b1-03', 'lesson-easy1-b1', '哥哥', 'gēge', 'anh trai', NULL, NULL, 2),
+  ('vocab-easy1-b1-04', 'lesson-easy1-b1', '姐姐', 'jiějie', 'chị gái', NULL, NULL, 3),
+  ('vocab-easy1-b1-05', 'lesson-easy1-b1', '弟弟', 'dìdi', 'em trai', NULL, NULL, 4),
+  ('vocab-easy1-b1-06', 'lesson-easy1-b1', '妹妹', 'mèimei', 'em gái', NULL, NULL, 5),
+  ('vocab-easy1-b1-07', 'lesson-easy1-b1', '家', 'jiā', 'nhà, gia đình', '我爱我家。', 'Tôi yêu gia đình tôi.', 6),
+  ('vocab-yct1-b1-01', 'lesson-yct1-b1', '妈', 'mā', 'mẹ (thanh 1)', NULL, NULL, 0),
+  ('vocab-yct1-b1-02', 'lesson-yct1-b1', '麻', 'má', 'cây gai (thanh 2)', NULL, NULL, 1),
+  ('vocab-yct1-b1-03', 'lesson-yct1-b1', '马', 'mǎ', 'con ngựa (thanh 3)', NULL, NULL, 2),
+  ('vocab-yct1-b1-04', 'lesson-yct1-b1', '骂', 'mà', 'mắng (thanh 4)', NULL, NULL, 3),
+  ('vocab-yct1-b1-05', 'lesson-yct1-b1', '一', 'yī', 'một', NULL, NULL, 4),
+  ('vocab-yct1-b1-06', 'lesson-yct1-b1', '二', 'èr', 'hai', NULL, NULL, 5),
+  ('vocab-yct1-b1-07', 'lesson-yct1-b1', '三', 'sān', 'ba', NULL, NULL, 6),
+  ('vocab-talk1-b1-01', 'lesson-talk1-b1', '茶', 'chá', 'trà', NULL, NULL, 0),
+  ('vocab-talk1-b1-02', 'lesson-talk1-b1', '咖啡', 'kāfēi', 'cà phê', NULL, NULL, 1),
+  ('vocab-talk1-b1-03', 'lesson-talk1-b1', '水', 'shuǐ', 'nước', NULL, NULL, 2),
+  ('vocab-talk1-b1-04', 'lesson-talk1-b1', '杯', 'bēi', 'cốc, ly (lượng từ)', NULL, NULL, 3),
+  ('vocab-talk1-b1-05', 'lesson-talk1-b1', '要', 'yào', 'muốn, cần', '我要一杯茶。', 'Tôi muốn một cốc trà.', 4),
+  ('vocab-talk1-b1-06', 'lesson-talk1-b1', '多少钱', 'duōshao qián', 'bao nhiêu tiền', '这杯咖啡多少钱？', 'Cốc cà phê này bao nhiêu tiền?', 5),
+  ('vocab-talk1-b1-07', 'lesson-talk1-b1', '服务员', 'fúwùyuán', 'nhân viên phục vụ', NULL, NULL, 6)
+ON CONFLICT ("id") DO UPDATE SET "lesson_id" = EXCLUDED."lesson_id", "hanzi" = EXCLUDED."hanzi", "pinyin" = EXCLUDED."pinyin", "meaning_vi" = EXCLUDED."meaning_vi", "example_zh" = EXCLUDED."example_zh", "example_vi" = EXCLUDED."example_vi", "sort_order" = EXCLUDED."sort_order";
+
 -- Table: course_documents (1 rows)
 INSERT INTO "course_documents" ("id", "course_id", "title", "description", "original_file_name", "storage_key", "file_type", "mime_type", "file_size", "sort_order", "is_free", "created_at", "updated_at") VALUES ('doc-hsk1-b1', 'course-hsk1', 'Giáo trình tóm tắt HSK 1 – Bài 1 & 2', 'Tài liệu Word tổng hợp từ vựng và mẫu câu cơ bản cho học viên HSK 1.', 'HSK1-Bai1-Bai2-TuVung.doc', 'documents/sample-hsk1-bai1.doc', 'doc', 'application/msword', 411, 0, TRUE, '2026-11-19T17:25:59.869Z', '2026-11-19T17:25:59.869Z') ON CONFLICT ("id") DO UPDATE SET "course_id" = EXCLUDED."course_id", "title" = EXCLUDED."title", "description" = EXCLUDED."description", "original_file_name" = EXCLUDED."original_file_name", "storage_key" = EXCLUDED."storage_key", "file_type" = EXCLUDED."file_type", "mime_type" = EXCLUDED."mime_type", "file_size" = EXCLUDED."file_size", "sort_order" = EXCLUDED."sort_order", "is_free" = EXCLUDED."is_free", "created_at" = EXCLUDED."created_at", "updated_at" = EXCLUDED."updated_at";
 

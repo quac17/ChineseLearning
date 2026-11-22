@@ -47,9 +47,11 @@ export class CoursesService {
 
     const [lessonsRows, docsRows, enrollRows] = await Promise.all([
       this.db.queryAll(
-        `SELECT * FROM lessons
-         WHERE course_id = ANY($1::varchar[])
-         ORDER BY sort_order ASC, created_at ASC`,
+        `SELECT l.*,
+                (SELECT count(*)::int FROM lesson_vocabulary v WHERE v.lesson_id = l.id) AS vocabulary_count
+         FROM lessons l
+         WHERE l.course_id = ANY($1::varchar[])
+         ORDER BY l.sort_order ASC, l.created_at ASC`,
         [courseIds],
       ),
       this.db.queryAll(
@@ -133,6 +135,7 @@ export class CoursesService {
             : null,
         originalFileName: lesson.original_file_name,
         fileSize: lesson.file_size,
+        vocabularyCount: lesson.vocabulary_count ?? 0,
         createdAt: lesson.created_at,
       };
     });

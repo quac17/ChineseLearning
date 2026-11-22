@@ -11,6 +11,7 @@ import { EnrollmentsModule } from './enrollments/enrollments.module';
 import { HealthController } from './health.controller';
 import { PaymentsModule } from './payments/payments.module';
 import { ProgressModule } from './progress/progress.module';
+import { VocabularyModule } from './vocabulary/vocabulary.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ProgressModule } from './progress/progress.module';
     EnrollmentsModule,
     PaymentsModule,
     ProgressModule,
+    VocabularyModule,
   ],
   controllers: [HealthController],
 })
