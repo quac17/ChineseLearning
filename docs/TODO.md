@@ -13,12 +13,11 @@ Cập nhật: 2026-11-22.
 
 Làm lại theo các board `Teacher*.dc.html`, trong khung `DashboardShell`
 (`src/components/layout/`), dùng bộ component `@/components/ui`. Đã có Tổng quan
-(`/teacher`) và danh sách khoá (`/teacher/courses`); phần quản lý nội dung tạm ở
-trang cũ `/teacher/legacy` cho tới khi có trình sửa khoá.
+(`/teacher`), danh sách khoá (`/teacher/courses`) và trình sửa khoá
+(`/teacher/courses/:id/info|lessons|documents`). Cấp quyền học viên tạm ở trang cũ
+`/teacher/legacy` cho tới khi có tab Học viên.
 
-- [ ] Trình sửa khoá học, 6 tab:
-  - [ ] Thông tin (`TeacherCourseInfo`).
-  - [ ] Bài giảng: thêm YouTube, tải video, sắp xếp (`TeacherLessons`).
+- [ ] Trình sửa khoá học, các tab còn lại:
   - [ ] Từ vựng (`TeacherVocab`). API đã có (PR giai đoạn 2b):
         `GET /lessons/:lessonId/vocabulary` và
         `PUT /lessons/:lessonId/vocabulary` với
@@ -26,7 +25,6 @@ trang cũ `/teacher/legacy` cho tới khi có trình sửa khoá.
         PUT thay cả danh sách theo đúng thứ tự gửi lên, tự đổi `jiao4` thành `jiào`,
         chỉ giáo viên của khoá hoặc admin được lưu. Số từ mỗi bài có sẵn ở
         `lessons[].vocabularyCount`. Nút "Dán từ bảng tính" chỉ cần tách dòng/tab ở client.
-  - [ ] Tài liệu (`TeacherDocs`).
   - [ ] Học viên: cấp và thu hồi quyền (`TeacherStudents`).
   - [ ] Giá & bán: **chỉ xem**, đọc `priceVnd` của khoá. Giáo viên không đặt giá
         và không thấy doanh thu.

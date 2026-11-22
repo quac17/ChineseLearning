@@ -33,8 +33,16 @@ export function useManagedCourses() {
 
 export type EditorTab = 'info' | 'lessons' | 'vocabulary' | 'documents' | 'students' | 'pricing';
 
-/** Where "Sửa" leads. TODO(#34): the course editor replaces the legacy page. */
-export const editorHref = (_courseId: string, _tab: EditorTab = 'info') => '/teacher/legacy';
+/** Course editor tabs, in board order (docs/design/canvas/Teacher*). One route each. */
+export const EDITOR_TABS: Array<{ id: EditorTab; label: string }> = [
+  { id: 'info', label: 'Thông tin' },
+  { id: 'lessons', label: 'Bài giảng' },
+  { id: 'documents', label: 'Tài liệu' },
+];
+
+/** /teacher/courses/:id/:tab; a tab not built yet opens "Thông tin". */
+export const editorHref = (courseId: string, tab: EditorTab = 'info') =>
+  `/teacher/courses/${courseId}/${EDITOR_TABS.some((t) => t.id === tab) ? tab : 'info'}`;
 
 /** Students who can view the course right now (manual grant or purchase). */
 export const studentCount = (c: CourseItem) => c.enrollments?.length ?? 0;

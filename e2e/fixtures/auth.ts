@@ -27,9 +27,13 @@ export function apiAs(role: Role): Promise<APIRequestContext> {
   return request.newContext({ baseURL: `${API_URL}/`, storageState: storageStateFor(role) });
 }
 
-/** An API client with no cookie. */
+/**
+ * An API client with no cookie. The empty storageState is explicit: inside a
+ * `test.use({ storageState })` block, request.newContext() would otherwise
+ * inherit that role's cookie.
+ */
 export function anonymousApi(): Promise<APIRequestContext> {
-  return request.newContext({ baseURL: `${API_URL}/` });
+  return request.newContext({ baseURL: `${API_URL}/`, storageState: { cookies: [], origins: [] } });
 }
 
 /** Logs in through the real form. Use only in specs about the login UI itself. */
