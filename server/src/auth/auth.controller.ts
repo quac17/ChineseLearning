@@ -104,10 +104,14 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('password')
-  changePassword(
+  async changePassword(
     @CurrentUser() user: AuthUser,
     @Body() dto: ChangePasswordDto,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    return this.authService.changePassword(user.id, dto);
+    // Other sessions are logged out; this one gets a new cookie.
+    const { accessToken, result } = await this.authService.changePassword(user.id, dto);
+    this.setAuthCookie(res, accessToken);
+    return result;
   }
 }

@@ -17,6 +17,8 @@ import {
   resetPasswordMail,
 } from './password-reset';
 import { PasswordResetService } from './password-reset.service';
+import { JwtStrategy } from './jwt.strategy';
+import { issuedAfterPasswordChange, SESSION_ENDED_MESSAGE } from './session';
 
 const NOW = new Date('2026-11-22T10:00:00Z');
 
@@ -145,9 +147,11 @@ describe('PasswordResetService.resetPassword', () => {
     await expect(service.resetPassword(token, 'matkhau-moi')).resolves.toEqual({ reset: true });
 
     expect(tx.query.mock.calls[0][1]).toEqual([hashResetToken(token)]);
-    const [updateSql, [hash, userId]] = tx.query.mock.calls[1];
+    const [updateSql, [hash, userId, changedAt]] = tx.query.mock.calls[1];
     expect(updateSql).toContain('UPDATE users SET password_hash');
+    expect(updateSql).toContain('password_changed_at = $3');
     expect(userId).toBe('user-1');
+    expect(changedAt).toBeInstanceOf(Date);
     expect(await bcrypt.compare('matkhau-moi', hash)).toBe(true);
     expect(tx.query.mock.calls[2]).toEqual([
       'UPDATE password_resets SET used_at = now() WHERE user_id = $1 AND used_at IS NULL',
@@ -199,5 +203,34 @@ describe('mailerFactory', () => {
     const withOutbox = mailerFactory(config({ MAIL_DEV_OUTBOX: 'true' })) as ConsoleMailer;
     await withOutbox.send({ to: 'Lan@Example.com', subject: 's', text: 't', html: 'h' });
     expect(withOutbox.mailsTo('lan@example.com')).toHaveLength(1);
+  });
+});
+
+describe('sessions end when the password changes', () => {
+  const changedAt = new Date('2026-11-22T10:00:00.400Z');
+  const sec = (iso: string) => Math.floor(new Date(iso).getTime() / 1000);
+
+  it('accepts any token when the password was never changed', () => {
+    expect(issuedAfterPasswordChange(sec('2020-01-01T00:00:00Z'), null)).toBe(true);
+  });
+
+  it('refuses a token issued before the change', () => {
+    expect(issuedAfterPasswordChange(sec('2026-11-22T09:59:59.900Z'), changedAt)).toBe(false);
+    expect(issuedAfterPasswordChange(sec('2026-11-21T10:00:00Z'), changedAt)).toBe(false);
+    expect(issuedAfterPasswordChange(undefined, changedAt)).toBe(false);
+  });
+
+  it('accepts the token issued right after the change, in the same second (~1s skew)', () => {
+    expect(issuedAfterPasswordChange(sec('2026-11-22T10:00:00.700Z'), changedAt)).toBe(true);
+    expect(issuedAfterPasswordChange(sec('2026-11-22T10:00:05Z'), changedAt.toISOString())).toBe(true);
+  });
+
+  it('JwtStrategy rejects a token older than password_changed_at', async () => {
+    const row = { id: 'user-1', email: 'a@b.vn', full_name: 'A', role: 'STUDENT', is_active: true, password_changed_at: changedAt };
+    const db = { queryOne: jest.fn().mockResolvedValue(row) };
+    const strategy = new JwtStrategy(config({ JWT_SECRET: 'x' }), db as unknown as DatabaseService);
+    const payload = { sub: 'user-1', email: 'a@b.vn', role: 'STUDENT' };
+    await expect(strategy.validate({ ...payload, iat: sec('2026-11-22T09:00:00Z') })).rejects.toThrow(SESSION_ENDED_MESSAGE);
+    await expect(strategy.validate({ ...payload, iat: sec('2026-11-22T10:00:01Z') })).resolves.toMatchObject({ id: 'user-1' });
   });
 });

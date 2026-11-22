@@ -3,10 +3,14 @@
 -- reset passwords. A link expires 30 minutes after it is sent and works once;
 -- a successful reset marks every other open link of that user as used.
 -- requested_ip feeds the per-IP rate limit (rows of the last hour).
+-- users.password_changed_at: login tokens issued before it are refused, so a
+-- reset or a password change logs out every other session.
 -- Idempotent: safe to run twice on a database that already has data.
 -- Apply: psql "$DATABASE_URL" -f server/db/migrations/20261122_2300_password_resets.sql
 
 BEGIN;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS password_changed_at TIMESTAMPTZ;
 
 CREATE TABLE IF NOT EXISTS password_resets (
   id VARCHAR(64) NOT NULL,

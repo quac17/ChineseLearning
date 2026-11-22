@@ -5,11 +5,14 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Request } from 'express';
 import { DatabaseService } from '../database/database.service';
 import { AuthUser } from '../common/decorators/current-user.decorator';
+import { issuedAfterPasswordChange, SESSION_ENDED_MESSAGE } from './session';
 
 export interface JwtPayload {
   sub: string;
   email: string;
   role: string;
+  /** Issued at, in seconds (added by jsonwebtoken). */
+  iat?: number;
 }
 
 function buildJwtExtractor(cookieName: string) {
@@ -47,7 +50,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: JwtPayload): Promise<AuthUser> {
     const user = await this.db.queryOne(
-      `SELECT id, email, full_name, phone, bio, role, is_active, terms_accepted_at, created_at
+      `SELECT id, email, full_name, phone, bio, role, is_active, terms_accepted_at, password_changed_at, created_at
        FROM users
        WHERE id = $1`,
       [payload.sub],
@@ -55,6 +58,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     if (!user || !user.is_active) {
       throw new UnauthorizedException('Tài khoản không tồn tại hoặc đã bị khóa.');
+    }
+    if (!issuedAfterPasswordChange(payload.iat, user.password_changed_at)) {
+      throw new UnauthorizedException(SESSION_ENDED_MESSAGE);
     }
 
     return {

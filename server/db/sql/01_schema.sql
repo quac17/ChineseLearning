@@ -37,6 +37,9 @@ CREATE TABLE IF NOT EXISTS users (
   -- When the user ticked "Tôi đồng ý với Điều khoản sử dụng và Chính sách bảo mật"
   -- on the register form. NULL for accounts created before #30 or by an admin.
   terms_accepted_at TIMESTAMPTZ,
+  -- Last password change or reset (#31). Login tokens issued before it are
+  -- refused, so changing the password logs out every other session.
+  password_changed_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT users_pkey PRIMARY KEY (id),

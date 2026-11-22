@@ -88,7 +88,11 @@ export class PasswordResetService {
       const check = checkReset(row, new Date());
       if (check !== 'ok') throw new BadRequestException(RESET_ERRORS[check]);
 
-      await tx.query('UPDATE users SET password_hash = $1, updated_at = now() WHERE id = $2', [passwordHash, row.user_id]);
+      // password_changed_at logs out every session, including a possible attacker's (JwtStrategy).
+      await tx.query(
+        'UPDATE users SET password_hash = $1, password_changed_at = $3, updated_at = now() WHERE id = $2',
+        [passwordHash, row.user_id, new Date()],
+      );
       await tx.query('UPDATE password_resets SET used_at = now() WHERE user_id = $1 AND used_at IS NULL', [row.user_id]);
       return { reset: true as const };
     });

@@ -13,7 +13,7 @@ async function newAccount(password = 'Matkhau@123') {
   const api = await anonymousApi();
   const email = `quen-${uniq()}@e2e.test`;
   const res = await api.post(`${API_URL}/auth/register`, {
-    data: { fullName: 'Học viên quên mật khẩu', email, password },
+    data: { fullName: 'Học viên quên mật khẩu', email, password, acceptTerms: true },
   });
   expect(res.status(), await res.text()).toBe(201);
   return { api, email, password, fullName: 'Học viên quên mật khẩu' };
@@ -44,6 +44,9 @@ test('forgot password: mail, set a new one, log in with it', async ({ page }) =>
   await page.getByRole('button', { name: 'Lưu mật khẩu mới' }).click();
   await expect(page.getByRole('heading', { name: 'Đã đặt lại mật khẩu' })).toBeVisible();
 
+  // Sessions from before the reset (an attacker's, say) are logged out.
+  expect((await api.get(`${API_URL}/auth/me`)).status()).toBe(401);
+
   // The old password stops working, the new one logs in.
   await loginThroughForm(page, email, password);
   await expect(page.getByText('Email hoặc mật khẩu không đúng.')).toBeVisible();
@@ -56,6 +59,22 @@ test('forgot password: mail, set a new one, log in with it', async ({ page }) =>
   await page.getByLabel('Nhập lại mật khẩu mới').fill('LanThuBa@789');
   await page.getByRole('button', { name: 'Lưu mật khẩu mới' }).click();
   await expect(page.getByText('Đường dẫn này đã được dùng.', { exact: false })).toBeVisible();
+});
+
+test('changing the password keeps this session and logs out the others', async () => {
+  const { api: other, email, password } = await newAccount();
+  const here = await anonymousApi();
+  expect((await here.post(`${API_URL}/auth/login`, { data: { email, password } })).status()).toBe(201);
+  // Tokens carry whole-second timestamps and one second of skew is allowed,
+  // so let the clock pass a second boundary before the change.
+  await new Promise((r) => setTimeout(r, 1100));
+
+  const res = await here.patch(`${API_URL}/auth/password`, { data: { currentPassword: password, newPassword: 'MatkhauMoi@456' } });
+  expect(res.status(), await res.text()).toBe(200);
+  expect((await here.get(`${API_URL}/auth/me`)).status()).toBe(200);
+  const stale = await other.get(`${API_URL}/auth/me`);
+  expect(stale.status()).toBe(401);
+  expect((await stale.json()).message).toBe('Mật khẩu đã được đổi. Vui lòng đăng nhập lại.');
 });
 
 test('same answer for an unknown email, and no mail is sent', async () => {

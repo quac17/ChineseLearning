@@ -116,12 +116,17 @@ export class AuthService {
     }
 
     const newHash = await bcrypt.hash(dto.newPassword, 10);
-    await this.db.query(
-      'UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2',
-      [newHash, userId],
+    // password_changed_at logs out every other session (JwtStrategy). The
+    // app clock is used, not the DB's, because it is compared with JWT iat.
+    const user = await this.db.queryOne(
+      `UPDATE users SET password_hash = $1, password_changed_at = $3, updated_at = NOW() WHERE id = $2
+       RETURNING id, email, role`,
+      [newHash, userId, new Date()],
     );
 
-    return { updated: true };
+    // A fresh token keeps this session logged in.
+    const accessToken = await this.signToken(user.id, user.email, user.role);
+    return { accessToken, result: { updated: true } };
   }
 
   private async signToken(userId: string, email: string, role: Role): Promise<string> {
