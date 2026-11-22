@@ -13,7 +13,7 @@ import { LessonQuestions } from '@/components/course/LessonQuestions';
 import { useAuth } from '@/context/AuthContext';
 import { buildMediaUrl, formatFileSize } from '@/lib/api';
 import { BuyButton } from '@/components/course/BuyButton';
-import { isOnSale, lessonDuration, previewLesson, routes, sortedLessons } from '@/lib/courses';
+import { courseOutline, hasSections, isOnSale, lessonDuration, previewLesson, routes, sectionHeading, sortedLessons } from '@/lib/courses';
 import { formatVnd } from '@/lib/programs';
 import { PHONE_QUERY, useMediaQuery } from '@/lib/useMediaQuery';
 import type { CourseItem, LessonItem } from '@/lib/types';
@@ -133,7 +133,7 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
     }
   };
 
-  const curriculum = { course, lessons, index, tracking, done, toggle };
+  const curriculum = { course, lessons, index, tracking, counted: Boolean(tracking && progress), done, toggle };
   const hasClock = lesson.canWatch && lesson.sourceType === 'UPLOAD' && Boolean(lesson.streamPath);
   const notes = (
     <LessonNotes
@@ -151,6 +151,8 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
   );
   const questions = <LessonQuestions courseId={course.id} lessonId={lesson.id} hasAccess={course.hasAccess} />;
   const summary = tracking && progress ? `${doneCount} / ${watchable.length} bài đã học` : `${lessons.length} bài giảng`;
+  const groups = courseOutline(course);
+  const currentGroup = hasSections(course) ? groups.find((g) => g.lessons.some((l) => l.id === lesson.id)) : undefined;
 
   const position = tracking && progress
     ? `Bài ${index + 1} / ${lessons.length} · Đã học ${doneCount} / ${watchable.length}`
@@ -172,7 +174,10 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
           <div className={s.content}>
             <div className={s.titleRow}>
               {/* Teachers usually number titles themselves ("Bài 2: …"), so no prefix here. */}
-              <h1 className={s.lessonTitle}>{lesson.title}</h1>
+              <div>
+                {currentGroup && <p className={s.partLabel}>{sectionHeading(currentGroup)}</p>}
+                <h1 className={s.lessonTitle}>{lesson.title}</h1>
+              </div>
               {tracking && lesson.canWatch && (
                 <Button
                   variant={done(lesson.id) ? 'subtle' : 'outline'}
@@ -326,6 +331,7 @@ function Curriculum({
   lessons,
   index,
   tracking,
+  counted,
   done,
   toggle,
 }: {
@@ -333,44 +339,65 @@ function Curriculum({
   lessons: LessonItem[];
   index: number;
   tracking: boolean;
+  /** Progress is loaded: section headings show "x / n bài". */
+  counted: boolean;
   done: (id: string) => boolean;
   toggle: (id: string, completed: boolean) => void;
 }) {
+  const row = (l: LessonItem, i: number) => {
+    const label = `${i + 1}. ${l.title}`;
+    const meta = [lessonDuration(l), i === index ? 'đang xem' : '', !l.canWatch ? 'đã khoá' : '']
+      .filter(Boolean)
+      .join(' · ');
+    const showTick = tracking && l.canWatch;
+    return (
+      <li key={l.id} className={s.itemRow} data-current={i === index || undefined}>
+        {showTick ? (
+          <input
+            type="checkbox"
+            className={s.tick}
+            checked={done(l.id)}
+            onChange={(e) => toggle(l.id, e.target.checked)}
+            aria-label={`Đã học: ${label}`}
+          />
+        ) : (
+          <span className={s.itemIcon}>{l.canWatch ? <PlayIcon size={14} /> : <LockIcon size={14} />}</span>
+        )}
+        <Link href={routes.learn(course.id, l.id)} className={s.item} aria-current={i === index ? 'page' : undefined}>
+          <span className={s.itemText}>
+            <span>{label}</span>
+            {meta && <span className={s.itemMeta}>{meta}</span>}
+          </span>
+        </Link>
+      </li>
+    );
+  };
+
+  if (!hasSections(course)) return <ol className={s.items}>{lessons.map(row)}</ol>;
+
+  // Sections ("Phần"): a heading with "x / n bài" each; numbering runs across sections.
   return (
-    <ol className={s.items}>
-      {lessons.map((l, i) => {
-        const label = `${i + 1}. ${l.title}`;
-        const meta = [lessonDuration(l), i === index ? 'đang xem' : '', !l.canWatch ? 'đã khoá' : '']
-          .filter(Boolean)
-          .join(' · ');
-        const showTick = tracking && l.canWatch;
+    <>
+      {courseOutline(course).map((group) => {
+        const headId = `part-${group.section?.id ?? 'rest'}`;
+        const doneHere = group.lessons.filter((l) => l.canWatch && done(l.id)).length;
         return (
-          <li key={l.id} className={s.itemRow} data-current={i === index || undefined}>
-            {showTick ? (
-              <input
-                type="checkbox"
-                className={s.tick}
-                checked={done(l.id)}
-                onChange={(e) => toggle(l.id, e.target.checked)}
-                aria-label={`Đã học: ${label}`}
-              />
-            ) : (
-              <span className={s.itemIcon}>{l.canWatch ? <PlayIcon size={14} /> : <LockIcon size={14} />}</span>
-            )}
-            <Link
-              href={routes.learn(course.id, l.id)}
-              className={s.item}
-              aria-current={i === index ? 'page' : undefined}
-            >
-              <span className={s.itemText}>
-                <span>{label}</span>
-                {meta && <span className={s.itemMeta}>{meta}</span>}
+          <section key={headId} aria-labelledby={headId}>
+            <h3 id={headId} className={s.partHead}>
+              <span>{sectionHeading(group)}</span>
+              <span className={s.partCount}>
+                {counted ? `${doneHere} / ${group.lessons.length} bài` : `${group.lessons.length} bài`}
               </span>
-            </Link>
-          </li>
+            </h3>
+            {group.lessons.length > 0 ? (
+              <ol className={s.items}>{group.lessons.map((l) => row(l, lessons.indexOf(l)))}</ol>
+            ) : (
+              <p className={s.partEmpty}>Chưa có bài giảng.</p>
+            )}
+          </section>
         );
       })}
-    </ol>
+    </>
   );
 }
 

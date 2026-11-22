@@ -175,6 +175,39 @@
   margin: 0;
   padding: 0;
 }
+/* Section headings ("Phần") in the lesson list. */
+.partHead {
+  margin: 0;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.partCount {
+  flex: none;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.partEmpty {
+  margin: 0;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+}
+.partLabel {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
 .itemRow {
   display: flex;
   align-items: flex-start;

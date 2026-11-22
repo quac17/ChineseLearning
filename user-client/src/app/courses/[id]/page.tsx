@@ -8,7 +8,18 @@ import { useCourse } from '@/components/course/useCourse';
 import { useAuth } from '@/context/AuthContext';
 import { buildMediaUrl, formatFileSize } from '@/lib/api';
 import { BuyButton } from '@/components/course/BuyButton';
-import { firstLesson, isOnSale, lessonDuration, previewLesson, routes, sortedLessons } from '@/lib/courses';
+import {
+  courseOutline,
+  firstLesson,
+  hasSections,
+  isOnSale,
+  lessonDuration,
+  previewLesson,
+  routes,
+  sectionHeading,
+  sortedLessons,
+  type OutlineGroup,
+} from '@/lib/courses';
 import { PROGRAMS, formatVnd } from '@/lib/programs';
 import { REFUND_POLICY } from '@/lib/site';
 import type { CourseItem, LessonItem } from '@/lib/types';
@@ -79,9 +90,11 @@ function CourseDetail({ course }: { course: CourseItem }) {
         <div className={`${s.col} ${s.sections}`}>
           <section className={s.section} aria-labelledby="noi-dung">
             <h2 id="noi-dung">Nội dung khoá học</h2>
-            <p className={s.sub}>{lessons.length} bài giảng video</p>
-            {lessons.length === 0 ? (
+            <p className={s.sub}>{outlineSummary(course)}</p>
+            {lessons.length === 0 && !hasSections(course) ? (
               <EmptyState title="Khoá học chưa có bài giảng">Giáo viên đang chuẩn bị nội dung. Quay lại sau nhé.</EmptyState>
+            ) : hasSections(course) ? (
+              <SectionedOutline course={course} />
             ) : (
               <div className={s.outline}>
                 <div className={s.outlineHead}>
@@ -155,6 +168,70 @@ function CourseDetail({ course }: { course: CourseItem }) {
         </div>
       </div>
     </>
+  );
+}
+
+/** "2 phần · 5 bài" (sections only when the course has them). */
+function outlineSummary(course: CourseItem): string {
+  const parts = [];
+  if (hasSections(course)) parts.push(`${course.sections!.length} phần`);
+  parts.push(`${course.lessons.length} bài`);
+  return parts.join(' · ');
+}
+
+/** One accordion per section; the first one starts open. Numbering runs across sections. */
+function SectionedOutline({ course }: { course: CourseItem }) {
+  const groups = courseOutline(course);
+  let offset = 0;
+  return (
+    <div className={s.outline}>
+      {groups.map((group, gi) => {
+        const start = offset;
+        offset += group.lessons.length;
+        return <SectionBlock key={group.section?.id ?? 'rest'} course={course} group={group} start={start} open={gi === 0} />;
+      })}
+    </div>
+  );
+}
+
+function SectionBlock({
+  course,
+  group,
+  start,
+  open,
+}: {
+  course: CourseItem;
+  group: OutlineGroup;
+  start: number;
+  open: boolean;
+}) {
+  return (
+    <details className={s.part} open={open}>
+      <summary className={s.partHead}>
+        <span className={s.partTitle}>
+          <ChevronIcon />
+          {sectionHeading(group)}
+        </span>
+        <span className={s.partMeta}>{group.lessons.length} bài</span>
+      </summary>
+      {group.lessons.length === 0 ? (
+        <p className={s.partEmpty}>Phần này chưa có bài giảng.</p>
+      ) : (
+        <ol className={s.lessons} start={start + 1}>
+          {group.lessons.map((lesson, i) => (
+            <LessonRow key={lesson.id} course={course} lesson={lesson} index={start + i} />
+          ))}
+        </ol>
+      )}
+    </details>
+  );
+}
+
+function ChevronIcon() {
+  return (
+    <svg className={s.chevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+      <path d="m6 9 6 6 6-6" />
+    </svg>
   );
 }
 

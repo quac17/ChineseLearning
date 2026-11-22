@@ -25,6 +25,8 @@ export interface LessonItem {
   description?: string | null;
   duration?: string | null;
   sortOrder: number;
+  /** Section ("Phần") the lesson belongs to; null = none. */
+  sectionId?: string | null;
   isFree: boolean;
   sourceType: VideoSourceType;
   canWatch: boolean;
@@ -38,6 +40,14 @@ export interface LessonItem {
   /** Number of words in the lesson's vocabulary (shown even when locked). */
   vocabularyCount?: number;
   createdAt: string;
+}
+
+/** A section ("Phần") of a course, with its lessons in display order. */
+export interface CourseSection {
+  id: string;
+  title: string;
+  sortOrder: number;
+  lessonIds: string[];
 }
 
 export interface CourseDocumentItem {
@@ -76,6 +86,9 @@ export interface CourseItem {
   createdAt: string;
   /** Last change to the course's own fields (not its lessons or documents). */
   updatedAt?: string;
+  /** Sections in order; empty or missing = the lessons are a flat list. */
+  sections?: CourseSection[];
+  /** In display order: section by section, lessons without a section last. */
   lessons: LessonItem[];
   documents: CourseDocumentItem[];
   enrollments?: Array<{
