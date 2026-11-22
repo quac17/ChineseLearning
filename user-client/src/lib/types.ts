@@ -93,6 +93,10 @@ export interface CourseStudentAccess {
   note?: string | null;
   grantedBy?: string | null;
   updatedAt?: string | null;
+  /** "VK-1000001" when the learner bought the course via PayOS (granted list only; never the amount). */
+  paidOrderCode?: string | null;
+  /** Lessons of the course the learner has completed (granted list only). */
+  completedLessons?: number;
 }
 
 export interface AdminStats {

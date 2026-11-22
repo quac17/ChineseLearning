@@ -39,9 +39,11 @@ export const EDITOR_TABS: Array<{ id: EditorTab; label: string }> = [
   { id: 'lessons', label: 'Bài giảng' },
   { id: 'vocabulary', label: 'Từ vựng' },
   { id: 'documents', label: 'Tài liệu' },
+  { id: 'students', label: 'Học viên' },
+  { id: 'pricing', label: 'Giá & bán' },
 ];
 
-/** /teacher/courses/:id/:tab; a tab not built yet opens "Thông tin". */
+/** /teacher/courses/:id/:tab */
 export const editorHref = (courseId: string, tab: EditorTab = 'info') =>
   `/teacher/courses/${courseId}/${EDITOR_TABS.some((t) => t.id === tab) ? tab : 'info'}`;
 
