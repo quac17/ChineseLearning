@@ -11,6 +11,7 @@ import { uploadWithProgress } from '../../../upload';
 import { useEditorCourse } from '../editor';
 
 const VIDEO_ACCEPT = '.mp4,.webm,.mov,.m4v,.ogg,.mkv';
+const SUBTITLE_ACCEPT = '.vtt,text/vtt';
 
 type Source = 'UPLOAD' | 'YOUTUBE';
 /** null = closed, 'new' = add, otherwise the lesson being edited. */
@@ -198,6 +199,9 @@ function LessonForm({
   const [description, setDescription] = useState(lesson?.description ?? '');
   const [progress, setProgress] = useState<number | null>(null);
   const [error, setError] = useState('');
+  // Pinyin subtitles (WebVTT), only for uploaded videos.
+  const [subtitle, setSubtitle] = useState<File | null>(null);
+  const [dropSubtitle, setDropSubtitle] = useState(false);
 
   const keepsVideo = lesson !== null && source === lesson.sourceType && !file && (source === 'UPLOAD' || youtubeUrl === (lesson.youtubeUrl ?? ''));
 
@@ -210,6 +214,7 @@ function LessonForm({
 
     const fields = { title: title.trim(), description, duration, isFree };
     setProgress(source === 'UPLOAD' && file ? 0 : null);
+    let savedId = lesson?.id ?? null;
     try {
       if (source === 'UPLOAD' && file) {
         const fd = new FormData();
@@ -219,7 +224,13 @@ function LessonForm({
         fd.append('duration', duration);
         fd.append('isFree', String(isFree));
         fd.append('file', file);
-        await uploadWithProgress(lesson ? `/lessons/${lesson.id}/upload` : '/lessons/upload', lesson ? 'PATCH' : 'POST', fd, setProgress);
+        const saved = await uploadWithProgress<{ id: string }>(
+          lesson ? `/lessons/${lesson.id}/upload` : '/lessons/upload',
+          lesson ? 'PATCH' : 'POST',
+          fd,
+          setProgress,
+        );
+        savedId = saved?.id ?? savedId;
       } else if (!lesson) {
         await apiRequest('/lessons/youtube', { method: 'POST', body: JSON.stringify({ ...fields, courseId, youtubeUrl: youtubeUrl.trim() }) });
       } else {
@@ -228,10 +239,24 @@ function LessonForm({
           body: JSON.stringify(source === 'YOUTUBE' && !keepsVideo ? { ...fields, youtubeUrl: youtubeUrl.trim() } : fields),
         });
       }
-      onSaved(lesson ? 'Đã lưu bài giảng' : 'Đã thêm bài giảng vào cuối danh sách');
     } catch (err) {
       setError((err as Error).message);
       setProgress(null);
+      return;
+    }
+    const message = lesson ? 'Đã lưu bài giảng' : 'Đã thêm bài giảng vào cuối danh sách';
+    // The lesson is saved; a subtitle failure is reported without losing it.
+    try {
+      if (source === 'UPLOAD' && subtitle && savedId) {
+        const fd = new FormData();
+        fd.append('file', subtitle);
+        await uploadWithProgress(`/lessons/${savedId}/subtitle`, 'POST', fd, () => undefined);
+      } else if (source === 'UPLOAD' && dropSubtitle && lesson) {
+        await apiRequest(`/lessons/${lesson.id}/subtitle`, { method: 'DELETE' });
+      }
+      onSaved(message);
+    } catch (err) {
+      onSaved(`${message}, nhưng phụ đề chưa lưu được: ${(err as Error).message}`);
     }
   };
 
@@ -262,13 +287,32 @@ function LessonForm({
             {lesson?.sourceType === 'UPLOAD' && !file && (
               <p className={s.note}>Đang dùng {lesson.originalFileName ?? 'video đã tải lên'}. Chọn file mới để thay.</p>
             )}
+            <span className={s.legend} aria-hidden="true">
+              Phụ đề pinyin (không bắt buộc)
+            </span>
+            <FileDrop
+              label="Phụ đề pinyin"
+              accept={SUBTITLE_ACCEPT}
+              hint="Tệp WebVTT (.vtt), dòng đầu là WEBVTT"
+              file={subtitle}
+              onFile={(f) => {
+                setSubtitle(f);
+                if (f) setDropSubtitle(false);
+              }}
+            />
+            {lesson?.subtitlePath && !subtitle && (
+              <Checkbox
+                label="Bài đã có phụ đề. Xoá phụ đề hiện có khi lưu"
+                checked={dropSubtitle}
+                onChange={(e) => setDropSubtitle(e.currentTarget.checked)}
+              />
+            )}
           </>
         ) : (
           <Field label="Link YouTube" hint="Ví dụ https://www.youtube.com/watch?v=… hoặc chỉ ID video">
             <Input value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} inputMode="url" />
           </Field>
         )}
-        {/* TODO(subtitles issue): subtitle (.vtt) upload goes here once the API has it. */}
         <div className={s.twoCols}>
           {/* TODO(course fields issue): numeric duration replaces this free text. */}
           <Field label="Thời lượng">

@@ -31,6 +31,8 @@ export interface LessonItem {
   youtubeId?: string | null;
   youtubeUrl?: string | null;
   streamPath?: string | null;
+  /** WebVTT pinyin subtitles of an uploaded video, only when the viewer may watch it. */
+  subtitlePath?: string | null;
   originalFileName?: string | null;
   fileSize?: number | null;
   /** Number of words in the lesson's vocabulary (shown even when locked). */

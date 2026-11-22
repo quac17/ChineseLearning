@@ -14,7 +14,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
+import { diskStorage, memoryStorage } from 'multer';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -32,6 +32,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { AuthUser, CurrentUser } from '../common/decorators/current-user.decorator';
 import { Role } from '../common/types/domain.types';
+import { isAllowedSubtitleFile, subtitleMaxBytes } from './subtitle';
 
 const ALLOWED_VIDEO_EXTENSIONS = new Set(['.mp4', '.webm', '.mov', '.m4v', '.ogg', '.mkv']);
 
@@ -62,6 +63,18 @@ const videoUploadInterceptorOptions = {
         ),
         false,
       );
+    }
+    cb(null, true);
+  },
+};
+
+/** WebVTT files are small: kept in memory, checked, then saved under a server-made key. */
+const subtitleUploadInterceptorOptions = {
+  storage: memoryStorage(),
+  limits: { fileSize: subtitleMaxBytes() },
+  fileFilter: (_req: any, file: any, cb: any) => {
+    if (!isAllowedSubtitleFile(file.originalname, file.mimetype)) {
+      return cb(new BadRequestException('Chỉ hỗ trợ tệp phụ đề WebVTT (.vtt).'), false);
     }
     cb(null, true);
   },
@@ -133,6 +146,33 @@ export class LessonsController {
     @Res() res: Response,
   ) {
     return this.lessonsService.streamVideo(id, user, req, res);
+  }
+
+  /** Pinyin subtitles for an uploaded video (YouTube lessons use YouTube's own). */
+  @Post(':id/subtitle')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.TEACHER)
+  @UseInterceptors(FileInterceptor('file', subtitleUploadInterceptorOptions))
+  uploadSubtitle(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.lessonsService.saveSubtitle(id, file, user);
+  }
+
+  @Delete(':id/subtitle')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.TEACHER)
+  removeSubtitle(@Param('id') id: string, @CurrentUser() user: AuthUser) {
+    return this.lessonsService.removeSubtitle(id, user);
+  }
+
+  /** Same access rule as the video stream: free lesson, or access to the course. */
+  @Get(':id/subtitle')
+  @UseGuards(OptionalJwtAuthGuard)
+  subtitle(@Param('id') id: string, @CurrentUser() user: AuthUser | null, @Res() res: Response) {
+    return this.lessonsService.serveSubtitle(id, user, res);
   }
 
   @Delete(':id')

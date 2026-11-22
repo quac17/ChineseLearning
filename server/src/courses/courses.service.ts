@@ -130,6 +130,10 @@ export class CoursesService {
           canWatch && lesson.source_type === 'UPLOAD'
             ? `/lessons/${lesson.id}/stream`
             : null,
+        subtitlePath:
+          canWatch && lesson.source_type === 'UPLOAD' && lesson.subtitle_key
+            ? `/lessons/${lesson.id}/subtitle`
+            : null,
         originalFileName: lesson.original_file_name,
         fileSize: lesson.file_size,
         vocabularyCount: lesson.vocabulary_count ?? 0,
@@ -414,13 +418,16 @@ export class CoursesService {
     }
 
     const [lessons, docs] = await Promise.all([
-      this.db.queryAll('SELECT storage_key FROM lessons WHERE course_id = $1', [id]),
+      this.db.queryAll('SELECT storage_key, subtitle_key FROM lessons WHERE course_id = $1', [id]),
       this.db.queryAll('SELECT storage_key FROM course_documents WHERE course_id = $1', [
         id,
       ]),
     ]);
 
-    for (const l of lessons) await this.storage.deleteFile(l.storage_key);
+    for (const l of lessons) {
+      await this.storage.deleteFile(l.storage_key);
+      await this.storage.deleteFile(l.subtitle_key);
+    }
     for (const d of docs) await this.storage.deleteFile(d.storage_key);
 
     await this.db.query('DELETE FROM courses WHERE id = $1', [id]);
