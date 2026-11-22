@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useRef, useState, type MutableRefObject } from 'react';
-import { Button, EmptyState, LinkButton, Logo, Skeleton, Tabs, useToast } from '@/components/ui';
+import { Button, EmptyState, LinkButton, Logo, Skeleton, Switch, Tabs, useToast } from '@/components/ui';
 import { FileIcon, LockIcon, PlayIcon } from '@/components/course/icons';
 import { useCourse } from '@/components/course/useCourse';
 import { useCourseProgress } from '@/components/course/useCourseProgress';
@@ -115,6 +115,7 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
   const phone = useMediaQuery(PHONE_QUERY);
   // The uploaded video element, so notes can read and jump to its time.
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [pinyinSubs, setPinyinSubs] = usePinyinSubtitles();
   const toast = useToast();
   const { progress, save, byLesson, enabled: tracking } = useCourseProgress(course.id);
   const lesson = lessons[index];
@@ -165,6 +166,7 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
             lesson={lesson}
             resumeAt={done(lesson.id) ? 0 : byLesson(lesson.id)?.positionSeconds ?? 0}
             videoRef={videoRef}
+            subtitlesOn={pinyinSubs}
             onVideoProgress={tracking ? (p) => save(lesson.id, p).catch(() => undefined) : undefined}
           />
           <div className={s.content}>
@@ -182,6 +184,11 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
                 </Button>
               )}
             </div>
+            {lesson.canWatch && lesson.subtitlePath && (
+              <div className={s.subtitleRow}>
+                <Switch label="Phụ đề pinyin" checked={pinyinSubs} onChange={setPinyinSubs} />
+              </div>
+            )}
             {phone ? (
               <>
                 <div className={s.phoneTabs}>
@@ -374,9 +381,11 @@ function Stage({
   resumeAt = 0,
   onVideoProgress,
   videoRef,
+  subtitlesOn = true,
 }: {
   course: CourseItem;
   lesson: LessonItem;
+  subtitlesOn?: boolean;
   /** Receives the uploaded <video> element. */
   videoRef?: MutableRefObject<HTMLVideoElement | null>;
   /** Seconds to resume an uploaded video from (0 = start). */
@@ -451,6 +460,8 @@ function Stage({
           resumeAt={resumeAt}
           onProgress={onVideoProgress}
           videoRef={videoRef}
+          subtitleSrc={lesson.subtitlePath ? buildMediaUrl(lesson.subtitlePath) : null}
+          subtitlesOn={subtitlesOn}
         />
       </div>
     );
@@ -509,9 +520,14 @@ function UploadedVideo({
   resumeAt,
   onProgress,
   videoRef,
+  subtitleSrc,
+  subtitlesOn,
 }: {
   src: string;
   resumeAt: number;
+  /** Pinyin WebVTT track (same access rule as the video). */
+  subtitleSrc: string | null;
+  subtitlesOn: boolean;
   videoRef?: MutableRefObject<HTMLVideoElement | null>;
   onProgress?: (p: { positionSeconds: number; durationSeconds: number }) => void;
 }) {
@@ -529,6 +545,13 @@ function UploadedVideo({
     lastSaved.current = pos;
     onProgress({ positionSeconds: pos, durationSeconds: duration });
   };
+
+  // The "Phụ đề pinyin" switch shows or hides the track.
+  const applySubtitles = () => {
+    const track = ref.current?.textTracks?.[0];
+    if (track) track.mode = subtitlesOn ? 'showing' : 'hidden';
+  };
+  useEffect(applySubtitles);
 
   // Resume where the learner stopped, unless that is the very start or end.
   const resume = () => {
@@ -551,12 +574,41 @@ function UploadedVideo({
       controlsList="nodownload"
       preload="metadata"
       src={src}
-      onLoadedMetadata={resume}
+      // The API is another origin: the subtitle request must carry the login cookie.
+      crossOrigin={subtitleSrc ? 'use-credentials' : undefined}
+      onLoadedMetadata={() => {
+        resume();
+        applySubtitles();
+      }}
       onTimeUpdate={() => report(false)}
       onPause={() => report(true)}
       onEnded={() => report(true, true)}
     >
+      {subtitleSrc && <track kind="subtitles" srcLang="zh-Latn" label="Pinyin" src={subtitleSrc} default={subtitlesOn} />}
       Trình duyệt của bạn không hỗ trợ phát video.
     </video>
   );
+}
+
+const PINYIN_KEY = 'vankinh_pinyin_subtitles';
+
+/** On by default; the learner's choice is remembered on this device only. */
+function usePinyinSubtitles(): [boolean, (on: boolean) => void] {
+  const [on, setOn] = useState(true);
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(PINYIN_KEY) === 'off') setOn(false);
+    } catch {
+      // Storage blocked: keep the default.
+    }
+  }, []);
+  const set = (next: boolean) => {
+    setOn(next);
+    try {
+      localStorage.setItem(PINYIN_KEY, next ? 'on' : 'off');
+    } catch {
+      // Not remembered, still applied.
+    }
+  };
+  return [on, set];
 }

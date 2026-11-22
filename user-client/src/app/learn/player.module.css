@@ -196,6 +196,9 @@
   accent-color: var(--ink);
   cursor: pointer;
 }
+.subtitleRow {
+  max-width: 220px;
+}
 .titleRow {
   display: flex;
   justify-content: space-between;

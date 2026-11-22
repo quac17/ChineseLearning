@@ -11,6 +11,7 @@ import { StorageService } from '../common/storage/storage.service';
 import { AuthUser } from '../common/decorators/current-user.decorator';
 import { generateId, VideoSourceType } from '../common/types/domain.types';
 import { extractYouTubeId } from '../common/utils/youtube.util';
+import { looksLikeWebVtt } from './subtitle';
 import {
   CreateYoutubeLessonDto,
   UpdateLessonDto,
@@ -308,6 +309,61 @@ export class LessonsService {
     }
   }
 
+  async saveSubtitle(id: string, file: Express.Multer.File | undefined, user: AuthUser) {
+    if (!file) throw new BadRequestException('Vui lòng chọn tệp phụ đề (.vtt).');
+    const lesson = await this.db.queryOne('SELECT * FROM lessons WHERE id = $1', [id]);
+    if (!lesson) throw new NotFoundException('Không tìm thấy bài giảng.');
+    await this.coursesService.assertCanManageCourse(lesson.course_id, user);
+    if (lesson.source_type !== VideoSourceType.UPLOAD) {
+      throw new BadRequestException('Phụ đề chỉ dành cho video tải lên. Video YouTube dùng phụ đề của YouTube.');
+    }
+    if (!looksLikeWebVtt(file.buffer)) {
+      throw new BadRequestException('Tệp không phải WebVTT: dòng đầu phải là "WEBVTT".');
+    }
+
+    const key = this.storage.generateStorageKey('subtitles', '.vtt');
+    await this.storage.saveBuffer(key, file.buffer);
+    try {
+      await this.db.query('UPDATE lessons SET subtitle_key = $1, updated_at = NOW() WHERE id = $2', [key, id]);
+    } catch (err) {
+      await this.storage.deleteFile(key);
+      throw err;
+    }
+    if (lesson.subtitle_key) await this.storage.deleteFile(lesson.subtitle_key);
+    return { id, hasSubtitle: true, subtitlePath: `/lessons/${id}/subtitle` };
+  }
+
+  async removeSubtitle(id: string, user: AuthUser) {
+    const lesson = await this.db.queryOne('SELECT * FROM lessons WHERE id = $1', [id]);
+    if (!lesson) throw new NotFoundException('Không tìm thấy bài giảng.');
+    await this.coursesService.assertCanManageCourse(lesson.course_id, user);
+    await this.db.query('UPDATE lessons SET subtitle_key = NULL, updated_at = NOW() WHERE id = $1', [id]);
+    await this.storage.deleteFile(lesson.subtitle_key);
+    return { id, hasSubtitle: false };
+  }
+
+  async serveSubtitle(id: string, user: AuthUser | null, res: Response) {
+    const lesson = await this.db.queryOne('SELECT * FROM lessons WHERE id = $1', [id]);
+    if (
+      !lesson ||
+      lesson.source_type !== VideoSourceType.UPLOAD ||
+      !lesson.subtitle_key ||
+      !this.storage.fileExists(lesson.subtitle_key)
+    ) {
+      throw new NotFoundException('Bài giảng này chưa có phụ đề.');
+    }
+    if (!lesson.is_free && !(await this.coursesService.checkUserCourseAccess(lesson.course_id, user))) {
+      throw new ForbiddenException('Bạn chưa được cấp quyền xem video của khóa học này.');
+    }
+    res.writeHead(200, {
+      'Content-Type': 'text/vtt; charset=utf-8',
+      'Content-Length': this.storage.getFileStat(lesson.subtitle_key).size,
+      'Cache-Control': 'private, max-age=300',
+      'X-Content-Type-Options': 'nosniff',
+    });
+    this.storage.createReadStream(lesson.subtitle_key).pipe(res);
+  }
+
   async remove(id: string, user: AuthUser) {
     const lesson = await this.db.queryOne('SELECT * FROM lessons WHERE id = $1', [id]);
     if (!lesson) {
@@ -316,6 +372,7 @@ export class LessonsService {
 
     await this.coursesService.assertCanManageCourse(lesson.course_id, user);
     await this.storage.deleteFile(lesson.storage_key);
+    await this.storage.deleteFile(lesson.subtitle_key);
     await this.db.query('DELETE FROM lessons WHERE id = $1', [id]);
     return { deleted: true, id };
   }

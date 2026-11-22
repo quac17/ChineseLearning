@@ -71,6 +71,7 @@ CREATE TABLE IF NOT EXISTS lessons (
   youtube_id VARCHAR(32),
   youtube_url TEXT,
   storage_key TEXT,
+  subtitle_key TEXT,
   original_file_name VARCHAR(255),
   mime_type VARCHAR(120),
   file_size INTEGER,
