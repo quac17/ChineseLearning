@@ -10,6 +10,15 @@ import {
 } from 'class-validator';
 
 export class VocabularyItemDto {
+  /**
+   * Id of an existing word of this lesson. Kept words keep their id, so
+   * learners' review boxes (vocab_reviews) survive an edit. Omit for new words.
+   */
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  id?: string;
+
   @IsString()
   @MinLength(1, { message: 'Thiếu chữ Hán' })
   @MaxLength(50, { message: 'Chữ Hán tối đa 50 ký tự' })
