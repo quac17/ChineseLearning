@@ -5,3 +5,4 @@ out
 .env.local
 .git
 *.log
+.next-e2e

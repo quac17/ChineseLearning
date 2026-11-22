@@ -4,3 +4,5 @@ uploads
 .env
 .git
 *.log
+dist-e2e
+db/dumps
