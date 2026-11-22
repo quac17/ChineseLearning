@@ -11,20 +11,25 @@ import { useEditorCourse } from '../editor';
 import { parseSheet, type WordDraft } from './sheet';
 
 interface Row extends WordDraft {
-  /** Local key only (rows have no id until saved). */
+  /** Local key only, for React and focus. */
   key: number;
+  /** Server id of a saved word. Sent back on save so learners keep their review progress. */
+  id?: string;
 }
 
 let nextKey = 1;
 const toRow = (w: WordDraft): Row => ({ ...w, key: nextKey++ });
 const emptyRow = (): Row => toRow({ hanzi: '', pinyin: '', meaningVi: '', exampleZh: '', exampleVi: '' });
-const fromItem = (v: VocabularyItem): Row =>
-  toRow({ hanzi: v.hanzi, pinyin: v.pinyin, meaningVi: v.meaningVi, exampleZh: v.exampleZh ?? '', exampleVi: v.exampleVi ?? '' });
+const fromItem = (v: VocabularyItem): Row => ({
+  ...toRow({ hanzi: v.hanzi, pinyin: v.pinyin, meaningVi: v.meaningVi, exampleZh: v.exampleZh ?? '', exampleVi: v.exampleVi ?? '' }),
+  id: v.id,
+});
 
 const sameWords = (a: Row[], b: Row[]) =>
   a.length === b.length &&
   a.every(
     (r, i) =>
+      r.id === b[i].id &&
       r.hanzi === b[i].hanzi &&
       r.pinyin === b[i].pinyin &&
       r.meaningVi === b[i].meaningVi &&
@@ -189,6 +194,7 @@ function WordEditor({
         method: 'PUT',
         body: JSON.stringify({
           items: kept.map((r) => ({
+            id: r.id,
             hanzi: r.hanzi.trim(),
             pinyin: r.pinyin.trim(),
             meaningVi: r.meaningVi.trim(),

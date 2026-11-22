@@ -33,7 +33,11 @@ export class VocabularyService {
     return this.list(lessonId);
   }
 
-  /** Replaces the lesson's whole list in one transaction (owner teacher or admin). */
+  /**
+   * Saves the lesson's whole list in one transaction (owner teacher or admin):
+   * words sent with their id are updated in place, words without one are
+   * added, and words left out are deleted.
+   */
   async save(lessonId: string, dto: SaveVocabularyDto, user: AuthUser): Promise<VocabularyItem[]> {
     const lesson = await this.loadLesson(lessonId);
     await this.courses.assertCanManageCourse(lesson.course_id, user);
@@ -46,6 +50,7 @@ export class VocabularyService {
         throw new BadRequestException(`Dòng ${i + 1}: cần đủ chữ Hán, pinyin và nghĩa.`);
       }
       return {
+        id: item.id?.trim() || null,
         hanzi,
         pinyin,
         meaningVi,
@@ -54,14 +59,39 @@ export class VocabularyService {
       };
     });
 
+    const ids = items.map((i) => i.id).filter((id): id is string => Boolean(id));
+    if (new Set(ids).size !== ids.length) {
+      throw new BadRequestException('Danh sách có một từ bị gửi hai lần.');
+    }
+
     await this.db.withTransaction(async (tx) => {
-      await tx.query('DELETE FROM lesson_vocabulary WHERE lesson_id = $1', [lessonId]);
+      const existing = new Set(
+        (await tx.query('SELECT id FROM lesson_vocabulary WHERE lesson_id = $1 FOR UPDATE', [lessonId])).rows.map(
+          (r: { id: string }) => r.id,
+        ),
+      );
+      // An id from another lesson (or a stale one) is treated as a new word.
+      const keep = ids.filter((id) => existing.has(id));
+      // Only words the teacher removed are deleted, so only they lose learners' progress.
+      await tx.query('DELETE FROM lesson_vocabulary WHERE lesson_id = $1 AND NOT (id = ANY($2::varchar[]))', [
+        lessonId,
+        keep,
+      ]);
       for (const [i, item] of items.entries()) {
-        await tx.query(
-          `INSERT INTO lesson_vocabulary (id, lesson_id, hanzi, pinyin, meaning_vi, example_zh, example_vi, sort_order)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-          [generateId('vocab'), lessonId, item.hanzi, item.pinyin, item.meaningVi, item.exampleZh, item.exampleVi, i],
-        );
+        if (item.id && existing.has(item.id)) {
+          await tx.query(
+            `UPDATE lesson_vocabulary
+             SET hanzi = $1, pinyin = $2, meaning_vi = $3, example_zh = $4, example_vi = $5, sort_order = $6, updated_at = now()
+             WHERE id = $7 AND lesson_id = $8`,
+            [item.hanzi, item.pinyin, item.meaningVi, item.exampleZh, item.exampleVi, i, item.id, lessonId],
+          );
+        } else {
+          await tx.query(
+            `INSERT INTO lesson_vocabulary (id, lesson_id, hanzi, pinyin, meaning_vi, example_zh, example_vi, sort_order)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+            [generateId('vocab'), lessonId, item.hanzi, item.pinyin, item.meaningVi, item.exampleZh, item.exampleVi, i],
+          );
+        }
       }
     });
     return this.list(lessonId);
