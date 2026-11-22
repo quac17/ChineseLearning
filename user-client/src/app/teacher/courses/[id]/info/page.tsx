@@ -4,11 +4,14 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
 import { Alert, Button, Checkbox, Dialog, Field, Input, Select, Switch, Textarea, useToast } from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
-import { apiRequest } from '@/lib/api';
+import { apiRequest, buildMediaUrl } from '@/lib/api';
+import { LEVELS, LEVEL_ORDER } from '@/lib/courses';
 import { PROGRAMS, PROGRAM_ORDER } from '@/lib/programs';
-import type { ProgramModule } from '@/lib/types';
+import type { CourseLevel, ProgramModule } from '@/lib/types';
+import { FileDrop } from '../../../FileDrop';
 import { CourseThumb, studentCount } from '../../../shared';
 import s from '../../../teacher.module.css';
+import { uploadWithProgress } from '../../../upload';
 import { useEditorCourse } from '../editor';
 
 export default function CourseInfoTab() {
@@ -20,6 +23,10 @@ export default function CourseInfoTab() {
   const [description, setDescription] = useState(course.description ?? '');
   const [module, setModule] = useState<ProgramModule>(course.module);
   const [isFree, setIsFree] = useState(course.isFree);
+  const [subtitle, setSubtitle] = useState(course.subtitle ?? '');
+  const [level, setLevel] = useState<CourseLevel | ''>(course.level ?? '');
+  const savedOutcomes = (course.outcomes ?? []).join('\n');
+  const [outcomes, setOutcomes] = useState(savedOutcomes);
   const [busy, setBusy] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState('');
@@ -32,10 +39,20 @@ export default function CourseInfoTab() {
     setDescription(course.description ?? '');
     setModule(course.module);
     setIsFree(course.isFree);
-  }, [course.id, course.title, course.description, course.module, course.isFree]);
+    setSubtitle(course.subtitle ?? '');
+    setLevel(course.level ?? '');
+    setOutcomes(savedOutcomes);
+  }, [course.id, course.title, course.description, course.module, course.isFree, course.subtitle, course.level, savedOutcomes]);
 
+  const outcomeList = outcomes.split('\n').map((l) => l.trim()).filter(Boolean);
   const dirty =
-    title !== course.title || description !== (course.description ?? '') || module !== course.module || isFree !== course.isFree;
+    title !== course.title ||
+    description !== (course.description ?? '') ||
+    module !== course.module ||
+    isFree !== course.isFree ||
+    subtitle !== (course.subtitle ?? '') ||
+    level !== (course.level ?? '') ||
+    outcomeList.join('\n') !== savedOutcomes;
 
   const save = async (e: FormEvent) => {
     e.preventDefault();
@@ -43,12 +60,28 @@ export default function CourseInfoTab() {
       setError('Tên khoá học tối thiểu 2 ký tự');
       return;
     }
+    if (subtitle.trim().length > 120) {
+      setError('Mô tả ngắn tối đa 120 ký tự');
+      return;
+    }
+    if (outcomeList.length > 12) {
+      setError('Tối đa 12 ý "Bạn sẽ học được"');
+      return;
+    }
     setBusy(true);
     setError('');
     try {
       await apiRequest(`/courses/${course.id}`, {
         method: 'PATCH',
-        body: JSON.stringify({ title: title.trim(), description, module, isFree }),
+        body: JSON.stringify({
+          title: title.trim(),
+          description,
+          module,
+          isFree,
+          subtitle: subtitle.trim() || null,
+          level: level || null,
+          outcomes: outcomeList,
+        }),
       });
       await reload();
       toast.show('Đã lưu thông tin khoá học');
@@ -99,7 +132,19 @@ export default function CourseInfoTab() {
         <Field label="Tên khoá học">
           <Input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={255} required />
         </Field>
-        {/* TODO(course fields issue): "Mô tả ngắn" (subtitle) and "Cấp độ" go here once the API has them. */}
+        <Field label="Mô tả ngắn (hiện dưới tên khoá)" hint={`Tối đa 120 ký tự · còn ${120 - subtitle.length}`}>
+          <Input value={subtitle} onChange={(e) => setSubtitle(e.target.value)} maxLength={120} />
+        </Field>
+        <Field label="Cấp độ">
+          <Select value={level} onChange={(e) => setLevel(e.target.value as CourseLevel | '')}>
+            <option value="">Chưa chọn</option>
+            {LEVEL_ORDER.map((id) => (
+              <option key={id} value={id}>
+                {LEVELS[id].hint} · {LEVELS[id].label}
+              </option>
+            ))}
+          </Select>
+        </Field>
         <Field label="Chương trình">
           <Select value={module} onChange={(e) => setModule(e.target.value as ProgramModule)}>
             {PROGRAM_ORDER.map((m) => (
@@ -112,7 +157,9 @@ export default function CourseInfoTab() {
         <Field label="Mô tả chi tiết">
           <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={6} />
         </Field>
-        {/* TODO(course fields issue): "Bạn sẽ học được" (outcomes) list goes here. */}
+        <Field label="Bạn sẽ học được (mỗi dòng một ý)" hint="Tối đa 12 ý, mỗi ý tối đa 160 ký tự. Để trống thì trang khoá không hiện mục này.">
+          <Textarea value={outcomes} onChange={(e) => setOutcomes(e.target.value)} rows={5} />
+        </Field>
         <Checkbox
           label="Khoá miễn phí: ai cũng xem được mọi bài, không cần mua"
           checked={isFree}
@@ -142,11 +189,7 @@ export default function CourseInfoTab() {
           <h2 id="cover-title" className={s.cardTitle}>
             Ảnh bìa
           </h2>
-          <div className={s.coverPreview}>
-            <CourseThumb module={module} />
-          </div>
-          {/* TODO(course fields issue): cover upload once courses have cover_url. */}
-          <p className={s.note}>Chưa có ảnh bìa riêng: khoá dùng mẫu màu của chương trình.</p>
+          <CoverEditor courseId={course.id} coverUrl={course.coverUrl ?? null} module={module} onChanged={reload} />
         </section>
 
         <section className={`${s.card} ${s.panel}`} aria-labelledby="danger-title">
@@ -184,5 +227,82 @@ export default function CourseInfoTab() {
         </p>
       </Dialog>
     </div>
+  );
+}
+
+/** Cover upload (JPG, PNG, WebP; 1280 × 720 recommended). Covers are public, like the catalog. */
+function CoverEditor({
+  courseId,
+  coverUrl,
+  module,
+  onChanged,
+}: {
+  courseId: string;
+  coverUrl: string | null;
+  module: ProgramModule;
+  onChanged: () => Promise<void> | void;
+}) {
+  const toast = useToast();
+  const [file, setFile] = useState<File | null>(null);
+  const [progress, setProgress] = useState<number | null>(null);
+  const [removing, setRemoving] = useState(false);
+
+  const upload = async () => {
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('file', file);
+    setProgress(0);
+    try {
+      await uploadWithProgress(`/courses/${courseId}/cover`, 'POST', fd, setProgress);
+      setFile(null);
+      await onChanged();
+      toast.show('Đã cập nhật ảnh bìa');
+    } catch (err) {
+      toast.show((err as Error).message);
+    } finally {
+      setProgress(null);
+    }
+  };
+
+  const remove = async () => {
+    setRemoving(true);
+    try {
+      await apiRequest(`/courses/${courseId}/cover`, { method: 'DELETE' });
+      await onChanged();
+      toast.show('Đã bỏ ảnh bìa: khoá dùng mẫu màu chương trình');
+    } catch (err) {
+      toast.show((err as Error).message);
+    } finally {
+      setRemoving(false);
+    }
+  };
+
+  return (
+    <>
+      <div className={s.coverPreview}>
+        {coverUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={buildMediaUrl(coverUrl)} alt="Ảnh bìa hiện tại" className={s.coverImg} />
+        ) : (
+          <CourseThumb module={module} />
+        )}
+      </div>
+      <p className={s.note}>
+        {coverUrl
+          ? 'Ảnh bìa hiện trên thẻ khoá và trang khoá học.'
+          : 'Chưa có ảnh bìa riêng: khoá dùng mẫu màu của chương trình. Nên dùng một khung hình từ video bài giảng, 1280 × 720.'}
+      </p>
+      <FileDrop label="Tệp ảnh bìa" accept=".jpg,.jpeg,.png,.webp" hint=".jpg, .png, .webp · tối đa 2 MB" file={file} onFile={setFile} />
+      <div className={s.formActions}>
+        {coverUrl && (
+          <Button variant="text" size="sm" loading={removing} onClick={remove}>
+            Bỏ ảnh bìa
+          </Button>
+        )}
+        <Button variant="ink" size="sm" disabled={!file} loading={progress !== null} onClick={upload}>
+          Tải ảnh lên
+        </Button>
+      </div>
+    </>
   );
 }

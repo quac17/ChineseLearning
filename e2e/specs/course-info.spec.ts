@@ -1,5 +1,5 @@
 import { APIRequestContext, expect, test } from '@playwright/test';
-import { anonymousApi, apiAs } from '../fixtures/auth';
+import { anonymousApi, apiAs, storageStateFor } from '../fixtures/auth';
 import { uniq } from '../fixtures/data';
 
 /** Smallest valid PNG (1×1). */
@@ -159,6 +159,48 @@ test.describe('course info in the learner pages', () => {
     await expect(results).toHaveCount(1);
     await page.getByRole('button', { name: 'Xoá lọc' }).click();
     await expect(results).toHaveCount(2);
+  });
+
+  test.describe('in the teacher editor', () => {
+    test.use({ storageState: storageStateFor('teacher') });
+
+    test('Thông tin tab saves subtitle, level, outcomes and uploads a cover', async ({ page }) => {
+      const teacher = await apiAs('teacher');
+      const course = await newCourse(teacher);
+      await page.goto(`/teacher/courses/${course.id}/info`);
+
+      await page.getByLabel('Mô tả ngắn (hiện dưới tên khoá)').fill('Chào hỏi trong 7 ngày');
+      await page.getByLabel('Cấp độ').selectOption('BEGINNER');
+      await page.getByLabel('Bạn sẽ học được (mỗi dòng một ý)').fill('Đọc đúng pinyin\n\nChào hỏi');
+      await page.getByRole('button', { name: 'Lưu', exact: true }).click();
+      await expect(page.getByText('Đã lưu thông tin khoá học')).toBeVisible();
+
+      await page.locator('input[type="file"]').setInputFiles({ name: 'bia.png', mimeType: 'image/png', buffer: PNG });
+      await page.getByRole('button', { name: 'Tải ảnh lên' }).click();
+      await expect(page.getByRole('img', { name: 'Ảnh bìa hiện tại' })).toHaveAttribute('src', /\/cover\?v=/);
+
+      const saved = await (await teacher.get(`courses/${course.id}`)).json();
+      expect(saved).toMatchObject({ subtitle: 'Chào hỏi trong 7 ngày', level: 'BEGINNER', outcomes: ['Đọc đúng pinyin', 'Chào hỏi'] });
+      expect(saved.coverUrl).toMatch(/\/cover\?v=/);
+    });
+
+    test('Bài giảng tab saves the length in minutes', async ({ page }) => {
+      const teacher = await apiAs('teacher');
+      const course = await newCourse(teacher);
+      const lesson = await (
+        await teacher.post('lessons/youtube', { data: { courseId: course.id, title: 'Bài phút', youtubeUrl: 'dQw4w9WgXcQ', isFree: true } })
+      ).json();
+      await page.goto(`/teacher/courses/${course.id}/lessons`);
+      await page.getByRole('button', { name: 'Sửa bài Bài phút' }).click();
+      await page.getByLabel('Thời lượng (phút)').fill('601');
+      await page.getByRole('button', { name: 'Lưu bài' }).click();
+      await expect(page.getByText('Thời lượng là số phút từ 1 đến 600')).toBeVisible();
+      await page.getByLabel('Thời lượng (phút)').fill('75');
+      await page.getByRole('button', { name: 'Lưu bài' }).click();
+      await expect(page.getByText('1 giờ 15 phút · 0 từ vựng')).toBeVisible();
+      const saved = await (await teacher.get(`courses/${course.id}`)).json();
+      expect(saved.lessons.find((l: { id: string }) => l.id === lesson.id).durationMinutes).toBe(75);
+    });
   });
 
   test.describe('on a phone', () => {
