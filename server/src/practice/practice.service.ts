@@ -6,15 +6,21 @@ import { SaveReviewsDto } from './dto/practice.dto';
 import { nextReview } from './leitner';
 
 /**
- * Which lessons the viewer may practise: the same rule as watching the video
+ * Which lessons a user may practise: the same rule as watching the video
  * (free lesson or course, admin, owner teacher, or an open enrollment).
- * $1 = user id or null, $2 = is admin.
+ * `userId` and `isAdmin` are SQL expressions (placeholders or columns, never
+ * values); `c` is the course and `l` the lesson.
  */
-const WATCHABLE = `
-  (c.is_published OR $2 OR c.teacher_id = $1)
-  AND (l.is_free OR c.is_free OR $2 OR c.teacher_id = $1
+export function watchableSql(userId: string, isAdmin: string): string {
+  return `
+  (c.is_published OR ${isAdmin} OR c.teacher_id = ${userId})
+  AND (l.is_free OR c.is_free OR ${isAdmin} OR c.teacher_id = ${userId}
        OR EXISTS (SELECT 1 FROM course_enrollments e
-                  WHERE e.course_id = c.id AND e.student_id = $1 AND e.can_view = TRUE))`;
+                  WHERE e.course_id = c.id AND e.student_id = ${userId} AND e.can_view = TRUE))`;
+}
+
+/** $1 = user id or null, $2 = is admin. */
+const WATCHABLE = watchableSql('$1', '$2');
 
 export interface PracticeWord {
   id: string;

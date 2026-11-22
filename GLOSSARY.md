@@ -21,3 +21,5 @@ listed synonyms in code, issues and test names.
 | **Gateway** | Cổng thanh toán | A payment provider behind the `PaymentGateway` adapter (PayOS first). | |
 | **Signed URL** | Link xem có thời hạn | Short-lived GCS URL for a paid video or document, issued after the access check. | public link |
 | **Flashcard / Quiz / Writing practice** | Flashcard / Quiz / Luyện viết chữ Hán | Practice tools outside the video Courses. | |
+| **Review reminder** (`review_reminders`) | Nhắc ôn tập mỗi ngày | Opt-in email, at most one per Vietnam day, sent when a learner has words due in their Leitner boxes. | notification, newsletter |
+| **Mailer** (`MailModule`) | Email | The email backend behind the `Mailer` adapter: `console` (local/e2e) or `smtp`. | |
