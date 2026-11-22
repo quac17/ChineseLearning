@@ -38,7 +38,7 @@ export async function postWebhook(api: APIRequestContext, body: unknown) {
 export async function newStudent(api: APIRequestContext) {
   const email = `mua-${uniq()}@e2e.test`;
   const res = await api.post(`${API_URL}/auth/register`, {
-    data: { fullName: 'Học viên mua khoá', email, password: 'Matkhau@123' },
+    data: { fullName: 'Học viên mua khoá', email, password: 'Matkhau@123', acceptTerms: true },
   });
   expect(res.status(), await res.text()).toBe(201);
   const { user } = await res.json();

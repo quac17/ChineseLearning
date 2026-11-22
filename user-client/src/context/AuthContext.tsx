@@ -14,7 +14,8 @@ interface AuthContextValue {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<User>;
-  register: (fullName: string, email: string, password: string) => Promise<User>;
+  /** acceptTerms: the register form's consent box; the server refuses the account without it. */
+  register: (fullName: string, email: string, password: string, acceptTerms: boolean) => Promise<User>;
   logout: () => Promise<void>;
   updateProfile: (payload: ProfileUpdatePayload) => Promise<User>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
@@ -51,10 +52,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return data.user;
   }, []);
 
-  const register = useCallback(async (fullName: string, email: string, password: string) => {
+  const register = useCallback(async (fullName: string, email: string, password: string, acceptTerms: boolean) => {
     const data = await apiRequest<{ user: User }>('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ fullName, email, password }),
+      body: JSON.stringify({ fullName, email, password, acceptTerms }),
     });
     setUser(data.user);
     return data.user;

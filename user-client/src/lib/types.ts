@@ -13,6 +13,8 @@ export interface User {
   bio?: string | null;
   role: Role;
   isActive?: boolean;
+  /** Set when the user ticked the consent box on register; null for older or admin-created accounts. */
+  termsAcceptedAt?: string | null;
   createdAt?: string;
   _count?: {
     taughtCourses: number;

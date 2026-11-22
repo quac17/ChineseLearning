@@ -5,6 +5,12 @@ const nextConfig = {
   // E2E runs its own client next to the dev server; a separate build folder
   // keeps the two from overwriting each other's .next.
   distDir: process.env.NEXT_DIST_DIR || '.next',
+  // Owner-edited content (src/content/legal/*.md) is imported as plain text and
+  // rendered by src/lib/markdown.tsx, so no Markdown dependency is needed.
+  webpack(config) {
+    config.module.rules.push({ test: /\.md$/, type: 'asset/source' });
+    return config;
+  },
   async headers() {
     return [
       {

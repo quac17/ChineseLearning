@@ -55,6 +55,10 @@ export function SiteFooter({ showPhotoCredits = false }: { showPhotoCredits?: bo
         </div>
         <div className={s.footBottom}>
           <Logo onDark height={32} />
+          <nav aria-label="Pháp lý" className={s.footLegal}>
+            <Link href="/dieu-khoan">Điều khoản sử dụng</Link>
+            <Link href="/bao-mat">Chính sách bảo mật</Link>
+          </nav>
           <span>© {new Date().getFullYear()} Vân Kính</span>
         </div>
         {showPhotoCredits && <p className={s.credits}>{STOCK_PHOTO_CREDITS}</p>}
