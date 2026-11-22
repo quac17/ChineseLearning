@@ -4,9 +4,17 @@ import * as path from 'path';
  * Everything the E2E run needs to know about its own stack. It runs on its own
  * ports and its own database so it never touches the dev server or vankinh_db.
  */
-export const TEST_DB = 'vankinh_test';
-export const API_PORT = 4100;
-export const WEB_PORT = 3100;
+/**
+ * Overridable so several checkouts (worktrees, parallel agents) can run e2e at
+ * the same time without sharing ports or resetting each other's database.
+ * The database name must still start with "vankinh_test".
+ */
+export const TEST_DB = process.env.E2E_DB || 'vankinh_test';
+export const API_PORT = Number(process.env.E2E_API_PORT) || 4100;
+export const WEB_PORT = Number(process.env.E2E_WEB_PORT) || 3100;
+if (!/^vankinh_test(_[a-z0-9_]+)?$/.test(TEST_DB)) {
+  throw new Error(`E2E_DB must be vankinh_test or vankinh_test_<name>, got "${TEST_DB}".`);
+}
 export const API_URL = `http://localhost:${API_PORT}/api`;
 export const WEB_URL = `http://localhost:${WEB_PORT}`;
 
