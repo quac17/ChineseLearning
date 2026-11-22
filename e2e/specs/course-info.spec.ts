@@ -160,4 +160,37 @@ test.describe('course info in the learner pages', () => {
     await page.getByRole('button', { name: 'Xoá lọc' }).click();
     await expect(results).toHaveCount(2);
   });
+
+  test.describe('on a phone', () => {
+    test.use({ viewport: { width: 375, height: 812 } });
+
+    test('level and duration sit in the filter sheet and count in "Bộ lọc · n"', async ({ page }) => {
+      const teacher = await apiAs('teacher');
+      const tag = uniq();
+      const long = await newCourse(teacher, { title: `E2E lọc điện thoại ${tag}`, level: 'ADVANCED', isFree: false, isPublished: true });
+      await teacher.post('lessons/youtube', {
+        data: { courseId: long.id, title: 'Bài dài', youtubeUrl: 'dQw4w9WgXcQ', isFree: true, durationMinutes: 600 },
+      });
+      await teacher.post('lessons/youtube', {
+        data: { courseId: long.id, title: 'Bài dài 2', youtubeUrl: 'dQw4w9WgXcQ', isFree: true, durationMinutes: 60 },
+      });
+      await newCourse(teacher, { title: `E2E lọc điện thoại ngắn ${tag}`, level: 'BEGINNER', isFree: false, isPublished: true });
+
+      await page.goto(`/courses?q=${encodeURIComponent(tag)}`);
+      const results = page.getByRole('region', { name: 'Kết quả' }).getByRole('listitem');
+      await expect(results).toHaveCount(2);
+      await page.getByRole('button', { name: 'Bộ lọc', exact: true }).click();
+      const sheet = page.getByRole('dialog', { name: 'Bộ lọc' });
+      await sheet.getByLabel('HSK 5–6 · Nâng cao').check();
+      await sheet.getByLabel('Trên 10 giờ').check();
+      await sheet.getByRole('button', { name: 'Xem 1 kết quả' }).click();
+      await expect(results).toHaveCount(1);
+
+      await expect(page.getByRole('button', { name: 'Bộ lọc · 2' })).toBeVisible();
+      await page.getByRole('button', { name: 'Bỏ lọc Nâng cao' }).click();
+      await expect(page.getByRole('button', { name: 'Bộ lọc · 1' })).toBeVisible();
+      await page.getByRole('button', { name: 'Bỏ lọc Trên 10 giờ' }).click();
+      await expect(results).toHaveCount(2);
+    });
+  });
 });
