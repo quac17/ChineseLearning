@@ -31,6 +31,7 @@ const TABLES_IN_ORDER = [
   'lesson_notes',
   'lesson_questions',
   'lesson_answers',
+  'course_reviews',
 ];
 
 function getPgConfig(databaseOverride?: string) {

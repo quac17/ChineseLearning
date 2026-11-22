@@ -87,6 +87,11 @@ export interface CourseItem {
   totalDurationMinutes?: number;
   /** Set by an admin, always with its real source; null = no rating block. */
   rating?: { value: number; source: string } | null;
+  /**
+   * Real reviews from learners who bought the course (visible ones only).
+   * `average` is null until REVIEWS_MIN_TO_SHOW reviews; never merged with `rating`.
+   */
+  reviews?: ReviewSummary;
   /** Accounts that can open the course (open enrollments). */
   learnerCount?: number;
   /** Offline-class learners, shown apart ("+80 lớp offline"), never added to learnerCount. */
@@ -312,4 +317,69 @@ export interface LessonQuestionList {
   /** The caller is the course's teacher or an admin. */
   canAnswer: boolean;
   questions: LessonQuestion[];
+}
+
+// Course reviews (#41) -------------------------------------------------------
+
+export interface ReviewSummary {
+  /** One decimal; null below the display threshold (3 visible reviews). */
+  average: number | null;
+  count: number;
+}
+
+export interface ReviewReply {
+  body: string;
+  repliedAt: string;
+}
+
+/** A visible review as anyone sees it. */
+export interface PublicReview {
+  id: string;
+  stars: number;
+  comment: string | null;
+  createdAt: string;
+  updatedAt: string;
+  /** Shortened, e.g. "N. V. An". */
+  authorName: string;
+  reply: ReviewReply | null;
+}
+
+/** The learner's own review, with its moderation state. */
+export interface OwnReview extends PublicReview {
+  isHidden: boolean;
+  hiddenReason: string | null;
+}
+
+/** Teacher / admin view. */
+export interface ManagedReview extends OwnReview {
+  courseId: string;
+  studentName: string;
+  hiddenAt: string | null;
+  course?: { id: string; title: string };
+}
+
+export interface ReviewPage<T> {
+  items: T[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+/** GET /courses/:id/reviews */
+export interface PublicReviewPage extends ReviewPage<PublicReview> {
+  summary: ReviewSummary;
+}
+
+/** GET /courses/:id/reviews/manage */
+export interface ManagedReviewPage extends ReviewPage<ManagedReview> {
+  unanswered: number;
+  summary: ReviewSummary;
+}
+
+/** GET /courses/:id/reviews/mine */
+export interface MyReviewState {
+  canReview: boolean;
+  /** Why not, in Vietnamese; null when canReview. */
+  reason: string | null;
+  review: OwnReview | null;
 }

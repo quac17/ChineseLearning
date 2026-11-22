@@ -18,6 +18,7 @@ const ADMIN_NAV = [
   { href: '/admin/courses', label: 'Khoá học' },
   { href: '/admin/prices', label: 'Giá khoá học' },
   { href: '/admin/ratings', label: 'Đánh giá & học viên' },
+  { href: '/admin/reviews', label: 'Kiểm duyệt đánh giá' },
   { href: '/admin/orders', label: 'Đơn hàng' },
 ];
 
