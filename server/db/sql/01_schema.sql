@@ -162,6 +162,23 @@ CREATE TABLE IF NOT EXISTS payment_events (
   CONSTRAINT payment_events_actor_id_fkey FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
+-- Words of a lesson (Hanzi, pinyin with tone marks, Vietnamese meaning). They
+-- drive the lesson's vocabulary tab, flashcards, quizzes and writing practice.
+CREATE TABLE IF NOT EXISTS lesson_vocabulary (
+  id VARCHAR(64) NOT NULL,
+  lesson_id VARCHAR(64) NOT NULL,
+  hanzi VARCHAR(50) NOT NULL,
+  pinyin VARCHAR(120) NOT NULL,
+  meaning_vi VARCHAR(255) NOT NULL,
+  example_zh TEXT,
+  example_vi TEXT,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT lesson_vocabulary_pkey PRIMARY KEY (id),
+  CONSTRAINT lesson_vocabulary_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE
+);
+
 -- What each learner has watched: last position (uploaded videos) and when a
 -- lesson was completed (manual tick, or 90% of an uploaded video).
 CREATE TABLE IF NOT EXISTS lesson_progress (
@@ -195,3 +212,4 @@ CREATE INDEX IF NOT EXISTS idx_orders_status ON public.orders USING btree (statu
 CREATE UNIQUE INDEX IF NOT EXISTS uq_payment_events_key ON public.payment_events USING btree (gateway, event_key) WHERE event_key IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_payment_events_order ON public.payment_events USING btree (order_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_lesson_progress_user_course ON public.lesson_progress USING btree (user_id, course_id, updated_at);
+CREATE INDEX IF NOT EXISTS idx_lesson_vocabulary_lesson ON public.lesson_vocabulary USING btree (lesson_id, sort_order);
