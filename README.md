@@ -137,14 +137,14 @@ Mật khẩu mọi tài khoản demo: `Demo@123`.
 
 | Email | Vai trò | Dùng để thử |
 |---|---|---|
-| `gv.minh@demo.vankinh.vn` | Giáo viên | HSK 2, HSK 3, du lịch, khoá nháp HSK 4 (chưa xuất bản) |
-| `gv.ha@demo.vankinh.vn` | Giáo viên | Khoá miễn phí (pinyin, ngữ pháp), tiếng Trung công sở |
-| `hv01@demo.vankinh.vn` | Học viên | Có 2 khoá: HSK 2, HSK 3 |
-| `hv02@demo.vankinh.vn` | Học viên | Có khoá công sở |
-| `hv03@demo.vankinh.vn` | Học viên | Có YCT 2 và Easy Steps 2 |
-| `hv04@demo.vankinh.vn` | Học viên | Bị thu hồi quyền HSK 2 (thấy bài bị khoá) |
-| `hv05@demo.vankinh.vn` | Học viên | Chưa có khoá nào (trạng thái trống) |
-| `hv06@demo.vankinh.vn` | Học viên | Tài khoản bị khoá: không đăng nhập được |
+| `gv.minh@demo.chineselearner.vn` | Giáo viên | HSK 2, HSK 3, du lịch, khoá nháp HSK 4 (chưa xuất bản) |
+| `gv.ha@demo.chineselearner.vn` | Giáo viên | Khoá miễn phí (pinyin, ngữ pháp), tiếng Trung công sở |
+| `hv01@demo.chineselearner.vn` | Học viên | Có 2 khoá: HSK 2, HSK 3 |
+| `hv02@demo.chineselearner.vn` | Học viên | Có khoá công sở |
+| `hv03@demo.chineselearner.vn` | Học viên | Có YCT 2 và Easy Steps 2 |
+| `hv04@demo.chineselearner.vn` | Học viên | Bị thu hồi quyền HSK 2 (thấy bài bị khoá) |
+| `hv05@demo.chineselearner.vn` | Học viên | Chưa có khoá nào (trạng thái trống) |
+| `hv06@demo.chineselearner.vn` | Học viên | Tài khoản bị khoá: không đăng nhập được |
 
 Ngoài ra Học sinh A được thêm HSK 2, và "YCT 3 – Sắp ra mắt" là khoá chưa có bài.
 

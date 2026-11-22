@@ -2,7 +2,7 @@
 name: nextjs-page
 description: >-
   Add or change a page or component in user-client/, the Next.js 14 App Router
-  frontend of Vân Kính: data fetching through apiRequest with HTTP-only cookie
+  frontend of Chinese Learner: data fetching through apiRequest with HTTP-only cookie
   auth, role-aware UI via useAuth, loading/error states and Vietnamese copy.
   Use when building a screen, form, list or player. Triggers: "tạo trang",
   "thêm trang", "sửa giao diện trang", "thêm form", "component mới",
@@ -13,7 +13,7 @@ description: >-
 
 Next.js 14 App Router, React 18, TypeScript, **plain CSS** in
 `src/app/globals.css` (no Tailwind, no UI kit). For visual design decisions,
-also load the `vankinh-ui` skill.
+also load the `chinese-learner-ui` skill.
 
 ## Layout
 
@@ -29,7 +29,7 @@ user-client/src/
 
 1. **All API calls go through `apiRequest<T>(path, options)`** from
    `@/lib/api`. It sends `credentials: 'include'` so the HTTP-only cookie
-   `vankinh_token` travels with the request. Never read or store the token in
+   `chinese_learner_token` travels with the request. Never read or store the token in
    JS, never use `localStorage` for auth.
 2. Media URLs (video stream, document download) are built with
    `buildMediaUrl(path)`. Do not hard-code `http://localhost:4000`.
@@ -46,7 +46,7 @@ user-client/src/
 7. Paid content: rely on the server's `canWatch` / access flags; show the
    locked state with a clear call to action (buy / contact), never the URL.
 8. All user-facing text is **Vietnamese**; Chinese is shown with pinyin when
-   it is learning content (see `vankinh-ui`). Error messages from the API are
+   it is learning content (see `chinese-learner-ui`). Error messages from the API are
    already Vietnamese: show `err.message`.
 9. Forms: `className="form-grid"`, fields in `.field`, inputs `.input` /
    `.select` / `.textarea`, submit `.btn`, disable while submitting, show

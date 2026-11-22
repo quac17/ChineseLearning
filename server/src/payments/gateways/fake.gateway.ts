@@ -22,7 +22,7 @@ export class FakeGateway implements PaymentGateway {
     return {
       checkoutUrl: null,
       // Not a payable VietQR: scanning it in a bank app does nothing.
-      qrCode: `VANKINH-DEMO|${req.description}|${req.amountVnd}|KHONG-PHAI-MA-THANH-TOAN-THAT`,
+      qrCode: `chinese-learner-DEMO|${req.description}|${req.amountVnd}|KHONG-PHAI-MA-THANH-TOAN-THAT`,
       gatewayLinkId: `fake-${req.orderCode}`,
     };
   }

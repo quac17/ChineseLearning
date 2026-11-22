@@ -9,13 +9,13 @@ import { ToastProvider } from '@/components/ui';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Vân Kính – Học tiếng Trung cho người Việt',
-    template: '%s · Vân Kính',
+    default: 'Chinese Learner – Học tiếng Trung cho người Việt',
+    template: '%s · Chinese Learner',
   },
   description:
     'Khoá học video tiếng Trung cho người Việt: HSK, YCT, thiếu nhi và giao tiếp. Học thử miễn phí bài đầu tiên của mọi khoá.',
-  applicationName: 'Vân Kính',
-  appleWebApp: { capable: true, title: 'Vân Kính', statusBarStyle: 'default' },
+  applicationName: 'Chinese Learner',
+  appleWebApp: { capable: true, title: 'Chinese Learner', statusBarStyle: 'default' },
 };
 
 export const viewport: Viewport = {
@@ -29,7 +29,7 @@ export const viewport: Viewport = {
 };
 
 /** Sets data-theme before first paint so dark mode does not flash. */
-const THEME_SCRIPT = `try{var t=localStorage.getItem('vankinh_theme');if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}document.documentElement.dataset.theme=t}catch(e){}`;
+const THEME_SCRIPT = `try{var t=localStorage.getItem('chinese_learner_theme');if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}document.documentElement.dataset.theme=t}catch(e){}`;
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (

@@ -17,10 +17,10 @@ import { useOnline } from '@/lib/useOnline';
 const DEMO_ACCOUNTS =
   process.env.NODE_ENV === 'development'
     ? [
-        { label: 'Admin', email: 'admin@vankinh.vn', pass: 'Admin@123' },
-        { label: 'Giáo viên', email: 'teacher@vankinh.vn', pass: 'Teacher@123' },
-        { label: 'Học sinh A (Có quyền HSK 1)', email: 'studentA@vankinh.vn', pass: 'Student@123' },
-        { label: 'Học sinh B (Chưa cấp quyền)', email: 'studentB@vankinh.vn', pass: 'Student@123' },
+        { label: 'Admin', email: 'admin@chineselearner.vn', pass: 'Admin@123' },
+        { label: 'Giáo viên', email: 'teacher@chineselearner.vn', pass: 'Teacher@123' },
+        { label: 'Học sinh A (Có quyền HSK 1)', email: 'studentA@chineselearner.vn', pass: 'Student@123' },
+        { label: 'Học sinh B (Chưa cấp quyền)', email: 'studentB@chineselearner.vn', pass: 'Student@123' },
       ]
     : [];
 

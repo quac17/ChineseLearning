@@ -3,18 +3,18 @@ import { assertProductionEnv, checkProductionEnv } from './production-env';
 const good = {
   NODE_ENV: 'production',
   JWT_SECRET: 'q'.repeat(40),
-  DATABASE_URL: 'postgresql://vankinh:pw@localhost/vankinh_db?host=/cloudsql/x',
+  DATABASE_URL: 'postgresql://chinese_learner:pw@localhost/chinese_learner_db?host=/cloudsql/x',
   COOKIE_SECURE: 'true',
   COOKIE_SAME_SITE: 'lax',
-  CORS_ORIGIN: 'https://vankinh.vn',
-  APP_URL: 'https://vankinh.vn',
+  CORS_ORIGIN: 'https://chineselearner.vn',
+  APP_URL: 'https://chineselearner.vn',
   PAYMENT_GATEWAY: 'payos',
   STORAGE_BACKEND: 'gcs',
   MAIL_TRANSPORT: 'smtp',
   SMTP_HOST: 'smtp.example.com',
   SMTP_USER: 'user',
   SMTP_PASS: 'pass',
-  MAIL_FROM: 'Vân Kính <no-reply@example.com>',
+  MAIL_FROM: 'Chinese Learner <no-reply@example.com>',
   TRUST_PROXY: '1',
   REMINDER_CRON_SECRET: 'r'.repeat(40),
 };
@@ -36,8 +36,8 @@ describe('production configuration', () => {
     ['an insecure cookie', { COOKIE_SECURE: 'false' }, /COOKIE_SECURE/],
     ['an unknown SameSite', { COOKIE_SAME_SITE: 'loose' }, /COOKIE_SAME_SITE/],
     ['CORS "*"', { CORS_ORIGIN: '*' }, /CORS_ORIGIN/],
-    ['CORS over http', { CORS_ORIGIN: 'http://vankinh.vn' }, /CORS_ORIGIN/],
-    ['CORS with a trailing slash', { CORS_ORIGIN: 'https://vankinh.vn/' }, /CORS_ORIGIN/],
+    ['CORS over http', { CORS_ORIGIN: 'http://chineselearner.vn' }, /CORS_ORIGIN/],
+    ['CORS with a trailing slash', { CORS_ORIGIN: 'https://chineselearner.vn/' }, /CORS_ORIGIN/],
     ['no APP_URL', { APP_URL: undefined }, /APP_URL/],
     ['the fake gateway', { PAYMENT_GATEWAY: 'fake' }, /PAYMENT_GATEWAY/],
     ['no mail transport (console by default)', { MAIL_TRANSPORT: undefined }, /MAIL_TRANSPORT/],
@@ -52,7 +52,7 @@ describe('production configuration', () => {
   });
 
   it('accepts several https origins', () => {
-    expect(checkProductionEnv({ ...good, CORS_ORIGIN: 'https://vankinh.vn, https://www.vankinh.vn' }).errors).toEqual([]);
+    expect(checkProductionEnv({ ...good, CORS_ORIGIN: 'https://chineselearner.vn, https://www.chineselearner.vn' }).errors).toEqual([]);
   });
 
   it('only warns about local storage, a missing TRUST_PROXY and a missing reminder secret', () => {

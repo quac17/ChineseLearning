@@ -1,5 +1,5 @@
 /**
- * Shared UI kit for the approved Vân Kính design (docs/design/canvas/Main.dc.html).
+ * Shared UI kit for the approved Chinese Learner design (docs/design/canvas/Main.dc.html).
  * Build pages from these instead of the legacy classes in app/globals.css.
  */
 export { Button, LinkButton, buttonClass } from './Button';

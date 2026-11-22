@@ -5,7 +5,7 @@ draft: true
 updated: [Ngày áp dụng]
 ---
 
-Điều khoản này áp dụng khi bạn dùng website Vân Kính (云径) để học tiếng Trung qua các khoá học video. Vân Kính do [Tên đơn vị vận hành] vận hành (gọi là "chúng tôi"). Khi tạo tài khoản, bạn xác nhận đã đọc và đồng ý với Điều khoản này và [Chính sách bảo mật](/bao-mat).
+Điều khoản này áp dụng khi bạn dùng website Chinese Learner để học tiếng Trung qua các khoá học video. Chinese Learner do [Tên đơn vị vận hành] vận hành (gọi là "chúng tôi"). Khi tạo tài khoản, bạn xác nhận đã đọc và đồng ý với Điều khoản này và [Chính sách bảo mật](/bao-mat).
 
 ## 1. Tài khoản
 
@@ -24,7 +24,7 @@ updated: [Ngày áp dụng]
 
 ## 3. Sử dụng nội dung
 
-- Video, tài liệu, từ vựng và bài tập trên Vân Kính chỉ dành cho việc học **cá nhân** của chủ tài khoản.
+- Video, tài liệu, từ vựng và bài tập trên Chinese Learner chỉ dành cho việc học **cá nhân** của chủ tài khoản.
 - Không được tải xuống video bằng công cụ ngoài, ghi lại màn hình, sao chép, chia sẻ công khai, đăng lại hay bán lại nội dung khoá học, trừ khi chúng tôi hoặc giáo viên cho phép bằng văn bản. Tài liệu có nút tải xuống thì chỉ dùng cho việc học của riêng bạn.
 - Quyền sở hữu nội dung khoá học thuộc về [Chủ sở hữu nội dung: đơn vị vận hành và/hoặc giáo viên].
 

@@ -6,7 +6,7 @@ import { linkIn, mailsTo } from '../fixtures/mail';
 
 // Forgot password by email (#31), with the console mailer standing in for SMTP.
 
-const SUBJECT = 'Đặt lại mật khẩu Vân Kính';
+const SUBJECT = 'Đặt lại mật khẩu Chinese Learner';
 const ANSWER = 'Nếu email này có tài khoản, chúng tôi đã gửi đường dẫn đặt lại mật khẩu. Hãy kiểm tra hộp thư, cả thư mục Spam.';
 
 async function newAccount(password = 'Matkhau@123') {

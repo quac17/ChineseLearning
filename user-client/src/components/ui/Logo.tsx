@@ -13,9 +13,9 @@ interface LogoProps {
 }
 
 const FILE: Record<LogoVariant, string> = {
-  horizontal: 'vankinh-logo-horizontal',
-  'horizontal-tagline': 'vankinh-logo-horizontal-tagline',
-  icon: 'vankinh-icon',
+  horizontal: 'chinese-learner-logo-horizontal',
+  'horizontal-tagline': 'chinese-learner-logo-horizontal-tagline',
+  icon: 'chinese-learner-icon',
 };
 
 /**
@@ -26,17 +26,17 @@ export function Logo({ href = '/', variant = 'horizontal', height = 36, onDark =
   const base = `/brand/${FILE[variant]}`;
   const content = onDark ? (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={`${base}-reversed.svg`} alt="Vân Kính" />
+    <img src={`${base}-reversed.svg`} alt="Chinese Learner" />
   ) : (
     <>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={`${base}-full.svg`} alt="Vân Kính" className={s.logoLight} />
+      <img src={`${base}-full.svg`} alt="Chinese Learner" className={s.logoLight} />
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={`${base}-reversed.svg`} alt="Vân Kính" className={s.logoDark} />
+      <img src={`${base}-reversed.svg`} alt="Chinese Learner" className={s.logoDark} />
     </>
   );
   return (
-    <Link href={href} className={s.logo} style={{ height }} aria-label="Vân Kính, trang chủ">
+    <Link href={href} className={s.logo} style={{ height }} aria-label="Chinese Learner, trang chủ">
       {content}
     </Link>
   );

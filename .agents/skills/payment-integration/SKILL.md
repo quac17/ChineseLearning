@@ -1,7 +1,7 @@
 ---
 name: payment-integration
 description: >-
-  Design and implement paid course purchases in Vân Kính with PayOS (VietQR)
+  Design and implement paid course purchases in Chinese Learner with PayOS (VietQR)
   behind a gateway adapter: orders, checkout link, signed webhook, idempotent
   processing and automatic enrollment. Use when working on buying a course,
   prices, orders, checkout, payment webhooks, refunds or adding VNPay/MoMo.

@@ -1,5 +1,5 @@
 # Backend image for Cloud Run (also runs with plain `docker run`).
-# Build: docker build -t vankinh-server ./server
+# Build: docker build -t chinese-learner-server ./server
 #
 # The schema is NOT created at start-up: load 01_schema.sql / 02_master_data.sql
 # once and run server/db/migrations/*.sql by hand (tmp/HUONG-DAN-DEPLOY-GCP.md).
@@ -28,7 +28,7 @@ ENV NODE_ENV=production
 ENV PORT=8080
 # Scratch folder for multipart uploads before they move to the bucket.
 # /tmp is writable on Cloud Run (in memory); point it at a mounted volume if you use STORAGE_BACKEND=local.
-ENV UPLOAD_DIR=/tmp/vankinh-uploads
+ENV UPLOAD_DIR=/tmp/chinese-learner-uploads
 
 COPY --from=deps --chown=node:node /app/node_modules ./node_modules
 COPY --from=builder --chown=node:node /app/dist ./dist

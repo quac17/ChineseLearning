@@ -1,7 +1,7 @@
 {
   "v": 3,
   "createdOnFiles": {"v": 1, "at": "2026-11-21T15:10:00Z"},
-  "title": "Vân Kính – Redesign UI",
+  "title": "Chinese Learner – Redesign UI",
   "launch": {"view": "canvas", "page": "he-thong"},
   "pages": [
     {"id": "he-thong", "name": "Hệ thống & Logo"},
@@ -13,7 +13,7 @@
   ],
   "boards": {
     "Main.dc.html": {"x": 0, "y": 0, "w": 1440, "h": 2600, "title": "Hệ thống thiết kế – màu, chữ, pattern", "is_interactive": true, "page": "he-thong"},
-    "LogoRoad.dc.html": {"x": 2040, "y": 0, "w": 1440, "h": 760, "title": "Logo Vân Kính (đã chốt)", "page": "he-thong"},
+    "LogoRoad.dc.html": {"x": 2040, "y": 0, "w": 1440, "h": 760, "title": "Logo Chinese Learner (đã chốt)", "page": "he-thong"},
 
     "WebHome.dc.html": {"x": 0, "y": 0, "w": 1440, "h": 3300, "title": "Trang chủ", "expand": "fill", "page": "hv-web"},
     "WebCourse.dc.html": {"x": 1520, "y": 0, "w": 1440, "h": 2000, "title": "Chi tiết khoá học", "expand": "fill", "page": "hv-web"},

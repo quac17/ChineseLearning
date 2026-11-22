@@ -107,7 +107,7 @@ export default function ResetPasswordPage() {
         <h1 id="reset-title" className={s.title}>
           Đặt mật khẩu mới
         </h1>
-        <p className={s.lead}>Chọn mật khẩu mới cho tài khoản Vân Kính của bạn.</p>
+        <p className={s.lead}>Chọn mật khẩu mới cho tài khoản Chinese Learner của bạn.</p>
         {error && (
           <Alert tone="error">
             {error} <Link href="/forgot-password">Yêu cầu đường dẫn mới</Link>

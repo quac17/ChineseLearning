@@ -1,7 +1,7 @@
 ---
 name: video-access
 description: >-
-  Rules for serving lesson videos and course documents in Vân Kính: free
+  Rules for serving lesson videos and course documents in Chinese Learner: free
   preview lessons (YouTube or is_free), paid lessons only after an access check,
   and short-lived signed URLs from Google Cloud Storage. Use when touching video
   upload, streaming, the player, documents download, lesson access, or moving
@@ -80,8 +80,8 @@ access, no public objects). `storage_key` is the object path on both
 For every endpoint that returns a video or document (stream, play, download):
 
 - logged out → 401/403 on a paid lesson, 200 on a free one;
-- `studentB@vankinh.vn` (no access) → 403;
-- `studentA@vankinh.vn` (enrolled in HSK 1) → 200;
+- `studentB@chineselearner.vn` (no access) → 403;
+- `studentA@chineselearner.vn` (enrolled in HSK 1) → 200;
 - another teacher → 403; owner teacher and admin → 200;
 - after revoking enrollment (`can_view = false`) → 403 again.
 

@@ -8,7 +8,7 @@ import { ModuleSelection } from '@/lib/types';
 export type ThemePreference = 'light' | 'dark' | 'system';
 
 /** Same key the inline script in app/layout.tsx reads before paint. */
-const THEME_KEY = 'vankinh_theme';
+const THEME_KEY = 'chinese_learner_theme';
 const DARK_QUERY = '(prefers-color-scheme: dark)';
 
 interface ModuleContextValue {

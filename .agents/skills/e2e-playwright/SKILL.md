@@ -1,8 +1,8 @@
 ---
 name: e2e-playwright
 description: >-
-  Write and run Playwright end-to-end tests for Vân Kính against a dedicated
-  test database (vankinh_test) reset and seeded on every run, logging in as the
+  Write and run Playwright end-to-end tests for Chinese Learner against a dedicated
+  test database (chinese_learner_test) reset and seeded on every run, logging in as the
   four seed accounts to cover role and paid-access flows. Use when adding or
   fixing e2e tests, setting up Playwright, or verifying a user flow end to end.
   Triggers: "viết test e2e", "test e2e", "kiểm thử", "Playwright", "test luồng",
@@ -17,7 +17,7 @@ description: >-
 e2e/
 ├── env.ts                  ports, test DB name, env for child processes
 ├── playwright.config.ts
-├── global-setup.ts         resets + seeds vankinh_test
+├── global-setup.ts         resets + seeds chinese_learner_test
 ├── fixtures/auth.ts        ACCOUNTS, SEED ids, apiAs(role), anonymousApi(),
 │                           storageStateFor(role), loginThroughForm()
 ├── fixtures/data.ts        uniq(), createPaidCourse(), setAccess()
@@ -32,32 +32,32 @@ If `e2e/` does not exist yet, create this layout first, add
 
 ## Test database, never the dev database
 
-- E2E uses `POSTGRES_DB=vankinh_test` (same Docker Postgres). `global-setup`
+- E2E uses `POSTGRES_DB=chinese_learner_test` (same Docker Postgres). `global-setup`
   runs `db:init`, `db:reset` and `db:seed` with that env, so every run starts
   from `03_seed_data.sql`.
 - The E2E stack runs on **its own ports** so it never reuses the dev servers
-  (which point at `vankinh_db`): API on **4100** (compiled to
+  (which point at `chinese_learner_db`): API on **4100** (compiled to
   `server/dist-e2e` via `tsconfig.e2e.json`), client on **3100** with
   `NEXT_DIST_DIR=.next-e2e` and `NEXT_PUBLIC_API_URL=http://localhost:4100/api`.
   Locally the client is `next dev`; in CI it is `next build && next start`.
   `reuseExistingServer: !process.env.CI`. If a run times out waiting for a
   web server, look for a stale process on 3100/4100 (`lsof -iTCP:3100`).
 - Several checkouts at once (worktrees, parallel agents): give each its own
-  `E2E_DB=vankinh_test_<name>`, `E2E_API_PORT` and `E2E_WEB_PORT`, e.g.
-  `E2E_DB=vankinh_test_search E2E_API_PORT=4120 E2E_WEB_PORT=3120 yarn e2e`.
-- `env.ts` pins `DATABASE_URL` to `vankinh_test` too, because dotenv never
+  `E2E_DB=chinese_learner_test_<name>`, `E2E_API_PORT` and `E2E_WEB_PORT`, e.g.
+  `E2E_DB=chinese_learner_test_search E2E_API_PORT=4120 E2E_WEB_PORT=3120 yarn e2e`.
+- `env.ts` pins `DATABASE_URL` to `chinese_learner_test` too, because dotenv never
   overrides and a `DATABASE_URL` in `server/.env` would otherwise win.
-- Refuse to run if `POSTGRES_DB` is not `vankinh_test`. A reset on the dev DB
+- Refuse to run if `POSTGRES_DB` is not `chinese_learner_test`. A reset on the dev DB
   destroys local work.
 
 ## Seed accounts (from 03_seed_data.sql)
 
 | Key | Email | Role | Access |
 |---|---|---|---|
-| `admin` | admin@vankinh.vn | ADMIN | everything |
-| `teacher` | teacher@vankinh.vn | TEACHER | owns the seed courses |
-| `studentA` | studentA@vankinh.vn | STUDENT | enrolled in HSK 1 |
-| `studentB` | studentB@vankinh.vn | STUDENT | no paid access |
+| `admin` | admin@chineselearner.vn | ADMIN | everything |
+| `teacher` | teacher@chineselearner.vn | TEACHER | owns the seed courses |
+| `studentA` | studentA@chineselearner.vn | STUDENT | enrolled in HSK 1 |
+| `studentB` | studentB@chineselearner.vn | STUDENT | no paid access |
 
 This table is the **contract** the tests rely on. `yarn db:dump` can silently
 change the seed (extra users, `studentB` gaining access); if

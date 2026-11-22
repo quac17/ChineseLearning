@@ -85,7 +85,7 @@ function Courses() {
       <div className={s.head}>
         <div>
           <h1 className={s.title}>Khoá học</h1>
-          <p className={s.sub}>Mọi khoá trên Vân Kính: giá bán, miễn phí, hiển thị. Chọn một khoá để sửa.</p>
+          <p className={s.sub}>Mọi khoá trên Chinese Learner: giá bán, miễn phí, hiển thị. Chọn một khoá để sửa.</p>
         </div>
       </div>
 

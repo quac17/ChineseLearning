@@ -1,6 +1,6 @@
 # Ảnh minh hoạ: nguồn và giấy phép
 
-Tất cả ảnh lấy từ Wikimedia Commons và đã thu nhỏ về rộng 1400px (không đổi màu, không ghép). Mỗi ảnh **bắt buộc ghi nguồn** khi hiển thị trên trang. Đây là ảnh minh hoạ không khí học tiếng Trung, **không phải** học viên, giáo viên hay lớp học của Vân Kính.
+Tất cả ảnh lấy từ Wikimedia Commons và đã thu nhỏ về rộng 1400px (không đổi màu, không ghép). Mỗi ảnh **bắt buộc ghi nguồn** khi hiển thị trên trang. Đây là ảnh minh hoạ không khí học tiếng Trung, **không phải** học viên, giáo viên hay lớp học của Chinese Learner.
 
 | File | Ảnh gốc | Tác giả | Giấy phép |
 |---|---|---|---|

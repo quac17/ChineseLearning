@@ -6,10 +6,10 @@ Gemini at it, so **edit only this file**.
 
 ## Project
 
-云径 · Vân Kính sells Chinese video courses to Vietnamese learners.
+Chinese Learner sells Chinese video courses to Vietnamese learners.
 
 - `server/`: NestJS 10, raw SQL through `pg` (no ORM), HTTP-only cookie JWT
-  (`vankinh_token`), global prefix `/api`, port 4000.
+  (`chinese_learner_token`), global prefix `/api`, port 4000.
 - `user-client/`: Next.js 14 App Router, React 18, plain CSS, port 3000.
 - `server/db/sql/`: `01_schema.sql`, `02_master_data.sql`, `03_seed_data.sql`.
 - PostgreSQL 16 in Docker (`docker-compose.yml`, host port 5433). Deploy
@@ -54,7 +54,7 @@ before starting the task:
 | Backend endpoint / module | `nestjs-module` |
 | Schema, seed, migration | `raw-sql-migration` |
 | Frontend page / component | `nextjs-page` |
-| Visual design, restyle (approved design: `docs/design/`) | `vankinh-ui` first, then `design-taste-frontend` (+ `impeccable`, `transitions-dev`, `transitions-polish` if installed) |
+| Visual design, restyle (approved design: `docs/design/`) | `chinese-learner-ui` first, then `design-taste-frontend` (+ `impeccable`, `transitions-dev`, `transitions-polish` if installed) |
 | Logo, brand assets (`docs/brand/BRAND.md`) | `svg-logo-designer` (installed on demand) |
 | Video, documents, access | `video-access` |
 | Prices, checkout, PayOS | `payment-integration` |
