@@ -176,6 +176,7 @@ export class CoursesService {
       },
       hasAccess: hasCourseAccess,
       createdAt: course.created_at,
+      updatedAt: course.updated_at,
       lessons,
       documents,
     };

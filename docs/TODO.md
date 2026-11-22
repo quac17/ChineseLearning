@@ -12,11 +12,10 @@ Cập nhật: 2026-11-22.
 ### Khu giáo viên (`/teacher`)
 
 Làm lại theo các board `Teacher*.dc.html`, trong khung `DashboardShell`
-(`src/components/layout/`), dùng bộ component `@/components/ui`. Trang
-`app/teacher/page.tsx` hiện vẫn là giao diện cũ.
+(`src/components/layout/`), dùng bộ component `@/components/ui`. Đã có Tổng quan
+(`/teacher`) và danh sách khoá (`/teacher/courses`); phần quản lý nội dung tạm ở
+trang cũ `/teacher/legacy` cho tới khi có trình sửa khoá.
 
-- [ ] Tổng quan giáo viên (`TeacherOverview`).
-- [ ] Danh sách khoá học của giáo viên (`TeacherCourses`).
 - [ ] Trình sửa khoá học, 6 tab:
   - [ ] Thông tin (`TeacherCourseInfo`).
   - [ ] Bài giảng: thêm YouTube, tải video, sắp xếp (`TeacherLessons`).
@@ -31,8 +30,6 @@ Làm lại theo các board `Teacher*.dc.html`, trong khung `DashboardShell`
   - [ ] Học viên: cấp và thu hồi quyền (`TeacherStudents`).
   - [ ] Giá & bán: **chỉ xem**, đọc `priceVnd` của khoá. Giáo viên không đặt giá
         và không thấy doanh thu.
-- [ ] Thêm mục menu khu giáo viên (mảng `nav` của nhánh `/teacher`) trong
-      `src/components/layout/AppChrome.tsx`.
 
 ### Khu admin (`/admin`)
 
