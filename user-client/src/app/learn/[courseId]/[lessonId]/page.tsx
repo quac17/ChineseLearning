@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button, EmptyState, LinkButton, Logo, Skeleton, Tabs, useToast } from '@/components/ui';
 import { FileIcon, LockIcon, PlayIcon } from '@/components/course/icons';
 import { useCourse } from '@/components/course/useCourse';
 import { useCourseProgress } from '@/components/course/useCourseProgress';
+import { VocabularyList } from '@/components/course/VocabularyList';
 import { useAuth } from '@/context/AuthContext';
 import { buildMediaUrl, formatFileSize } from '@/lib/api';
 import { BuyButton } from '@/components/course/BuyButton';
@@ -15,7 +16,7 @@ import { formatVnd } from '@/lib/programs';
 import type { CourseItem, LessonItem } from '@/lib/types';
 import s from '../../player.module.css';
 
-type TabId = 'overview' | 'docs';
+type TabId = 'vocab' | 'overview' | 'docs';
 
 export default function LessonPage() {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
@@ -95,7 +96,12 @@ function TopBar({ course, position }: { course?: CourseItem; position?: string }
 }
 
 function Player({ course, lessons, index }: { course: CourseItem; lessons: LessonItem[]; index: number }) {
-  const [tab, setTab] = useState<TabId>('overview');
+  const lesson0 = lessons[index];
+  const hasVocab = lesson0.canWatch && (lesson0.vocabularyCount ?? 0) > 0;
+  // Words first when the lesson has them (the design opens on "Từ vựng").
+  const [tab, setTab] = useState<TabId>(hasVocab ? 'vocab' : 'overview');
+  // Moving to another lesson reuses this component: reset the tab for it.
+  useEffect(() => setTab(hasVocab ? 'vocab' : 'overview'), [lesson0.id, hasVocab]);
   const toast = useToast();
   const { progress, save, byLesson, enabled: tracking } = useCourseProgress(course.id);
   const lesson = lessons[index];
@@ -149,6 +155,7 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
               value={tab}
               onChange={setTab}
               items={[
+                ...(hasVocab ? [{ id: 'vocab' as const, label: `Từ vựng (${lesson.vocabularyCount})` }] : []),
                 { id: 'overview', label: 'Tổng quan' },
                 { id: 'docs', label: `Tài liệu (${course.documents.length})` },
               ]}
@@ -160,10 +167,12 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
               aria-labelledby={`lesson-tab-${tab}`}
               tabIndex={0}
             >
-              {tab === 'overview' ? (
-                <p>{lesson.description?.trim() || 'Bài học này chưa có mô tả.'}</p>
-              ) : (
+              {tab === 'vocab' && hasVocab ? (
+                <VocabularyList lessonId={lesson.id} />
+              ) : tab === 'docs' ? (
                 <Documents course={course} />
+              ) : (
+                <p>{lesson.description?.trim() || 'Bài học này chưa có mô tả.'}</p>
               )}
             </div>
             <nav className={s.nav} aria-label="Chuyển bài">

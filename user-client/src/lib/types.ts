@@ -33,6 +33,8 @@ export interface LessonItem {
   streamPath?: string | null;
   originalFileName?: string | null;
   fileSize?: number | null;
+  /** Number of words in the lesson's vocabulary (shown even when locked). */
+  vocabularyCount?: number;
   createdAt: string;
 }
 
@@ -189,4 +191,16 @@ export interface MyCourseProgress {
     durationSeconds: number | null;
     completed: boolean;
   };
+}
+
+/** A word of a lesson (GET /lessons/:id/vocabulary). Pinyin always has tone marks. */
+export interface VocabularyItem {
+  id: string;
+  lessonId: string;
+  hanzi: string;
+  pinyin: string;
+  meaningVi: string;
+  exampleZh: string | null;
+  exampleVi: string | null;
+  sortOrder: number;
 }

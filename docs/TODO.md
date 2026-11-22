@@ -20,8 +20,13 @@ Làm lại theo các board `Teacher*.dc.html`, trong khung `DashboardShell`
 - [ ] Trình sửa khoá học, 6 tab:
   - [ ] Thông tin (`TeacherCourseInfo`).
   - [ ] Bài giảng: thêm YouTube, tải video, sắp xếp (`TeacherLessons`).
-  - [ ] Từ vựng (`TeacherVocab`). **Chờ API từ vựng** của giai đoạn 2 (Claude làm);
-        dựng giao diện trước được, nối API sau.
+  - [ ] Từ vựng (`TeacherVocab`). API đã có (PR giai đoạn 2b):
+        `GET /lessons/:lessonId/vocabulary` và
+        `PUT /lessons/:lessonId/vocabulary` với
+        `{ items: [{ hanzi, pinyin, meaningVi, exampleZh?, exampleVi? }] }`.
+        PUT thay cả danh sách theo đúng thứ tự gửi lên, tự đổi `jiao4` thành `jiào`,
+        chỉ giáo viên của khoá hoặc admin được lưu. Số từ mỗi bài có sẵn ở
+        `lessons[].vocabularyCount`. Nút "Dán từ bảng tính" chỉ cần tách dòng/tab ở client.
   - [ ] Tài liệu (`TeacherDocs`).
   - [ ] Học viên: cấp và thu hồi quyền (`TeacherStudents`).
   - [ ] Giá & bán: **chỉ xem**, đọc `priceVnd` của khoá. Giáo viên không đặt giá
@@ -62,8 +67,6 @@ Làm lại theo các board `Admin*.dc.html`. **Không làm lại** hai trang đ�
 
 ## Claude
 
-- [ ] Giai đoạn 2b: từ vựng theo bài (bảng `lesson_vocabulary`, API cho tab Từ vựng của
-      giáo viên, tab Từ vựng trong trình phát, từ vựng mẫu trong seed và demo).
 - [ ] Giai đoạn 2c: flashcard (Leitner), quiz 4 dạng và luyện viết (Hanzi Writer) sinh
       từ từ vựng của bài, thay cho dữ liệu cứng ở `/flashcards`, `/quiz`, `/writing`.
 - [ ] Giai đoạn 4: quên mật khẩu qua email, lưu video trên Google Cloud Storage.
