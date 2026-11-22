@@ -101,4 +101,31 @@ test.describe('subtitles in the player', () => {
     await expect(page.locator('video')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole('switch', { name: 'Phụ đề pinyin' })).toHaveCount(0);
   });
+
+  test('the teacher adds and removes the subtitle from the lessons tab', async ({ page }) => {
+    const teacher = await apiAs('teacher');
+    const { courseId, lessonId } = await createPaidCourse(teacher);
+    const title = (await (await teacher.get(`courses/${courseId}`)).json()).lessons[0].title as string;
+
+    await page.goto(`/teacher/courses/${courseId}/lessons`);
+    await page.getByRole('button', { name: `Sửa bài ${title}` }).click();
+    const form = page.getByRole('complementary', { name: 'Sửa bài giảng' });
+    await form.getByLabel('Phụ đề pinyin', { exact: true }).setInputFiles({ name: 'bai.vtt', mimeType: 'text/vtt', buffer: Buffer.from(VTT) });
+    await form.getByRole('button', { name: 'Lưu bài' }).click();
+    await expect(form).toHaveCount(0);
+    await expect.poll(async () => (await teacher.get(`lessons/${lessonId}/subtitle`)).status()).toBe(200);
+    expect(await (await teacher.get(`lessons/${lessonId}/subtitle`)).text()).toBe(VTT);
+
+    // A non-WebVTT file is refused, the lesson itself still saves.
+    await page.getByRole('button', { name: `Sửa bài ${title}` }).click();
+    await form.getByLabel('Phụ đề pinyin', { exact: true }).setInputFiles({ name: 'sai.vtt', mimeType: 'text/vtt', buffer: Buffer.from('hello') });
+    await form.getByRole('button', { name: 'Lưu bài' }).click();
+    await expect(page.getByText(/phụ đề chưa lưu được: Tệp không phải WebVTT/)).toBeVisible();
+
+    await page.getByRole('button', { name: `Sửa bài ${title}` }).click();
+    await form.getByLabel(/Xoá phụ đề hiện có khi lưu/).check();
+    await form.getByRole('button', { name: 'Lưu bài' }).click();
+    await expect(form).toHaveCount(0);
+    await expect.poll(async () => (await teacher.get(`lessons/${lessonId}/subtitle`)).status()).toBe(404);
+  });
 });
