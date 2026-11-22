@@ -76,7 +76,7 @@ jobs:
       POSTGRES_PASSWORD: vankinh_secret
       POSTGRES_DB: vankinh_test
       JWT_SECRET: ci-only-not-a-secret
-      NEXT_PUBLIC_API_URL: http://localhost:4000/api
+      # Ports, NEXT_PUBLIC_API_URL and upload dir come from e2e/env.ts.
     steps:
       - uses: actions/checkout@v4
       # hashFiles() is not allowed in a job-level `if`, so the check is a step.
