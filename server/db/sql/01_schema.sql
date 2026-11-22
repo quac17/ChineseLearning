@@ -59,6 +59,19 @@ CREATE TABLE IF NOT EXISTS courses (
   CONSTRAINT courses_teacher_id_fkey FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- "Phần" of a course: an ordered group of lessons. Courses without sections
+-- list their lessons flat, as before.
+CREATE TABLE IF NOT EXISTS course_sections (
+  id VARCHAR(64) NOT NULL,
+  course_id VARCHAR(64) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT course_sections_pkey PRIMARY KEY (id),
+  CONSTRAINT course_sections_course_id_fkey FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS lessons (
   id VARCHAR(64) NOT NULL,
   course_id VARCHAR(64) NOT NULL,
@@ -75,11 +88,13 @@ CREATE TABLE IF NOT EXISTS lessons (
   original_file_name VARCHAR(255),
   mime_type VARCHAR(120),
   file_size INTEGER,
+  section_id VARCHAR(64),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT lessons_pkey PRIMARY KEY (id),
   CONSTRAINT lessons_source_type_check CHECK (((source_type)::text = ANY ((ARRAY['UPLOAD'::character varying, 'YOUTUBE'::character varying])::text[]))),
-  CONSTRAINT lessons_course_id_fkey FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
+  CONSTRAINT lessons_course_id_fkey FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+  CONSTRAINT lessons_section_id_fkey FOREIGN KEY (section_id) REFERENCES course_sections(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS course_documents (
@@ -277,6 +292,8 @@ CREATE INDEX IF NOT EXISTS idx_enrollments_student ON public.course_enrollments 
 CREATE INDEX IF NOT EXISTS idx_courses_module ON public.courses USING btree (module, sort_order);
 CREATE INDEX IF NOT EXISTS idx_courses_teacher ON public.courses USING btree (teacher_id, sort_order);
 CREATE INDEX IF NOT EXISTS idx_lessons_course ON public.lessons USING btree (course_id, sort_order);
+CREATE INDEX IF NOT EXISTS idx_lessons_section ON public.lessons USING btree (section_id);
+CREATE INDEX IF NOT EXISTS idx_course_sections_course ON public.course_sections USING btree (course_id, sort_order);
 CREATE INDEX IF NOT EXISTS idx_users_role ON public.users USING btree (role);
 CREATE INDEX IF NOT EXISTS idx_orders_user ON public.orders USING btree (user_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON public.orders USING btree (status, created_at);

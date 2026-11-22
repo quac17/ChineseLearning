@@ -1,9 +1,25 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import { Alert, Badge, Button, Checkbox, Dialog, EmptyState, Field, Input, ProgressBar, Radio, Switch, Textarea, useToast } from '@/components/ui';
+import {
+  Alert,
+  Badge,
+  Button,
+  Checkbox,
+  Dialog,
+  EmptyState,
+  Field,
+  Input,
+  ProgressBar,
+  Radio,
+  Select,
+  Switch,
+  Textarea,
+  useToast,
+} from '@/components/ui';
 import { apiRequest } from '@/lib/api';
-import type { LessonItem } from '@/lib/types';
+import { courseOutline, hasSections, sectionHeading } from '@/lib/courses';
+import type { CourseSection, LessonItem } from '@/lib/types';
 import { FileDrop } from '../../../FileDrop';
 import { move } from '../../../shared';
 import s from '../../../teacher.module.css';
@@ -24,6 +40,11 @@ export default function CourseLessonsTab() {
   const [deleting, setDeleting] = useState<LessonItem | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const lessons = course.lessons;
+  const sections = course.sections ?? [];
+  const parts = hasSections(course);
+  // With sections the lessons arrive section by section; arrows move a lesson inside its own section.
+  // Without sections, keep the local order as is so an optimistic reorder shows at once.
+  const groups = parts ? courseOutline(course) : [{ section: null, number: 0, lessons }];
 
   const reorder = async (from: number, to: number) => {
     const next = move(lessons, from, to);
@@ -34,6 +55,7 @@ export default function CourseLessonsTab() {
         method: 'PATCH',
         body: JSON.stringify({ courseId: course.id, orderedIds: next.map((l) => l.id) }),
       });
+      if (parts) await reload();
     } catch (err) {
       toast.show((err as Error).message || 'Không lưu được thứ tự.');
       reload();
@@ -80,63 +102,79 @@ export default function CourseLessonsTab() {
             + Thêm bài
           </Button>
         </div>
-        {/* TODO(course sections issue): group lessons under "Phần" headings once the API has sections. */}
-        {lessons.length === 0 ? (
+        {lessons.length === 0 && !parts ? (
           <EmptyState title="Chưa có bài giảng">Thêm bài đầu tiên bằng video tải lên hoặc link YouTube.</EmptyState>
         ) : (
-          <ol className={s.rows}>
-            {lessons.map((l, i) => {
-              const exposed = l.sourceType === 'YOUTUBE' && !l.isFree && !course.isFree;
-              return (
-                <li key={l.id} className={s.row} data-warn={exposed || undefined}>
-                  <span className={s.order}>
-                    <Button variant="subtle" size="sm" iconOnly aria-label={`Đưa bài "${l.title}" lên`} disabled={i === 0} onClick={() => reorder(i, i - 1)}>
-                      ↑
-                    </Button>
-                    <Button
-                      variant="subtle"
-                      size="sm"
-                      iconOnly
-                      aria-label={`Đưa bài "${l.title}" xuống`}
-                      disabled={i === lessons.length - 1}
-                      onClick={() => reorder(i, i + 1)}
-                    >
-                      ↓
-                    </Button>
-                  </span>
-                  <span className={s.rowMain}>
-                    <b>
-                      {i + 1}. {l.title}
-                    </b>
-                    <span className={exposed ? s.warnText : s.rowMeta}>
-                      {exposed
-                        ? 'YouTube trong bài trả phí: ai có link cũng xem được'
-                        : [l.duration, `${l.vocabularyCount ?? 0} từ vựng`].filter(Boolean).join(' · ')}
-                    </span>
-                  </span>
-                  <span className={s.rowSource}>
-                    {l.sourceType === 'YOUTUBE' ? <Badge tone="warning">YouTube</Badge> : <Badge tone="neutral">Video tải lên</Badge>}
-                  </span>
-                  <span className={s.rowSwitch}>
-                    <Switch
-                      label={<span className="sr-only">Học thử bài {l.title}</span>}
-                      checked={l.isFree || course.isFree}
-                      disabled={course.isFree || busyId === l.id}
-                      onChange={(next) => setPreview(l, next)}
-                    />
-                  </span>
-                  <span className={s.rowActions}>
-                    <Button variant="outline" size="sm" aria-label={`Sửa bài ${l.title}`} onClick={() => setEditing(l)}>
-                      Sửa
-                    </Button>
-                    <Button variant="text" size="sm" aria-label={`Xoá bài ${l.title}`} onClick={() => setDeleting(l)}>
-                      Xoá
-                    </Button>
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
+          groups.map((group) => (
+            <div key={group.section?.id ?? 'rest'}>
+              {parts && (
+                <h3 className={s.partHead}>
+                  <span>{sectionHeading(group)}</span>
+                  <span className={s.rowMeta}>{group.lessons.length} bài</span>
+                </h3>
+              )}
+              {group.lessons.length === 0 ? (
+                <p className={`${s.note} ${s.pad}`}>Chưa có bài. Chọn Phần này khi thêm hoặc sửa bài.</p>
+              ) : (
+                <ol className={s.rows}>
+                  {group.lessons.map((l, j) => {
+                    const i = lessons.indexOf(l);
+                    const first = j === 0;
+                    const last = j === group.lessons.length - 1;
+                    const exposed = l.sourceType === 'YOUTUBE' && !l.isFree && !course.isFree;
+                    return (
+                      <li key={l.id} className={s.row} data-warn={exposed || undefined}>
+                        <span className={s.order}>
+                          <Button variant="subtle" size="sm" iconOnly aria-label={`Đưa bài "${l.title}" lên`} disabled={first} onClick={() => reorder(i, i - 1)}>
+                            ↑
+                          </Button>
+                          <Button
+                            variant="subtle"
+                            size="sm"
+                            iconOnly
+                            aria-label={`Đưa bài "${l.title}" xuống`}
+                            disabled={last}
+                            onClick={() => reorder(i, i + 1)}
+                          >
+                            ↓
+                          </Button>
+                        </span>
+                        <span className={s.rowMain}>
+                          <b>
+                            {i + 1}. {l.title}
+                          </b>
+                          <span className={exposed ? s.warnText : s.rowMeta}>
+                            {exposed
+                              ? 'YouTube trong bài trả phí: ai có link cũng xem được'
+                              : [l.duration, `${l.vocabularyCount ?? 0} từ vựng`].filter(Boolean).join(' · ')}
+                          </span>
+                        </span>
+                        <span className={s.rowSource}>
+                          {l.sourceType === 'YOUTUBE' ? <Badge tone="warning">YouTube</Badge> : <Badge tone="neutral">Video tải lên</Badge>}
+                        </span>
+                        <span className={s.rowSwitch}>
+                          <Switch
+                            label={<span className="sr-only">Học thử bài {l.title}</span>}
+                            checked={l.isFree || course.isFree}
+                            disabled={course.isFree || busyId === l.id}
+                            onChange={(next) => setPreview(l, next)}
+                          />
+                        </span>
+                        <span className={s.rowActions}>
+                          <Button variant="outline" size="sm" aria-label={`Sửa bài ${l.title}`} onClick={() => setEditing(l)}>
+                            Sửa
+                          </Button>
+                          <Button variant="text" size="sm" aria-label={`Xoá bài ${l.title}`} onClick={() => setDeleting(l)}>
+                            Xoá
+                          </Button>
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ol>
+              )}
+            </div>
+          ))
         )}
         <p className={`${s.note} ${s.pad}`}>
           Công tắc là <b>Học thử</b>: bài học thử xem miễn phí, không cần mua.{' '}
@@ -144,10 +182,13 @@ export default function CourseLessonsTab() {
         </p>
       </section>
 
+      <SectionsPanel courseId={course.id} sections={sections} onChanged={reload} />
+
       {editing && (
         <LessonForm
           key={editing === 'new' ? 'new' : editing.id}
           courseId={course.id}
+          sections={sections}
           lesson={editing === 'new' ? null : editing}
           onClose={() => setEditing(null)}
           onSaved={async (msg) => {
@@ -179,13 +220,148 @@ export default function CourseLessonsTab() {
   );
 }
 
+/** "Phần" of the course: add, rename, reorder, delete (lessons stay, without a section). */
+function SectionsPanel({
+  courseId,
+  sections,
+  onChanged,
+}: {
+  courseId: string;
+  sections: CourseSection[];
+  onChanged: () => Promise<void> | void;
+}) {
+  const toast = useToast();
+  const [newTitle, setNewTitle] = useState('');
+  const [names, setNames] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const run = async (key: string, work: () => Promise<unknown>, message: string) => {
+    setBusy(key);
+    try {
+      await work();
+      await onChanged();
+      toast.show(message);
+      return true;
+    } catch (err) {
+      toast.show((err as Error).message);
+      return false;
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const add = async (e: FormEvent) => {
+    e.preventDefault();
+    const title = newTitle.trim();
+    if (title.length < 2) return toast.show('Tên phần tối thiểu 2 ký tự');
+    const ok = await run(
+      'new',
+      () => apiRequest(`/courses/${courseId}/sections`, { method: 'POST', body: JSON.stringify({ title }) }),
+      `Đã thêm phần "${title}"`,
+    );
+    if (ok) setNewTitle('');
+  };
+
+  const rename = (section: CourseSection) => {
+    const title = (names[section.id] ?? section.title).trim();
+    return run(
+      section.id,
+      () => apiRequest(`/courses/${courseId}/sections/${section.id}`, { method: 'PATCH', body: JSON.stringify({ title }) }),
+      'Đã đổi tên phần',
+    );
+  };
+
+  const reorder = (from: number, to: number) => {
+    const next = move(sections, from, to);
+    if (next === sections) return;
+    return run(
+      'order',
+      () =>
+        apiRequest(`/courses/${courseId}/sections/reorder`, {
+          method: 'PATCH',
+          body: JSON.stringify({ orderedIds: next.map((x) => x.id) }),
+        }),
+      'Đã đổi thứ tự phần',
+    );
+  };
+
+  const remove = (section: CourseSection) =>
+    run(
+      section.id,
+      () => apiRequest(`/courses/${courseId}/sections/${section.id}`, { method: 'DELETE' }),
+      `Đã xoá phần "${section.title}"; các bài vẫn còn trong khoá`,
+    );
+
+  return (
+    <section className={`${s.card} ${s.panel} ${s.mainCol}`} aria-labelledby="parts-title">
+      <h2 id="parts-title" className={s.cardTitle}>
+        Phần (chương)
+      </h2>
+      <p className={s.note}>
+        Nhóm bài theo Phần để học viên thấy lộ trình. Không có Phần nào thì danh sách bài hiện liền một mạch. Chọn Phần cho
+        từng bài trong ô Sửa bài.
+      </p>
+      {sections.length > 0 && (
+        <ol className={s.partList}>
+          {sections.map((section, i) => {
+            const value = names[section.id] ?? section.title;
+            const changed = value.trim() !== section.title && value.trim().length >= 2;
+            return (
+              <li key={section.id} className={s.partRow}>
+                <span className={s.order}>
+                  <Button variant="subtle" size="sm" iconOnly aria-label={`Đưa phần "${section.title}" lên`} disabled={i === 0 || busy !== null} onClick={() => reorder(i, i - 1)}>
+                    ↑
+                  </Button>
+                  <Button
+                    variant="subtle"
+                    size="sm"
+                    iconOnly
+                    aria-label={`Đưa phần "${section.title}" xuống`}
+                    disabled={i === sections.length - 1 || busy !== null}
+                    onClick={() => reorder(i, i + 1)}
+                  >
+                    ↓
+                  </Button>
+                </span>
+                <span className={s.partNo}>Phần {i + 1}</span>
+                <Input
+                  aria-label={`Tên phần ${i + 1}`}
+                  value={value}
+                  maxLength={255}
+                  onChange={(e) => setNames((n) => ({ ...n, [section.id]: e.target.value }))}
+                />
+                <span className={s.rowActions}>
+                  <Button variant="outline" size="sm" disabled={!changed} loading={busy === section.id} onClick={() => rename(section)}>
+                    Lưu tên
+                  </Button>
+                  <Button variant="text" size="sm" aria-label={`Xoá phần ${section.title}`} disabled={busy !== null} onClick={() => remove(section)}>
+                    Xoá
+                  </Button>
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+      <form className={s.partAdd} onSubmit={add}>
+        <Input aria-label="Tên phần mới" placeholder="Ví dụ: Phát âm và chào hỏi" value={newTitle} maxLength={255} onChange={(e) => setNewTitle(e.target.value)} />
+        <Button type="submit" variant="ink" size="sm" loading={busy === 'new'}>
+          + Thêm phần
+        </Button>
+      </form>
+    </section>
+  );
+}
+
 function LessonForm({
   courseId,
+  sections,
   lesson,
   onClose,
   onSaved,
 }: {
   courseId: string;
+  sections: CourseSection[];
   lesson: LessonItem | null;
   onClose: () => void;
   onSaved: (message: string) => void;
@@ -196,6 +372,7 @@ function LessonForm({
   const [file, setFile] = useState<File | null>(null);
   const [duration, setDuration] = useState(lesson?.duration ?? '');
   const [isFree, setIsFree] = useState(lesson?.isFree ?? false);
+  const [sectionId, setSectionId] = useState(lesson?.sectionId ?? '');
   const [description, setDescription] = useState(lesson?.description ?? '');
   const [progress, setProgress] = useState<number | null>(null);
   const [error, setError] = useState('');
@@ -212,7 +389,7 @@ function LessonForm({
     if (source === 'YOUTUBE' && !youtubeUrl.trim()) return setError('Nhập link hoặc ID video YouTube');
     if (source === 'UPLOAD' && !file && !(lesson && lesson.sourceType === 'UPLOAD')) return setError('Chọn file video để tải lên');
 
-    const fields = { title: title.trim(), description, duration, isFree };
+    const fields = { title: title.trim(), description, duration, isFree, ...(sections.length ? { sectionId: sectionId || null } : {}) };
     setProgress(source === 'UPLOAD' && file ? 0 : null);
     let savedId = lesson?.id ?? null;
     try {
@@ -223,6 +400,7 @@ function LessonForm({
         fd.append('description', description);
         fd.append('duration', duration);
         fd.append('isFree', String(isFree));
+        if (sections.length) fd.append('sectionId', sectionId);
         fd.append('file', file);
         const saved = await uploadWithProgress<{ id: string }>(
           lesson ? `/lessons/${lesson.id}/upload` : '/lessons/upload',
@@ -231,6 +409,10 @@ function LessonForm({
           setProgress,
         );
         savedId = saved?.id ?? savedId;
+        // Replacing a video keeps the lesson's other fields; move it to the chosen Phần separately.
+        if (lesson && sections.length && (sectionId || null) !== (lesson.sectionId ?? null)) {
+          await apiRequest(`/lessons/${lesson.id}`, { method: 'PATCH', body: JSON.stringify({ sectionId: sectionId || null }) });
+        }
       } else if (!lesson) {
         await apiRequest('/lessons/youtube', { method: 'POST', body: JSON.stringify({ ...fields, courseId, youtubeUrl: youtubeUrl.trim() }) });
       } else {
@@ -311,6 +493,18 @@ function LessonForm({
         ) : (
           <Field label="Link YouTube" hint="Ví dụ https://www.youtube.com/watch?v=… hoặc chỉ ID video">
             <Input value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} inputMode="url" />
+          </Field>
+        )}
+        {sections.length > 0 && (
+          <Field label="Phần">
+            <Select value={sectionId} onChange={(e) => setSectionId(e.target.value)}>
+              <option value="">Không thuộc phần nào</option>
+              {sections.map((x, i) => (
+                <option key={x.id} value={x.id}>
+                  Phần {i + 1}: {x.title}
+                </option>
+              ))}
+            </Select>
           </Field>
         )}
         <div className={s.twoCols}>

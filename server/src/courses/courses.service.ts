@@ -10,6 +10,7 @@ import { AuthUser } from '../common/decorators/current-user.decorator';
 import { generateId, ProgramModule, Role } from '../common/types/domain.types';
 import { CreateCourseDto, UpdateCourseDto } from './dto/course.dto';
 import { courseSearchClause, courseSearchPattern } from './course-search';
+import { buildOutline } from './course-outline';
 
 @Injectable()
 export class CoursesService {
@@ -42,7 +43,7 @@ export class CoursesService {
     if (courseRows.length === 0) return [];
     const courseIds = courseRows.map((c) => c.id);
 
-    const [lessonsRows, docsRows, enrollRows] = await Promise.all([
+    const [lessonsRows, docsRows, enrollRows, sectionRows] = await Promise.all([
       this.db.queryAll(
         `SELECT l.*,
                 (SELECT count(*)::int FROM lesson_vocabulary v WHERE v.lesson_id = l.id) AS vocabulary_count
@@ -64,7 +65,19 @@ export class CoursesService {
          WHERE e.course_id = ANY($1::varchar[]) AND e.can_view = TRUE`,
         [courseIds],
       ),
+      this.db.queryAll(
+        `SELECT id, course_id, title, sort_order, created_at FROM course_sections
+         WHERE course_id = ANY($1::varchar[])`,
+        [courseIds],
+      ),
     ]);
+
+    const sectionsByCourse = new Map<string, any[]>();
+    for (const sec of sectionRows) {
+      const arr = sectionsByCourse.get(sec.course_id) || [];
+      arr.push(sec);
+      sectionsByCourse.set(sec.course_id, arr);
+    }
 
     const lessonsByCourse = new Map<string, any[]>();
     for (const l of lessonsRows) {
@@ -92,12 +105,16 @@ export class CoursesService {
       enrollsByCourse.set(e.course_id, arr);
     }
 
-    return courseRows.map((c) => ({
-      ...c,
-      lessons: lessonsByCourse.get(c.id) || [],
-      documents: docsByCourse.get(c.id) || [],
-      enrollments: enrollsByCourse.get(c.id) || [],
-    }));
+    return courseRows.map((c) => {
+      const outline = buildOutline(sectionsByCourse.get(c.id) || [], lessonsByCourse.get(c.id) || []);
+      return {
+        ...c,
+        sections: outline.sections,
+        lessons: outline.lessons,
+        documents: docsByCourse.get(c.id) || [],
+        enrollments: enrollsByCourse.get(c.id) || [],
+      };
+    });
   }
 
   private formatCourseForViewer(
@@ -121,6 +138,7 @@ export class CoursesService {
         description: lesson.description,
         duration: lesson.duration,
         sortOrder: lesson.sort_order ?? 0,
+        sectionId: lesson.section_id ?? null,
         isFree: lesson.is_free,
         sourceType: lesson.source_type,
         canWatch,
@@ -178,6 +196,9 @@ export class CoursesService {
       hasAccess: hasCourseAccess,
       createdAt: course.created_at,
       updatedAt: course.updated_at,
+      /** Sections in order with their lesson ids; empty = flat lesson list. */
+      sections: course.sections || [],
+      /** Already in display order (section by section, unassigned last). */
       lessons,
       documents,
     };
@@ -334,6 +355,7 @@ export class CoursesService {
       teacher: { id: user.id, fullName: user.fullName, email: user.email },
       hasAccess: true,
       createdAt: created.created_at,
+      sections: [],
       lessons: [],
       documents: [],
     };

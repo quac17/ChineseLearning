@@ -16,7 +16,16 @@ Làm lại theo các board `Teacher*.dc.html`, trong khung `DashboardShell`
 (`/teacher`), danh sách khoá (`/teacher/courses`) và trình sửa khoá 6 tab
 (`/teacher/courses/:id/info|lessons|vocabulary|documents|students|pricing`). Còn chờ
 API của các issue khác (đánh dấu `TODO(...)` trong code): mô tả ngắn, cấp độ,
-"Bạn sẽ học được", ảnh bìa, thời lượng dạng số, phần/chương, phụ đề.
+"Bạn sẽ học được", ảnh bìa, thời lượng dạng số, phụ đề.
+
+API Phần (chương) (#27, đã nối vào tab Bài giảng): `GET /courses/:id` trả `sections: [{ id, title, sortOrder, lessonIds }]`
+theo thứ tự, `lessons[]` đã xếp theo Phần (bài chưa có Phần ở cuối), mỗi bài có `sectionId`;
+khoá chưa có Phần thì `sections: []`. Chỉ giáo viên của khoá hoặc admin:
+`POST /courses/:courseId/sections` `{ title }`, `PATCH /courses/:courseId/sections/:sectionId`
+`{ title }`, `PATCH /courses/:courseId/sections/reorder` `{ orderedIds }` (đủ mọi Phần, mỗi Phần
+một lần), `DELETE /courses/:courseId/sections/:sectionId` (bài vẫn giữ). Gán bài:
+`PATCH /lessons/:id` `{ sectionId }` (`null` = bỏ khỏi Phần); `POST /lessons/youtube|upload` cũng
+nhận `sectionId`. Tên Phần lưu không kèm số; giao diện tự thêm "Phần 1: ".
 
 ## Chủ dự án
 

@@ -176,6 +176,62 @@
   font-size: 14px;
   white-space: nowrap;
 }
+/* Sections ("Phần"): one accordion per section, as in WebCourse. */
+.part + .part {
+  border-top: 1px solid var(--line);
+}
+.partHead {
+  list-style: none;
+  cursor: pointer;
+  background: var(--surface);
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 700;
+}
+.partHead::-webkit-details-marker {
+  display: none;
+}
+.part[open] > .partHead {
+  border-bottom: 1px solid var(--line);
+}
+.partHead:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+}
+.partTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.chevron {
+  flex: none;
+  transition: transform 160ms ease;
+}
+.part:not([open]) .chevron {
+  transform: rotate(-90deg);
+}
+.partMeta {
+  font-weight: 400;
+  font-size: 14px;
+  white-space: nowrap;
+}
+.partEmpty {
+  margin: 0;
+  padding: 14px 20px;
+  font-size: 14px;
+  color: var(--muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
+}
+
 .lessons {
   list-style: none;
   margin: 0;

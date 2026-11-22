@@ -19,6 +19,7 @@ const TABLES_IN_ORDER = [
   'program_modules',
   'users',
   'courses',
+  'course_sections',
   'lessons',
   'course_documents',
   'lesson_vocabulary',

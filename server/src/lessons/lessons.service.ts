@@ -7,6 +7,7 @@ import {
 import { Request, Response } from 'express';
 import { DatabaseService } from '../database/database.service';
 import { CoursesService } from '../courses/courses.service';
+import { SectionsService } from '../courses/sections.service';
 import { StorageService } from '../common/storage/storage.service';
 import { AuthUser } from '../common/decorators/current-user.decorator';
 import { generateId, VideoSourceType } from '../common/types/domain.types';
@@ -23,8 +24,16 @@ export class LessonsService {
   constructor(
     private readonly db: DatabaseService,
     private readonly coursesService: CoursesService,
+    private readonly sections: SectionsService,
     private readonly storage: StorageService,
   ) {}
+
+  /** null/undefined = no section; otherwise it must be a section of this course. */
+  private async resolveSectionId(sectionId: string | null | undefined, courseId: string): Promise<string | null> {
+    if (!sectionId) return null;
+    await this.sections.assertSectionInCourse(sectionId, courseId);
+    return sectionId;
+  }
 
   private async getNextSortOrder(courseId: string): Promise<number> {
     const row = await this.db.queryOne(
@@ -44,13 +53,14 @@ export class LessonsService {
       );
     }
 
+    const sectionId = await this.resolveSectionId(dto.sectionId, dto.courseId);
     const id = generateId('lesson');
     const sortOrder = dto.sortOrder ?? (await this.getNextSortOrder(dto.courseId));
 
     return this.db.queryOne(
       `INSERT INTO lessons
-         (id, course_id, title, description, duration, sort_order, is_free, source_type, youtube_id, youtube_url)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         (id, course_id, title, description, duration, sort_order, is_free, source_type, youtube_id, youtube_url, section_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *`,
       [
         id,
@@ -63,6 +73,7 @@ export class LessonsService {
         VideoSourceType.YOUTUBE,
         youtubeId,
         `https://www.youtube.com/watch?v=${youtubeId}`,
+        sectionId,
       ],
     );
   }
@@ -76,8 +87,10 @@ export class LessonsService {
       throw new BadRequestException('Vui lòng chọn tệp video để tải lên.');
     }
 
+    let sectionId: string | null;
     try {
       await this.coursesService.assertCanManageCourse(dto.courseId, user);
+      sectionId = await this.resolveSectionId(dto.sectionId, dto.courseId);
     } catch (err) {
       await this.storage.deleteFile(`videos/${file.filename}`);
       throw err;
@@ -90,8 +103,8 @@ export class LessonsService {
 
     return this.db.queryOne(
       `INSERT INTO lessons
-         (id, course_id, title, description, duration, sort_order, is_free, source_type, storage_key, original_file_name, mime_type, file_size)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         (id, course_id, title, description, duration, sort_order, is_free, source_type, storage_key, original_file_name, mime_type, file_size, section_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING *`,
       [
         id,
@@ -106,6 +119,7 @@ export class LessonsService {
         originalName,
         file.mimetype || 'video/mp4',
         file.size,
+        sectionId,
       ],
     );
   }
@@ -136,6 +150,10 @@ export class LessonsService {
     if (dto.isFree !== undefined) {
       sets.push(`is_free = $${idx++}`);
       params.push(dto.isFree);
+    }
+    if (dto.sectionId !== undefined) {
+      sets.push(`section_id = $${idx++}`);
+      params.push(await this.resolveSectionId(dto.sectionId, lesson.course_id));
     }
 
     let oldStorageKeyToDelete: string | null = null;
