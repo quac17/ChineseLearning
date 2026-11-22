@@ -6,8 +6,10 @@
 --
 -- Everything here is invented sample content: names, courses, lessons and
 -- notes are made up, emails use the demo.vankinh.vn sub-domain, and the
--- password for every demo account is Demo@123. No ratings, student counts or
--- prices: those must come from real data (docs/design/DECISIONS.md).
+-- password for every demo account is Demo@123. No ratings or student counts:
+-- those must come from real data (docs/design/DECISIONS.md). Prices below are
+-- test values so checkout can be tried locally; demo-course-travel costs
+-- 2.000 ₫ for a real-money PayOS test.
 --
 -- Re-runnable: it deletes every demo-* row first, then inserts again.
 -- Lesson videos and documents are files written by `yarn db:demo`
@@ -75,6 +77,13 @@ INSERT INTO courses (id, title, description, module, sort_order, is_free, is_pub
   ('demo-course-travel', 'Giao tiếp du lịch Trung Quốc',
    'Sân bay, khách sạn, gọi món, mặc cả và hỏi đường. Học xong đủ tự đi du lịch Thượng Hải, Bắc Kinh.',
    'talk', 19, FALSE, TRUE, 'demo-teacher-minh', now() - interval '10 days', now());
+
+-- Test prices (not real prices). YCT 2 and the office course stay NULL:
+-- paid but not on sale yet.
+UPDATE courses SET price_vnd = 299000 WHERE id = 'demo-course-easy2';
+UPDATE courses SET price_vnd = 599000 WHERE id = 'demo-course-hsk2';
+UPDATE courses SET price_vnd = 699000 WHERE id = 'demo-course-hsk3';
+UPDATE courses SET price_vnd = 2000 WHERE id = 'demo-course-travel';
 
 -- ---------------------------------------------------------------------------
 -- Lessons. All uploaded videos: `yarn db:demo` renders a short title card

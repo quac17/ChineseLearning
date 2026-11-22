@@ -101,6 +101,40 @@
   flex-wrap: wrap;
 }
 
+
+.tableWrap {
+  overflow-x: auto;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.table th {
+  text-align: left;
+  font-weight: 700;
+  color: var(--muted);
+  font-size: 13px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.table a {
+  color: var(--accent);
+}
+.nowrap {
+  white-space: nowrap;
+}
+.inlineLink {
+  margin-left: 8px;
+  font-weight: 700;
+}
+
 @media (max-width: 760px) {
   .two {
     grid-template-columns: 1fr;

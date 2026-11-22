@@ -34,7 +34,8 @@ test.describe('login form', () => {
 
     await page.getByRole('button', { name: `Tài khoản của ${fullName}` }).click();
     await page.getByRole('menuitem', { name: 'Đăng xuất' }).click();
-    await expect(page.getByRole('link', { name: 'Đăng nhập' }).first()).toBeVisible();
+    // The footer always has a "Đăng nhập" link, so wait for the account button to go instead.
+    await expect(page.getByRole('button', { name: `Tài khoản của ${fullName}` })).toHaveCount(0);
 
     await page.reload();
     await expect(page.getByRole('button', { name: `Tài khoản của ${fullName}` })).toHaveCount(0);

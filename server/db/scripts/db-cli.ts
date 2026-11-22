@@ -22,6 +22,8 @@ const TABLES_IN_ORDER = [
   'lessons',
   'course_documents',
   'course_enrollments',
+  'orders',
+  'payment_events',
 ];
 
 function getPgConfig(databaseOverride?: string) {
@@ -167,6 +169,16 @@ async function exportCurrentSchemaSql(
     '-- ============================================================================',
     '',
   ];
+
+  // Sequences first: column defaults such as nextval('order_code_seq') need them.
+  const seqRes = await client.query(
+    `SELECT sequence_name, start_value FROM information_schema.sequences
+     WHERE sequence_schema = 'public' ORDER BY sequence_name`,
+  );
+  for (const seq of seqRes.rows) {
+    lines.push(`CREATE SEQUENCE IF NOT EXISTS ${seq.sequence_name} START WITH ${seq.start_value};`);
+  }
+  if (seqRes.rows.length) lines.push('');
 
   for (const table of tables) {
     const colsRes = await client.query(

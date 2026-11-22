@@ -2,7 +2,13 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
-import { Alert, Button, EmptyState, Field, Input, LinkButton, Skeleton, Textarea } from '@/components/ui';
+import Link from 'next/link';
+import { Alert, Badge, Button, EmptyState, Field, Input, LinkButton, Skeleton, Textarea } from '@/components/ui';
+import type { BadgeTone } from '@/components/ui';
+import { apiRequest } from '@/lib/api';
+import { routes } from '@/lib/courses';
+import { formatVnd } from '@/lib/programs';
+import type { OrderItem, OrderStatus } from '@/lib/types';
 import { useAuth } from '@/context/AuthContext';
 import s from './account.module.css';
 
@@ -55,6 +61,11 @@ export default function AccountPage() {
           <a href="#bao-mat" className={s.navItem}>
             Bảo mật
           </a>
+          {user.role === 'STUDENT' && (
+            <a href="#don-hang" className={s.navItem}>
+              Đơn hàng
+            </a>
+          )}
           <button
             type="button"
             className={s.navItem}
@@ -87,6 +98,13 @@ export default function AccountPage() {
             <h2 id="bao-mat-title">Đổi mật khẩu</h2>
             <PasswordForm />
           </section>
+
+          {user.role === 'STUDENT' && (
+            <section id="don-hang" className={s.section} aria-labelledby="don-hang-title">
+              <h2 id="don-hang-title">Đơn hàng</h2>
+              <Orders />
+            </section>
+          )}
         </div>
       </div>
     </div>
@@ -201,5 +219,67 @@ function PasswordForm() {
         </Button>
       </div>
     </form>
+  );
+}
+
+const ORDER_STATUS: Record<OrderStatus, { label: string; tone: BadgeTone }> = {
+  PENDING: { label: 'Chờ thanh toán', tone: 'warning' },
+  PAID: { label: 'Đã thanh toán', tone: 'success' },
+  EXPIRED: { label: 'Hết hạn', tone: 'neutral' },
+  CANCELLED: { label: 'Đã huỷ', tone: 'neutral' },
+  REFUNDED: { label: 'Đã hoàn tiền', tone: 'info' },
+};
+
+function Orders() {
+  const [orders, setOrders] = useState<OrderItem[] | null>(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    apiRequest<OrderItem[]>('/payments/orders')
+      .then((data) => !cancelled && setOrders(data))
+      .catch((err: Error) => !cancelled && setError(err.message || 'Không tải được đơn hàng.'));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (error) return <Alert tone="error">{error}</Alert>;
+  if (!orders) return <Skeleton height={120} />;
+  if (orders.length === 0) {
+    return <p className={s.muted}>Bạn chưa có đơn hàng nào.</p>;
+  }
+  return (
+    <div className={s.tableWrap}>
+      <table className={s.table}>
+        <thead>
+          <tr>
+            <th scope="col">Mã đơn</th>
+            <th scope="col">Khoá học</th>
+            <th scope="col">Ngày</th>
+            <th scope="col">Số tiền</th>
+            <th scope="col">Trạng thái</th>
+          </tr>
+        </thead>
+        <tbody>
+          {orders.map((o) => (
+            <tr key={o.id}>
+              <td className={s.nowrap}>{o.code}</td>
+              <td>{o.courseId ? <Link href={routes.course(o.courseId)}>{o.courseTitle}</Link> : o.courseTitle}</td>
+              <td className={s.nowrap}>{new Date(o.createdAt).toLocaleDateString('vi-VN')}</td>
+              <td className={s.nowrap}>{formatVnd(o.amountVnd)}</td>
+              <td className={s.nowrap}>
+                <Badge tone={ORDER_STATUS[o.status].tone}>{ORDER_STATUS[o.status].label}</Badge>
+                {o.status === 'PENDING' && (
+                  <Link href={routes.checkout(o.id)} className={s.inlineLink}>
+                    Tiếp tục
+                  </Link>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

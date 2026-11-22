@@ -47,9 +47,11 @@ CREATE TABLE IF NOT EXISTS courses (
   is_free BOOLEAN NOT NULL DEFAULT false,
   is_published BOOLEAN NOT NULL DEFAULT true,
   teacher_id VARCHAR(64) NOT NULL,
+  price_vnd INTEGER,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT courses_pkey PRIMARY KEY (id),
+  CONSTRAINT courses_price_vnd_check CHECK (price_vnd IS NULL OR price_vnd > 0),
   CONSTRAINT courses_module_fkey FOREIGN KEY (module) REFERENCES program_modules(code),
   CONSTRAINT courses_teacher_id_fkey FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -110,6 +112,56 @@ CREATE TABLE IF NOT EXISTS course_enrollments (
   CONSTRAINT course_enrollments_student_id_fkey FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Payments (PayOS). order_code is the integer sent to the gateway; the
+-- transfer description is "VK" + order_code, which must fit in 9 characters.
+CREATE SEQUENCE IF NOT EXISTS order_code_seq START WITH 1000001;
+
+CREATE TABLE IF NOT EXISTS orders (
+  id VARCHAR(64) NOT NULL,
+  order_code BIGINT NOT NULL DEFAULT nextval('order_code_seq'),
+  user_id VARCHAR(64),
+  course_id VARCHAR(64),
+  user_email VARCHAR(255) NOT NULL,
+  course_title VARCHAR(255) NOT NULL,
+  amount_vnd INTEGER NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+  gateway VARCHAR(20) NOT NULL,
+  gateway_link_id VARCHAR(100),
+  checkout_url TEXT,
+  qr_code TEXT,
+  needs_review BOOLEAN NOT NULL DEFAULT false,
+  expires_at TIMESTAMPTZ NOT NULL,
+  paid_at TIMESTAMPTZ,
+  refunded_at TIMESTAMPTZ,
+  last_checked_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT orders_pkey PRIMARY KEY (id),
+  CONSTRAINT uq_orders_order_code UNIQUE (order_code),
+  CONSTRAINT orders_amount_vnd_check CHECK (amount_vnd > 0),
+  CONSTRAINT orders_status_check CHECK (status IN ('PENDING', 'PAID', 'CANCELLED', 'EXPIRED', 'REFUNDED')),
+  CONSTRAINT orders_course_id_fkey FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE SET NULL,
+  CONSTRAINT orders_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- Webhooks, reconciliations and admin actions: the idempotency record and the
+-- order history. event_key is the gateway's own reference when there is one.
+CREATE TABLE IF NOT EXISTS payment_events (
+  id VARCHAR(64) NOT NULL,
+  order_id VARCHAR(64),
+  gateway VARCHAR(20) NOT NULL,
+  kind VARCHAR(30) NOT NULL,
+  event_key VARCHAR(150),
+  outcome VARCHAR(40) NOT NULL,
+  message TEXT,
+  actor_id VARCHAR(64),
+  payload JSONB,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT payment_events_pkey PRIMARY KEY (id),
+  CONSTRAINT payment_events_order_id_fkey FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE SET NULL,
+  CONSTRAINT payment_events_actor_id_fkey FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_documents_course ON public.course_documents USING btree (course_id, sort_order);
 CREATE INDEX IF NOT EXISTS idx_enrollments_course ON public.course_enrollments USING btree (course_id);
@@ -118,3 +170,7 @@ CREATE INDEX IF NOT EXISTS idx_courses_module ON public.courses USING btree (mod
 CREATE INDEX IF NOT EXISTS idx_courses_teacher ON public.courses USING btree (teacher_id, sort_order);
 CREATE INDEX IF NOT EXISTS idx_lessons_course ON public.lessons USING btree (course_id, sort_order);
 CREATE INDEX IF NOT EXISTS idx_users_role ON public.users USING btree (role);
+CREATE INDEX IF NOT EXISTS idx_orders_user ON public.orders USING btree (user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON public.orders USING btree (status, created_at);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_payment_events_key ON public.payment_events USING btree (gateway, event_key) WHERE event_key IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_payment_events_order ON public.payment_events USING btree (order_id, created_at);

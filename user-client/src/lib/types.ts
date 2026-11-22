@@ -59,6 +59,8 @@ export interface CourseItem {
   sortOrder?: number;
   isFree: boolean;
   isPublished: boolean;
+  /** Integer VND set by an admin; null = paid course not on sale yet. */
+  priceVnd?: number | null;
   teacherId: string;
   teacher?: {
     id: string;
@@ -98,4 +100,55 @@ export interface AdminStats {
   lessons: number;
   documents: number;
   activeEnrollments: number;
+}
+
+export type OrderStatus = 'PENDING' | 'PAID' | 'CANCELLED' | 'EXPIRED' | 'REFUNDED';
+
+/** An order as its owner sees it (GET /payments/orders/:id). */
+export interface OrderItem {
+  id: string;
+  /** "VK-1000001": what learners quote to support. */
+  code: string;
+  courseId: string | null;
+  courseTitle: string;
+  amountVnd: number;
+  status: OrderStatus;
+  /** VietQR string, only while pending. */
+  qrCode: string | null;
+  checkoutUrl: string | null;
+  expiresAt: string;
+  paidAt: string | null;
+  createdAt: string;
+  /** Dev only: the fake gateway's "simulate payment" button. */
+  canSimulate: boolean;
+}
+
+export interface AdminOrderItem {
+  id: string;
+  code: string;
+  orderCode: number;
+  userId: string | null;
+  userEmail: string;
+  userName: string | null;
+  courseId: string | null;
+  courseTitle: string;
+  amountVnd: number;
+  status: OrderStatus;
+  needsReview: boolean;
+  gateway: string;
+  expiresAt: string;
+  paidAt: string | null;
+  refundedAt: string | null;
+  createdAt: string;
+}
+
+export interface AdminOrderDetail extends AdminOrderItem {
+  events: Array<{
+    id: string;
+    kind: string;
+    outcome: string;
+    message: string | null;
+    actorName: string | null;
+    createdAt: string;
+  }>;
 }

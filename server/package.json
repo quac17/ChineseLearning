@@ -15,7 +15,8 @@
     "db:reset": "ts-node db/scripts/db-cli.ts reset",
     "db:seed": "ts-node db/scripts/db-cli.ts seed",
     "db:dump": "ts-node db/scripts/db-cli.ts dump",
-    "db:demo": "ts-node db/scripts/db-cli.ts demo"
+    "db:demo": "ts-node db/scripts/db-cli.ts demo",
+    "test": "jest"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.4",
@@ -42,11 +43,27 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.7",
     "@types/express": "^4.17.21",
+    "@types/jest": "29.5.14",
     "@types/multer": "^1.4.12",
     "@types/node": "^20.14.10",
     "@types/passport-jwt": "^4.0.1",
     "@types/pg": "^8.11.10",
+    "jest": "29.7.0",
+    "ts-jest": "29.2.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.4"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "testEnvironment": "node"
   }
 }
