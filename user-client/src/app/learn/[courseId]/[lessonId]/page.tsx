@@ -2,12 +2,14 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type MutableRefObject } from 'react';
 import { Button, EmptyState, LinkButton, Logo, Skeleton, Tabs, useToast } from '@/components/ui';
 import { FileIcon, LockIcon, PlayIcon } from '@/components/course/icons';
 import { useCourse } from '@/components/course/useCourse';
 import { useCourseProgress } from '@/components/course/useCourseProgress';
 import { VocabularyList } from '@/components/course/VocabularyList';
+import { LessonNotes } from '@/components/course/LessonNotes';
+import { LessonQuestions } from '@/components/course/LessonQuestions';
 import { useAuth } from '@/context/AuthContext';
 import { buildMediaUrl, formatFileSize } from '@/lib/api';
 import { BuyButton } from '@/components/course/BuyButton';
@@ -17,9 +19,9 @@ import { PHONE_QUERY, useMediaQuery } from '@/lib/useMediaQuery';
 import type { CourseItem, LessonItem } from '@/lib/types';
 import s from '../../player.module.css';
 
-type TabId = 'vocab' | 'overview' | 'docs';
+type TabId = 'vocab' | 'overview' | 'docs' | 'notes' | 'qa';
 /** Phone tabs (docs/design/canvas/AppPlayer.dc.html). */
-type PhoneTabId = 'lessons' | 'study';
+type PhoneTabId = 'lessons' | 'study' | 'talk';
 
 export default function LessonPage() {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
@@ -106,7 +108,13 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
   // Moving to another lesson reuses this component: reset the tab for it.
   useEffect(() => setTab(hasVocab ? 'vocab' : 'overview'), [lesson0.id, hasVocab]);
   const [phoneTab, setPhoneTab] = useState<PhoneTabId>('lessons');
+  // Notes and Q&A only exist for a lesson the learner can watch.
+  useEffect(() => {
+    if (!lesson0.canWatch) setPhoneTab((t) => (t === 'talk' ? 'lessons' : t));
+  }, [lesson0.id, lesson0.canWatch]);
   const phone = useMediaQuery(PHONE_QUERY);
+  // The uploaded video element, so notes can read and jump to its time.
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const toast = useToast();
   const { progress, save, byLesson, enabled: tracking } = useCourseProgress(course.id);
   const lesson = lessons[index];
@@ -125,6 +133,22 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
   };
 
   const curriculum = { course, lessons, index, tracking, done, toggle };
+  const hasClock = lesson.canWatch && lesson.sourceType === 'UPLOAD' && Boolean(lesson.streamPath);
+  const notes = (
+    <LessonNotes
+      courseId={course.id}
+      lessonId={lesson.id}
+      hasClock={hasClock}
+      currentTime={() => (videoRef.current ? videoRef.current.currentTime : null)}
+      seek={(sec) => {
+        const v = videoRef.current;
+        if (!v) return;
+        v.currentTime = sec;
+        v.focus();
+      }}
+    />
+  );
+  const questions = <LessonQuestions courseId={course.id} lessonId={lesson.id} hasAccess={course.hasAccess} />;
   const summary = tracking && progress ? `${doneCount} / ${watchable.length} bài đã học` : `${lessons.length} bài giảng`;
 
   const position = tracking && progress
@@ -140,6 +164,7 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
             course={course}
             lesson={lesson}
             resumeAt={done(lesson.id) ? 0 : byLesson(lesson.id)?.positionSeconds ?? 0}
+            videoRef={videoRef}
             onVideoProgress={tracking ? (p) => save(lesson.id, p).catch(() => undefined) : undefined}
           />
           <div className={s.content}>
@@ -168,6 +193,7 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
                     items={[
                       { id: 'lessons', label: 'Bài giảng' },
                       { id: 'study', label: 'Từ vựng & tài liệu' },
+                      ...(lesson.canWatch ? [{ id: 'talk' as const, label: 'Ghi chú & hỏi đáp' }] : []),
                     ]}
                   />
                 </div>
@@ -178,7 +204,22 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
                   aria-labelledby={`phone-tab-${phoneTab}`}
                   tabIndex={0}
                 >
-                  {phoneTab === 'lessons' ? (
+                  {phoneTab === 'talk' && lesson.canWatch ? (
+                    <div className={s.study}>
+                      <section aria-labelledby="talk-notes">
+                        <h2 id="talk-notes" className={s.studyHead}>
+                          Ghi chú
+                        </h2>
+                        {notes}
+                      </section>
+                      <section aria-labelledby="talk-qa">
+                        <h2 id="talk-qa" className={s.studyHead}>
+                          Hỏi đáp
+                        </h2>
+                        {questions}
+                      </section>
+                    </div>
+                  ) : phoneTab === 'lessons' ? (
                     <div className={s.phoneList}>
                       <div className={s.sideSub}>{summary}</div>
                       <Curriculum {...curriculum} />
@@ -215,6 +256,12 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
                     ...(hasVocab ? [{ id: 'vocab' as const, label: `Từ vựng (${lesson.vocabularyCount})` }] : []),
                     { id: 'overview', label: 'Tổng quan' },
                     { id: 'docs', label: `Tài liệu (${course.documents.length})` },
+                    ...(lesson.canWatch
+                      ? [
+                          { id: 'notes' as const, label: 'Ghi chú' },
+                          { id: 'qa' as const, label: 'Hỏi đáp' },
+                        ]
+                      : []),
                   ]}
                 />
                 <div
@@ -228,6 +275,10 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
                     <VocabularyList lessonId={lesson.id} />
                   ) : tab === 'docs' ? (
                     <Documents course={course} />
+                  ) : tab === 'notes' && lesson.canWatch ? (
+                    notes
+                  ) : tab === 'qa' && lesson.canWatch ? (
+                    questions
                   ) : (
                     <p>{lesson.description?.trim() || 'Bài học này chưa có mô tả.'}</p>
                   )}
@@ -322,9 +373,12 @@ function Stage({
   lesson,
   resumeAt = 0,
   onVideoProgress,
+  videoRef,
 }: {
   course: CourseItem;
   lesson: LessonItem;
+  /** Receives the uploaded <video> element. */
+  videoRef?: MutableRefObject<HTMLVideoElement | null>;
   /** Seconds to resume an uploaded video from (0 = start). */
   resumeAt?: number;
   /** Called with the position of an uploaded video (throttled, plus on pause/end). */
@@ -396,6 +450,7 @@ function Stage({
           src={buildMediaUrl(lesson.streamPath)}
           resumeAt={resumeAt}
           onProgress={onVideoProgress}
+          videoRef={videoRef}
         />
       </div>
     );
@@ -453,12 +508,14 @@ function UploadedVideo({
   src,
   resumeAt,
   onProgress,
+  videoRef,
 }: {
   src: string;
   resumeAt: number;
+  videoRef?: MutableRefObject<HTMLVideoElement | null>;
   onProgress?: (p: { positionSeconds: number; durationSeconds: number }) => void;
 }) {
-  const ref = useRef<HTMLVideoElement>(null);
+  const ref = useRef<HTMLVideoElement | null>(null);
   const lastSaved = useRef(0);
   const resumed = useRef(false);
 
@@ -486,7 +543,10 @@ function UploadedVideo({
 
   return (
     <video
-      ref={ref}
+      ref={(el) => {
+        ref.current = el;
+        if (videoRef) videoRef.current = el;
+      }}
       controls
       controlsList="nodownload"
       preload="metadata"
