@@ -10,7 +10,7 @@ interface Outline {
 async function createCourseWithLessons(teacher: APIRequestContext, count: number) {
   const tag = uniq();
   const course = await (
-    await teacher.post('courses', { data: { title: `E2E khoá có phần ${tag}`, module: 'hsk', isFree: true } })
+    await teacher.post('courses', { data: { title: `E2E khoá có phần ${tag}`, module: 'hsk', isFree: true, isPublished: false } })
   ).json();
   const lessonIds: string[] = [];
   for (let i = 0; i < count; i++) {
