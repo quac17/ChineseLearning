@@ -62,3 +62,6 @@ playwright-report/
 
 # design-taste-frontend working files (screenshots, direction sheet)
 .taste-skill/
+e2e/.tmp/
+server/dist-e2e/
+user-client/.next-e2e/

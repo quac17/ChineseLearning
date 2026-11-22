@@ -15,10 +15,15 @@ description: >-
 
 ```
 e2e/
+├── env.ts                  ports, test DB name, env for child processes
 ├── playwright.config.ts
 ├── global-setup.ts         resets + seeds vankinh_test
-├── fixtures/auth.ts        loginAs('admin' | 'teacher' | 'studentA' | 'studentB')
-└── specs/<flow>.spec.ts    one file per user flow
+├── fixtures/auth.ts        ACCOUNTS, SEED ids, apiAs(role), anonymousApi(),
+│                           storageStateFor(role), loginThroughForm()
+├── fixtures/data.ts        uniq(), createPaidCourse(), setAccess()
+└── specs/
+    ├── auth.setup.ts       logs in each seed account once → e2e/.auth/<role>.json
+    └── <flow>.spec.ts      one file per user flow
 ```
 
 Root scripts: `yarn e2e` (headless), `yarn e2e:ui` (Playwright UI mode).
@@ -30,9 +35,15 @@ If `e2e/` does not exist yet, create this layout first, add
 - E2E uses `POSTGRES_DB=vankinh_test` (same Docker Postgres). `global-setup`
   runs `db:init`, `db:reset` and `db:seed` with that env, so every run starts
   from `03_seed_data.sql`.
-- `webServer` in the config starts the server (port 4000, test env) and the
-  client (port 3000) with `NEXT_PUBLIC_API_URL=http://localhost:4000/api`, and
-  `reuseExistingServer: !process.env.CI`.
+- The E2E stack runs on **its own ports** so it never reuses the dev servers
+  (which point at `vankinh_db`): API on **4100** (compiled to
+  `server/dist-e2e` via `tsconfig.e2e.json`), client on **3100** with
+  `NEXT_DIST_DIR=.next-e2e` and `NEXT_PUBLIC_API_URL=http://localhost:4100/api`.
+  Locally the client is `next dev`; in CI it is `next build && next start`.
+  `reuseExistingServer: !process.env.CI`. If a run times out waiting for a
+  web server, look for a stale process on 3100/4100 (`lsof -iTCP:3100`).
+- `env.ts` pins `DATABASE_URL` to `vankinh_test` too, because dotenv never
+  overrides and a `DATABASE_URL` in `server/.env` would otherwise win.
 - Refuse to run if `POSTGRES_DB` is not `vankinh_test`. A reset on the dev DB
   destroys local work.
 
@@ -74,8 +85,9 @@ specs do not repeat the login UI.
 - No `waitForTimeout`; use web-first assertions (`expect(…).toBeVisible()`).
 - Each spec creates the data it mutates (or uses a unique title) so specs can
   run in parallel; never depend on another spec's side effects.
-- Upload fixtures live in `e2e/fixtures/files/` (tiny mp4, docx). Keep them
-  under 1 MB.
+- Uploads use small in-memory buffers (`createPaidCourse`): the server checks
+  the file extension, not the content. If a spec ever needs a real file, put
+  it in `e2e/fixtures/files/` and keep it under 1 MB.
 - On failure keep traces/screenshots (`trace: 'retain-on-failure'`) and attach
   them in CI.
 
