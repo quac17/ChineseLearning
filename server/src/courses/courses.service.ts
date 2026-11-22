@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -273,11 +274,16 @@ export class CoursesService {
         : Promise.resolve([]),
     ]);
 
-    return this.formatCourseForViewer(
+    const course = this.formatCourseForViewer(
       enriched[0],
       user,
       new Set(enrollments.map((e) => e.course_id)),
     );
+    // Who can view the course is shown to its manager only (course editor).
+    const canManage =
+      Boolean(user) &&
+      (user.role === Role.ADMIN || (user.role === Role.TEACHER && row.teacher_id === user.id));
+    return canManage ? { ...course, enrollments: enriched[0].enrollments } : course;
   }
 
   async setPrice(id: string, priceVnd: number | null) {
@@ -392,6 +398,20 @@ export class CoursesService {
 
   async remove(id: string, user: AuthUser) {
     await this.assertCanManageCourse(id, user);
+
+    // Learners who bought or were granted the course must not lose it to a
+    // teacher's click; an admin can still delete (after refunds, for example).
+    if (user.role !== Role.ADMIN) {
+      const learners = await this.db.queryOne(
+        'SELECT count(*)::int AS n FROM course_enrollments WHERE course_id = $1 AND can_view = TRUE',
+        [id],
+      );
+      if (learners?.n > 0) {
+        throw new BadRequestException(
+          'Khoá học đã có học viên nên không thể xoá. Hãy chuyển về bản nháp hoặc liên hệ admin.',
+        );
+      }
+    }
 
     const [lessons, docs] = await Promise.all([
       this.db.queryAll('SELECT storage_key FROM lessons WHERE course_id = $1', [id]),
