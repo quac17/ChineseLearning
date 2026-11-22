@@ -1,9 +1,16 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import * as cookieParser from 'cookie-parser';
+import * as dotenv from 'dotenv';
 import { AppModule } from './app.module';
+import { assertProductionEnv } from './config/production-env';
 
 async function bootstrap() {
+  // Fail before Nest starts: a revision with dev defaults must never serve traffic.
+  // Same .env files as ConfigModule; real environment variables win.
+  dotenv.config({ path: '.env' });
+  dotenv.config({ path: '../.env' });
+  assertProductionEnv();
   const app = await NestFactory.create(AppModule);
 
   app.use(cookieParser());
