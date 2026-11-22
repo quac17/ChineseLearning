@@ -2,7 +2,7 @@ export function WaveBackground() {
   return (
     <>
       <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
-        <symbol id="vankinh-wave" viewBox="0 0 1200 500" preserveAspectRatio="none">
+        <symbol id="chinese-learner-wave" viewBox="0 0 1200 500" preserveAspectRatio="none">
           <path
             d="M0 500V330C150 260 260 380 420 330S700 190 860 260 1100 330 1200 250V500Z"
             style={{ fill: 'var(--m)', opacity: 0.16 }}
@@ -26,7 +26,7 @@ export function WaveBackground() {
         viewBox="0 0 1200 500"
         preserveAspectRatio="none"
       >
-        <use href="#vankinh-wave" />
+        <use href="#chinese-learner-wave" />
       </svg>
       <svg
         className="wave top"
@@ -34,7 +34,7 @@ export function WaveBackground() {
         viewBox="0 0 1200 500"
         preserveAspectRatio="none"
       >
-        <use href="#vankinh-wave" />
+        <use href="#chinese-learner-wave" />
       </svg>
     </>
   );

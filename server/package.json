@@ -1,7 +1,7 @@
 {
-  "name": "vankinh-server",
+  "name": "chinese-learner-server",
   "version": "1.0.0",
-  "description": "NestJS Backend cho nền tảng học tiếng Trung Vân Kính (PostgreSQL SQL thuần + Cookie Auth)",
+  "description": "NestJS Backend cho nền tảng học tiếng Trung Chinese Learner (PostgreSQL SQL thuần + Cookie Auth)",
   "private": true,
   "scripts": {
     "dev": "nest start --watch",

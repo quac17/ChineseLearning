@@ -324,68 +324,40 @@ export default function TeacherPage() {
     setBusy(true);
     setMessage(null);
     try {
+      if (videoMode === 'UPLOAD') {
+        throw new Error(
+          'Chức năng upload video lên kho lưu trữ hiện đang tạm khóa. Vui lòng sử dụng link video YouTube Unlisted.',
+        );
+      }
       if (editingLessonId) {
-        if (videoMode === 'UPLOAD') {
-          if (!videoFile) {
-            throw new Error('Vui lòng chọn tệp video mới để tải lên thay thế.');
-          }
-          const fd = new FormData();
-          fd.append('title', videoTitle);
-          fd.append('description', videoDesc);
-          fd.append('duration', videoDuration);
-          fd.append('isFree', String(videoFree));
-          fd.append('file', videoFile);
-          await apiRequest(`/lessons/${editingLessonId}/upload`, {
-            method: 'PATCH',
-            body: fd,
-          });
-        } else {
-          const payload: Record<string, any> = {
-            title: videoTitle,
-            description: videoDesc,
-            duration: videoDuration,
-            isFree: videoFree,
-          };
-          if (videoMode === 'YOUTUBE' && youtubeUrl.trim()) {
-            payload.youtubeUrl = youtubeUrl.trim();
-          }
-          await apiRequest(`/lessons/${editingLessonId}`, {
-            method: 'PATCH',
-            body: JSON.stringify(payload),
-          });
+        const payload: Record<string, any> = {
+          title: videoTitle,
+          description: videoDesc,
+          duration: videoDuration,
+          isFree: videoFree,
+        };
+        if (videoMode === 'YOUTUBE' && youtubeUrl.trim()) {
+          payload.youtubeUrl = youtubeUrl.trim();
         }
+        await apiRequest(`/lessons/${editingLessonId}`, {
+          method: 'PATCH',
+          body: JSON.stringify(payload),
+        });
         resetVideoForm();
         await loadCourses();
         notify('success', 'Đã cập nhật bài giảng video thành công!');
       } else {
-        if (videoMode === 'YOUTUBE') {
-          await apiRequest('/lessons/youtube', {
-            method: 'POST',
-            body: JSON.stringify({
-              courseId: selectedCourseId,
-              title: videoTitle,
-              description: videoDesc,
-              duration: videoDuration,
-              isFree: videoFree,
-              youtubeUrl,
-            }),
-          });
-        } else {
-          if (!videoFile) {
-            throw new Error('Vui lòng chọn tệp video (.mp4, .webm, .mov...)');
-          }
-          const fd = new FormData();
-          fd.append('courseId', selectedCourseId);
-          fd.append('title', videoTitle);
-          if (videoDesc) fd.append('description', videoDesc);
-          if (videoDuration) fd.append('duration', videoDuration);
-          fd.append('isFree', String(videoFree));
-          fd.append('file', videoFile);
-          await apiRequest('/lessons/upload', {
-            method: 'POST',
-            body: fd,
-          });
-        }
+        await apiRequest('/lessons/youtube', {
+          method: 'POST',
+          body: JSON.stringify({
+            courseId: selectedCourseId,
+            title: videoTitle,
+            description: videoDesc,
+            duration: videoDuration,
+            isFree: videoFree,
+            youtubeUrl,
+          }),
+        });
         resetVideoForm();
         await loadCourses();
         notify('success', 'Đã thêm bài giảng video vào cuối danh sách!');
@@ -807,10 +779,16 @@ export default function TeacherPage() {
               </button>
               <button
                 type="button"
-                className={`btn sm ${videoMode === 'UPLOAD' ? '' : 'alt'}`}
-                onClick={() => setVideoMode('UPLOAD')}
+                className="btn sm alt"
+                title="Chức năng đang tạm khóa"
+                onClick={() =>
+                  notify(
+                    'error',
+                    'Chức năng upload video lên kho lưu trữ hiện đang tạm khóa. Vui lòng sử dụng link video YouTube Unlisted.',
+                  )
+                }
               >
-                {editingLessonId ? 'Upload lại Video' : 'Upload file Video'}
+                🔒 {editingLessonId ? 'Upload lại Video' : 'Upload file Video'}
               </button>
             </div>
 

@@ -9,6 +9,7 @@ import {
   Post,
   Req,
   Res,
+  ServiceUnavailableException,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -84,13 +85,13 @@ export class LessonsController {
   @Post('upload')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.TEACHER)
-  @UseInterceptors(FileInterceptor('file', videoUploadInterceptorOptions))
   uploadVideo(
-    @Body() dto: UploadVideoLessonDto,
-    @UploadedFile() file: Express.Multer.File,
-    @CurrentUser() user: AuthUser,
+    @Body() _dto: UploadVideoLessonDto,
+    @CurrentUser() _user: AuthUser,
   ) {
-    return this.lessonsService.createUploadedLesson(dto, file, user);
+    throw new ServiceUnavailableException(
+      'Chức năng upload video lên kho lưu trữ hiện đang tạm khóa. Vui lòng sử dụng link video YouTube Unlisted.',
+    );
   }
 
   @Patch('reorder')
@@ -114,14 +115,14 @@ export class LessonsController {
   @Patch(':id/upload')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.TEACHER)
-  @UseInterceptors(FileInterceptor('file', videoUploadInterceptorOptions))
   replaceVideo(
-    @Param('id') id: string,
-    @Body() dto: UpdateLessonDto,
-    @UploadedFile() file: Express.Multer.File,
-    @CurrentUser() user: AuthUser,
+    @Param('id') _id: string,
+    @Body() _dto: UpdateLessonDto,
+    @CurrentUser() _user: AuthUser,
   ) {
-    return this.lessonsService.replaceVideoFile(id, dto, file, user);
+    throw new ServiceUnavailableException(
+      'Chức năng upload video lên kho lưu trữ hiện đang tạm khóa. Vui lòng sử dụng link video YouTube Unlisted.',
+    );
   }
 
   @Get(':id/stream')

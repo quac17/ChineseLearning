@@ -20,7 +20,7 @@ export function ModuleProvider({ children }: { children: React.ReactNode }) {
   const theme = getModuleTheme(activeModule);
 
   useEffect(() => {
-    const saved = localStorage.getItem('vankinh_theme');
+    const saved = localStorage.getItem('chinese_learner_theme');
     if (saved === 'dark' || saved === 'light') {
       setColorMode(saved);
     } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -40,7 +40,7 @@ export function ModuleProvider({ children }: { children: React.ReactNode }) {
   const toggleColorMode = () => {
     setColorMode((prev) => {
       const next = prev === 'light' ? 'dark' : 'light';
-      localStorage.setItem('vankinh_theme', next);
+      localStorage.setItem('chinese_learner_theme', next);
       return next;
     });
   };

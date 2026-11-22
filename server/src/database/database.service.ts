@@ -14,9 +14,9 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       this.pool = new Pool({
         host: configService.get<string>('POSTGRES_HOST') || 'localhost',
         port: Number(configService.get<string>('POSTGRES_PORT')) || 5433,
-        user: configService.get<string>('POSTGRES_USER') || 'vankinh',
-        password: configService.get<string>('POSTGRES_PASSWORD') || 'vankinh_secret',
-        database: configService.get<string>('POSTGRES_DB') || 'vankinh_db',
+        user: configService.get<string>('POSTGRES_USER') || 'chinese_learner',
+        password: configService.get<string>('POSTGRES_PASSWORD') || 'chinese_learner_secret',
+        database: configService.get<string>('POSTGRES_DB') || 'chinese_learner_db',
       });
     }
   }

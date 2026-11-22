@@ -193,7 +193,7 @@ export default function AdminPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="giaovien2@vankinh.vn"
+                placeholder="giaovien2@chineselearner.vn"
               />
             </div>
             <div className="field">

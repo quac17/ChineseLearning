@@ -1,5 +1,5 @@
 -- ============================================================================
--- 云径 · Vân Kính - Master Data
+-- Chinese Learner - Master Data
 -- Chạy tự động khi dùng `yarn db:reset`
 -- ============================================================================
 
@@ -12,7 +12,7 @@ ON CONFLICT (code) DO UPDATE SET
   name = EXCLUDED.name,
   description = EXCLUDED.description;
 
--- 2. Master Program Modules (4 chương trình theo giao diện Vân Kính)
+-- 2. Master Program Modules (4 chương trình học)
 INSERT INTO program_modules (code, name, han, card_desc, description, color_1, color_2, sort_order) VALUES
   ('easy', 'Easy Steps', '易', 'Cho bé và người mới bắt đầu', 'Những bước đầu tiên, nhẹ nhàng như lá non đầu xuân.', '#4e7d2f', '#d99a2b', 1),
   ('yct', 'YCT', '少', 'Chứng chỉ cho thiếu nhi', 'Rực rỡ như tranh Đôn Hoàng, vui học cho thiếu nhi.', '#c25a18', '#1f7a7a', 2),
@@ -31,11 +31,11 @@ ON CONFLICT (code) DO UPDATE SET
 INSERT INTO users (id, email, password_hash, full_name, phone, bio, role, is_active) VALUES
   (
     'user-admin-01',
-    'admin@vankinh.vn',
+    'admin@chineselearner.vn',
     '$2a$10$B44QdFVX82j.ZHbeUnmi8.0o102l6k0Ol30CsFDVMB4ltHr8cdF9O',
-    'Quản trị viên Vân Kính',
+    'Quản trị viên Chinese Learner',
     '0900000001',
-    'Quản trị hệ thống nền tảng học tiếng Trung Vân Kính.',
+    'Quản trị hệ thống nền tảng học tiếng Trung Chinese Learner.',
     'ADMIN',
     TRUE
   )

@@ -1,12 +1,16 @@
 {
-  "name": "van-kinh-chinese-learning",
+  "name": "chinese-learner",
   "version": "1.0.0",
   "private": true,
-  "description": "云径 · Vân Kính - Nền tảng học tiếng Trung cho người Việt (NestJS + Next.js + PostgreSQL SQL thuần)",
+  "description": "Chinese Learner - Nền tảng học tiếng Trung cho người Việt (NestJS + Next.js + PostgreSQL SQL thuần)",
   "packageManager": "yarn@1.22.22",
   "scripts": {
     "env": "node -e \"const fs=require('fs');[['.env.example','.env'],['server/.env.example','server/.env'],['user-client/.env.example','user-client/.env.local']].forEach(([s,d])=>{if(fs.existsSync(d)){console.log('Skipped (exists):',d)}else{fs.copyFileSync(s,d);console.log('Created:',d)}})\"",
     "env:force": "node -e \"const fs=require('fs');[['.env.example','.env'],['server/.env.example','server/.env'],['user-client/.env.example','user-client/.env.local']].forEach(([s,d])=>{fs.copyFileSync(s,d);console.log('Updated:',d)})\"",
+    "env_dev": "node -e \"const fs=require('fs');const s='.env.dev.example',d='.env.dev';if(fs.existsSync(d)){console.log('Skipped (exists):',d)}else{fs.copyFileSync(s,d);console.log('Created:',d)}\"",
+    "env_dev:force": "node -e \"const fs=require('fs');fs.copyFileSync('.env.dev.example','.env.dev');console.log('Updated: .env.dev')\"",
+    "env_prd": "node -e \"const fs=require('fs');const s='.env.prd.example',d='.env.prd';if(fs.existsSync(d)){console.log('Skipped (exists):',d)}else{fs.copyFileSync(s,d);console.log('Created:',d)}\"",
+    "env_prd:force": "node -e \"const fs=require('fs');fs.copyFileSync('.env.prd.example','.env.prd');console.log('Updated: .env.prd')\"",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
     "db:logs": "docker compose logs -f postgres",

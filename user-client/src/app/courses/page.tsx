@@ -128,7 +128,7 @@ function CoursesContent() {
                     <h3 style={{ margin: 0, fontSize: 20 }}>{currentCourse.title}</h3>
                     <small style={{ color: 'var(--mute)' }}>
                       Chương trình: {getModuleName(currentCourse.module)} · Giáo viên:{' '}
-                      {currentCourse.teacher?.fullName || 'Vân Kính'}
+                      {currentCourse.teacher?.fullName || 'Chinese Learner'}
                     </small>
                   </div>
                   <span className={`tag ${currentCourse.hasAccess ? 'free' : 'paid'}`}>

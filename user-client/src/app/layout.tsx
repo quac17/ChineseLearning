@@ -7,7 +7,7 @@ import { Header } from '@/components/Header';
 import { SITE_INFO } from '@/lib/modules';
 
 export const metadata: Metadata = {
-  title: '云径 · Vân Kính – Học tiếng Trung cho người Việt',
+  title: 'Chinese Learner – Học tiếng Trung cho người Việt',
   description:
     'Nền tảng học tiếng Trung cho người Việt với video bài giảng, tài liệu Word/PowerPoint, Flashcard, Quiz và luyện viết chữ Hán.',
 };

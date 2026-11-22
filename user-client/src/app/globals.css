@@ -902,3 +902,115 @@ table.data-table th {
   background: var(--paper);
   min-height: 52px;
 }
+
+/* Custom YouTube Player (ẩn nút Share / Watch on YouTube + overlay chặn click) */
+.yt-wrap {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  user-select: none;
+}
+
+.yt-iframe-host {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.yt-overlay {
+  position: absolute;
+  inset: 0;
+  bottom: 48px;
+  z-index: 2;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  background: transparent;
+}
+
+.yt-center-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  background: rgba(16, 25, 32, 0.72);
+  color: #fff;
+  font-size: 24px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s;
+}
+
+.yt-center-btn:hover {
+  transform: scale(1.06);
+  background: var(--red);
+}
+
+.yt-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 48px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  background: linear-gradient(to top, rgba(10, 16, 20, 0.92), rgba(10, 16, 20, 0.7));
+  color: #f3ecdb;
+  font-size: 13px;
+}
+
+.yt-ctrl-btn {
+  border: 0;
+  background: transparent;
+  color: #f3ecdb;
+  cursor: pointer;
+  font: 600 14px inherit;
+  padding: 4px 6px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.yt-ctrl-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.yt-seek {
+  flex: 1;
+  min-width: 80px;
+  accent-color: var(--red);
+  cursor: pointer;
+}
+
+.yt-vol {
+  width: 64px;
+  accent-color: var(--red);
+  cursor: pointer;
+}
+
+.yt-speed {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f3ecdb;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  padding: 2px 5px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.yt-speed option {
+  background: #141b20;
+  color: #f3ecdb;
+}
+
+.yt-time {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-size: 12px;
+  opacity: 0.9;
+}

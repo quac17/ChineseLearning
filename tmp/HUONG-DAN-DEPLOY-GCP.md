@@ -1,6 +1,10 @@
 # Hướng dẫn Deploy lên Google Cloud Platform (GCP)
 
-Tài liệu hướng dẫn triển khai hệ thống **Vân Kính** (`server` + `user-client` + PostgreSQL SQL thuần + kho lưu trữ video/tài liệu) lên **GCP** theo kiến trúc tối ưu chi phí, dễ gắn tên miền sau khi chốt domain.
+Tài liệu hướng dẫn chuẩn bị hạ tầng GCP (**Artifact Registry, Cloud SQL, Cloud Storage, Cloud Run**) cho hệ thống **Chinese Learner**.
+
+> **Lưu ý về 2 cách deploy code lên Cloud Run:**
+> - **Deploy từ Repo GitHub (Khuyến nghị):** Bạn chỉ cần làm **Mục 2 & Mục 3** dưới đây **1 lần duy nhất** để tạo hạ tầng GCP, sau đó làm theo [HUONG-DAN-CICD-GITHUB.md](./HUONG-DAN-CICD-GITHUB.md) để GitHub tự động build & deploy mỗi khi push/merge vào nhánh `main`.
+> - **Deploy trực tiếp từ code trên máy (Manual CLI):** Làm thêm **Mục 4 & Mục 5** dưới đây (dùng `gcloud builds submit` từ thư mục local).
 
 ---
 
@@ -43,23 +47,23 @@ gcloud services enable \
 
 ```bash
 # 1. Artifact Registry
-gcloud artifacts repositories create vankinh-repo \
+gcloud artifacts repositories create chinese-learner-repo \
   --repository-format=docker \
   --location=$REGION
 
 # 2. Cloud SQL PostgreSQL 16
-gcloud sql instances create vankinh-pg \
+gcloud sql instances create chinese-learner-pg \
   --database-version=POSTGRES_16 \
   --tier=db-f1-micro \
   --region=$REGION
 
-gcloud sql databases create vankinh_db --instance=vankinh-pg
-gcloud sql users create vankinh \
-  --instance=vankinh-pg \
+gcloud sql databases create chinese_learner_db --instance=chinese-learner-pg
+gcloud sql users create chinese_learner \
+  --instance=chinese-learner-pg \
   --password="CHANGE_THIS_STRONG_PASSWORD"
 
 # 3. Cloud Storage Bucket lưu video & tài liệu
-export BUCKET_NAME="${PROJECT_ID}-vankinh-uploads"
+export BUCKET_NAME="${PROJECT_ID}-chinese-learner-uploads"
 gcloud storage buckets create gs://${BUCKET_NAME} --location=$REGION
 ```
 
@@ -69,12 +73,12 @@ gcloud storage buckets create gs://${BUCKET_NAME} --location=$REGION
 
 ```bash
 gcloud builds submit ./server \
-  --tag ${REGION}-docker.pkg.dev/${PROJECT_ID}/vankinh-repo/vankinh-server:latest
+  --tag ${REGION}-docker.pkg.dev/${PROJECT_ID}/chinese-learner-repo/chinese-learner-server:latest
 
-export INSTANCE_CONN=$(gcloud sql instances describe vankinh-pg --format="value(connectionName)")
+export INSTANCE_CONN=$(gcloud sql instances describe chinese-learner-pg --format="value(connectionName)")
 
-gcloud run deploy vankinh-server \
-  --image ${REGION}-docker.pkg.dev/${PROJECT_ID}/vankinh-repo/vankinh-server:latest \
+gcloud run deploy chinese-learner-server \
+  --image ${REGION}-docker.pkg.dev/${PROJECT_ID}/chinese-learner-repo/chinese-learner-server:latest \
   --region $REGION \
   --execution-environment gen2 \
   --allow-unauthenticated \
@@ -83,24 +87,25 @@ gcloud run deploy vankinh-server \
   --add-cloudsql-instances ${INSTANCE_CONN} \
   --add-volume name=uploads,type=cloud-storage,bucket=${BUCKET_NAME} \
   --add-volume-mount volume=uploads,mount-path=/app/uploads \
-  --set-env-vars "NODE_ENV=production,UPLOAD_DIR=/app/uploads,JWT_SECRET=CHANGE_TO_LONG_RANDOM_SECRET,JWT_EXPIRES_IN=7d,COOKIE_NAME=vankinh_token,COOKIE_SECURE=true,COOKIE_SAME_SITE=none,CORS_ORIGIN=https://YOUR_FRONTEND_URL,DATABASE_URL=postgresql://vankinh:CHANGE_THIS_STRONG_PASSWORD@localhost/vankinh_db?host=/cloudsql/${INSTANCE_CONN}"
+  --set-env-vars "NODE_ENV=production,UPLOAD_DIR=/app/uploads,JWT_SECRET=CHANGE_TO_LONG_RANDOM_SECRET,JWT_EXPIRES_IN=7d,COOKIE_NAME=chinese_learner_token,COOKIE_SECURE=true,COOKIE_SAME_SITE=none,CORS_ORIGIN=https://YOUR_FRONTEND_URL,DATABASE_URL=postgresql://chinese_learner:CHANGE_THIS_STRONG_PASSWORD@localhost/chinese_learner_db?host=/cloudsql/${INSTANCE_CONN}"
 ```
 
-### Đẩy dữ liệu SQL lên Cloud SQL (từ file `server/db/sql/` hoặc `yarn db:dump`)
-Bạn có thể upload file SQL lên GCS rồi import trực tiếp vào Cloud SQL:
+### Đẩy dữ liệu SQL lên Cloud SQL (từ `server/db/sql/`)
+Bạn có thể upload các file SQL lên GCS rồi import trực tiếp vào Cloud SQL:
 ```bash
-gcloud storage cp server/db/sql/01_schema.sql server/db/sql/02_master_data.sql gs://${BUCKET_NAME}/sql/
-gcloud sql import sql vankinh-pg gs://${BUCKET_NAME}/sql/01_schema.sql --database=vankinh_db
-gcloud sql import sql vankinh-pg gs://${BUCKET_NAME}/sql/02_master_data.sql --database=vankinh_db
+gcloud storage cp server/db/sql/01_schema.sql server/db/sql/02_master_data.sql server/db/sql/03_seed_data.sql gs://${BUCKET_NAME}/sql/
+gcloud sql import sql chinese-learner-pg gs://${BUCKET_NAME}/sql/01_schema.sql --database=chinese_learner_db
+gcloud sql import sql chinese-learner-pg gs://${BUCKET_NAME}/sql/02_master_data.sql --database=chinese_learner_db
+# (Tùy chọn nếu muốn nạp dữ liệu đã dump từ local bằng `yarn db:dump`)
+gcloud sql import sql chinese-learner-pg gs://${BUCKET_NAME}/sql/03_seed_data.sql --database=chinese_learner_db
 ```
-*(Hoặc chạy `yarn db:dump` ở local rồi import `server/db/dumps/latest.sql` lên Cloud SQL!)*
 
 ---
 
 ## 5. Build & Deploy Frontend (`user-client/`) lên Cloud Run
 
 ```bash
-export BACKEND_URL="https://vankinh-server-xxxxxx-as.a.run.app"
+export BACKEND_URL="https://chinese-learner-server-xxxxxx-as.a.run.app"
 
 gcloud builds submit ./user-client \
   --config /dev/stdin <<EOF
@@ -111,32 +116,32 @@ steps:
       - '--build-arg'
       - 'NEXT_PUBLIC_API_URL=${BACKEND_URL}/api'
       - '-t'
-      - '${REGION}-docker.pkg.dev/${PROJECT_ID}/vankinh-repo/vankinh-client:latest'
+      - '${REGION}-docker.pkg.dev/${PROJECT_ID}/chinese-learner-repo/chinese-learner-client:latest'
       - '.'
 images:
-  - '${REGION}-docker.pkg.dev/${PROJECT_ID}/vankinh-repo/vankinh-client:latest'
+  - '${REGION}-docker.pkg.dev/${PROJECT_ID}/chinese-learner-repo/chinese-learner-client:latest'
 EOF
 
-gcloud run deploy vankinh-client \
-  --image ${REGION}-docker.pkg.dev/${PROJECT_ID}/vankinh-repo/vankinh-client:latest \
+gcloud run deploy chinese-learner-client \
+  --image ${REGION}-docker.pkg.dev/${PROJECT_ID}/chinese-learner-repo/chinese-learner-client:latest \
   --region $REGION \
   --allow-unauthenticated \
   --port 3000 \
   --memory 512Mi
 ```
 
-Sau khi có URL Frontend, cập nhật lại `CORS_ORIGIN` trên `vankinh-server`:
+Sau khi có URL Frontend, cập nhật lại `CORS_ORIGIN` trên `chinese-learner-server`:
 ```bash
-gcloud run services update vankinh-server \
+gcloud run services update chinese-learner-server \
   --region $REGION \
-  --update-env-vars "CORS_ORIGIN=https://vankinh-client-xxxxxx-as.a.run.app"
+  --update-env-vars "CORS_ORIGIN=https://chinese-learner-client-xxxxxx-as.a.run.app"
 ```
 
 ---
 
 ## 6. Gắn tên miền sau khi quyết định Domain
 1. Vào **Cloud Run → Manage Custom Domains**:
-   - Map `vankinh.vn` → `vankinh-client`
-   - Map `api.vankinh.vn` → `vankinh-server`
+   - Map `chineselearner.vn` → `chinese-learner-client`
+   - Map `api.chineselearner.vn` → `chinese-learner-server`
 2. Trỏ DNS theo hướng dẫn GCP để nhận SSL tự động.
-3. Khi đã dùng chung tên miền cha (`vankinh.vn` và `api.vankinh.vn`), cập nhật `CORS_ORIGIN=https://vankinh.vn`, `COOKIE_SECURE=true`, `COOKIE_SAME_SITE=lax` (và rebuild `user-client` với `NEXT_PUBLIC_API_URL=https://api.vankinh.vn/api`).
+3. Khi đã dùng chung tên miền cha (`chineselearner.vn` và `api.chineselearner.vn`), cập nhật `CORS_ORIGIN=https://chineselearner.vn`, `COOKIE_SECURE=true`, `COOKIE_SAME_SITE=lax` (và rebuild `user-client` với `NEXT_PUBLIC_API_URL=https://api.chineselearner.vn/api`).

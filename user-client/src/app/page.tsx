@@ -107,7 +107,7 @@ export default function HomePage() {
                     <br />
                     <small>
                       {course.lessons.length} video · {course.documents.length} tài liệu · GV:{' '}
-                      {course.teacher?.fullName || 'Vân Kính'}
+                      {course.teacher?.fullName || 'Chinese Learner'}
                     </small>
                   </div>
                   <span className={`tag ${course.hasAccess ? 'free' : 'paid'}`}>

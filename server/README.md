@@ -1,4 +1,4 @@
-# Backend – Vân Kính (`server/`)
+# Backend – Chinese Learner (`server/`)
 
 Backend viết bằng **NestJS 10 + TypeScript + PostgreSQL (`pg` SQL thuần, không dùng Prisma)**, xác thực qua **HTTP-only Cookie**, quản lý hoàn toàn bằng **Yarn**.
 

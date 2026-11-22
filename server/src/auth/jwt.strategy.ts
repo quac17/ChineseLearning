@@ -37,7 +37,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     configService: ConfigService,
     private readonly db: DatabaseService,
   ) {
-    const cookieName = configService.get<string>('COOKIE_NAME') || 'vankinh_token';
+    const cookieName = configService.get<string>('COOKIE_NAME') || 'chinese_learner_token';
     super({
       jwtFromRequest: buildJwtExtractor(cookieName),
       ignoreExpiration: false,

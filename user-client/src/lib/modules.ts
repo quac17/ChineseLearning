@@ -12,7 +12,7 @@ export interface ModuleThemeConfig {
 }
 
 export const SITE_INFO = {
-  name: '云径 · Vân Kính',
+  name: 'Chinese Learner',
   tagline: 'Con đường học tiếng Trung',
   contactText: 'Đăng ký học & mở khóa khóa học: Liên hệ Giáo viên phụ trách hoặc Admin hệ thống',
 };

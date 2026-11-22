@@ -1,10 +1,10 @@
-# Kiến trúc hệ thống – Vân Kính
+# Kiến trúc hệ thống – Chinese Learner
 
 ## 1. Tổng quan
 
 ```text
 [Trình duyệt: Admin / Giáo viên / Học sinh]
-   │  HTTP-only Cookie (vankinh_token)
+   │  HTTP-only Cookie (chinese_learner_token)
    ▼
 ┌──────────────────────────────┐
 │  user-client (Next.js 14)    │  Port 3000 (chạy riêng bằng yarn client:dev)
@@ -24,7 +24,7 @@
 ```
 
 ## 2. Duy trì đăng nhập qua Cookie & Hồ sơ cá nhân
-- Khi đăng nhập (`/api/auth/login`) hoặc đăng ký (`/api/auth/register`), Backend ký JWT và ghi vào **HTTP-only Cookie** (`vankinh_token`, thời hạn 7 ngày).
+- Khi đăng nhập (`/api/auth/login`) hoặc đăng ký (`/api/auth/register`), Backend ký JWT và ghi vào **HTTP-only Cookie** (`chinese_learner_token`, thời hạn 7 ngày).
 - Frontend không lưu token vào `localStorage`; mọi request API, stream video `<video>` và tải tài liệu `<a>` đều tự động gửi kèm cookie.
 - Khi đăng xuất (`/api/auth/logout`), Backend xóa cookie ngay lập tức.
 - Người dùng ở mọi vai trò có thể truy cập `/profile` để sửa họ tên, số điện thoại, giới thiệu bản thân (`PATCH /api/auth/profile`) và đổi mật khẩu (`PATCH /api/auth/password`).

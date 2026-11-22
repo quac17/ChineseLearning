@@ -18,6 +18,8 @@ user-client/out/
 
 # Environment variables
 .env
+.env.dev
+.env.prd
 .env.local
 .env.*.local
 .env.production

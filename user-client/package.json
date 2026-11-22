@@ -1,8 +1,8 @@
 {
-  "name": "vankinh-user-client",
+  "name": "chinese-learner-user-client",
   "version": "1.0.0",
   "private": true,
-  "description": "Next.js Frontend cho nền tảng học tiếng Trung Vân Kính",
+  "description": "Next.js Frontend cho nền tảng học tiếng Trung Chinese Learner",
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
