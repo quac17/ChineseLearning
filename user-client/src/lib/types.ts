@@ -152,3 +152,41 @@ export interface AdminOrderDetail extends AdminOrderItem {
     createdAt: string;
   }>;
 }
+
+/** One lesson's progress for the current learner (PUT/GET /progress/…). */
+export interface LessonProgress {
+  lessonId: string;
+  courseId: string;
+  completed: boolean;
+  completedAt: string | null;
+  positionSeconds: number;
+  durationSeconds: number | null;
+  updatedAt: string;
+}
+
+export interface CourseProgress {
+  courseId: string;
+  totalLessons: number;
+  completedCount: number;
+  /** Most recently touched lesson. */
+  lastLessonId: string | null;
+  lessons: LessonProgress[];
+}
+
+/** GET /progress/me: courses the learner has started, most recent first. */
+export interface MyCourseProgress {
+  courseId: string;
+  courseTitle: string;
+  module: ProgramModule;
+  isFree: boolean;
+  totalLessons: number;
+  completedCount: number;
+  lastActivityAt: string;
+  lastLesson: {
+    lessonId: string;
+    title: string;
+    positionSeconds: number;
+    durationSeconds: number | null;
+    completed: boolean;
+  };
+}

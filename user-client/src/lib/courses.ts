@@ -1,4 +1,4 @@
-import type { CourseItem, LessonItem, ProgramModule } from './types';
+import type { CourseItem, CourseProgress, LessonItem, ProgramModule } from './types';
 import { PROGRAM_ORDER } from './programs';
 
 /** URL helpers, so routes are spelled in one place. */
@@ -60,4 +60,19 @@ export function lessonDuration(lesson: Pick<LessonItem, 'duration'>): string {
 /** A paid course that can be bought right now. */
 export function isOnSale(course: Pick<CourseItem, 'isFree' | 'priceVnd'>): boolean {
   return !course.isFree && typeof course.priceVnd === 'number' && course.priceVnd > 0;
+}
+
+/**
+ * Where "Học tiếp" should land: the last lesson touched if it is unfinished,
+ * else the next unfinished playable lesson after it, else the first
+ * unfinished one, else the first playable lesson.
+ */
+export function resumeLesson(course: Pick<CourseItem, 'lessons'>, progress: CourseProgress | null): LessonItem | null {
+  const lessons = sortedLessons(course).filter((l) => l.canWatch);
+  if (lessons.length === 0) return firstLesson(course);
+  const done = new Set((progress?.lessons ?? []).filter((p) => p.completed).map((p) => p.lessonId));
+  const lastIndex = progress?.lastLessonId ? lessons.findIndex((l) => l.id === progress.lastLessonId) : -1;
+  if (lastIndex >= 0 && !done.has(lessons[lastIndex].id)) return lessons[lastIndex];
+  const after = lessons.slice(lastIndex + 1).find((l) => !done.has(l.id));
+  return after ?? lessons.find((l) => !done.has(l.id)) ?? lessons[0];
 }

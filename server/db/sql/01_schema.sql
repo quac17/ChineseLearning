@@ -162,6 +162,26 @@ CREATE TABLE IF NOT EXISTS payment_events (
   CONSTRAINT payment_events_actor_id_fkey FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
+-- What each learner has watched: last position (uploaded videos) and when a
+-- lesson was completed (manual tick, or 90% of an uploaded video).
+CREATE TABLE IF NOT EXISTS lesson_progress (
+  id VARCHAR(64) NOT NULL,
+  user_id VARCHAR(64) NOT NULL,
+  lesson_id VARCHAR(64) NOT NULL,
+  course_id VARCHAR(64) NOT NULL,
+  position_seconds INTEGER NOT NULL DEFAULT 0,
+  duration_seconds INTEGER,
+  completed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT lesson_progress_pkey PRIMARY KEY (id),
+  CONSTRAINT uq_lesson_progress_user_lesson UNIQUE (user_id, lesson_id),
+  CONSTRAINT lesson_progress_position_seconds_check CHECK (position_seconds >= 0),
+  CONSTRAINT lesson_progress_course_id_fkey FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+  CONSTRAINT lesson_progress_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE,
+  CONSTRAINT lesson_progress_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_documents_course ON public.course_documents USING btree (course_id, sort_order);
 CREATE INDEX IF NOT EXISTS idx_enrollments_course ON public.course_enrollments USING btree (course_id);
@@ -174,3 +194,4 @@ CREATE INDEX IF NOT EXISTS idx_orders_user ON public.orders USING btree (user_id
 CREATE INDEX IF NOT EXISTS idx_orders_status ON public.orders USING btree (status, created_at);
 CREATE UNIQUE INDEX IF NOT EXISTS uq_payment_events_key ON public.payment_events USING btree (gateway, event_key) WHERE event_key IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_payment_events_order ON public.payment_events USING btree (order_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_user_course ON public.lesson_progress USING btree (user_id, course_id, updated_at);

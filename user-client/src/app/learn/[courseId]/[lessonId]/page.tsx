@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useState } from 'react';
-import { EmptyState, LinkButton, Logo, Skeleton, Tabs } from '@/components/ui';
+import { useRef, useState } from 'react';
+import { Button, EmptyState, LinkButton, Logo, Skeleton, Tabs, useToast } from '@/components/ui';
 import { FileIcon, LockIcon, PlayIcon } from '@/components/course/icons';
 import { useCourse } from '@/components/course/useCourse';
+import { useCourseProgress } from '@/components/course/useCourseProgress';
 import { useAuth } from '@/context/AuthContext';
 import { buildMediaUrl, formatFileSize } from '@/lib/api';
 import { BuyButton } from '@/components/course/BuyButton';
@@ -95,19 +96,53 @@ function TopBar({ course, position }: { course?: CourseItem; position?: string }
 
 function Player({ course, lessons, index }: { course: CourseItem; lessons: LessonItem[]; index: number }) {
   const [tab, setTab] = useState<TabId>('overview');
+  const toast = useToast();
+  const { progress, save, byLesson, enabled: tracking } = useCourseProgress(course.id);
   const lesson = lessons[index];
   const prev = lessons[index - 1];
   const next = lessons[index + 1];
+  const done = (id: string) => Boolean(byLesson(id)?.completed);
+  const watchable = lessons.filter((l) => l.canWatch);
+  const doneCount = watchable.filter((l) => done(l.id)).length;
+
+  const toggle = async (id: string, completed: boolean) => {
+    try {
+      await save(id, { completed });
+    } catch (err) {
+      toast.show((err as Error).message || 'Không lưu được tiến độ.');
+    }
+  };
+
+  const position = tracking && progress
+    ? `Bài ${index + 1} / ${lessons.length} · Đã học ${doneCount} / ${watchable.length}`
+    : `Bài ${index + 1} / ${lessons.length}`;
 
   return (
     <>
-      <TopBar course={course} position={`Bài ${index + 1} / ${lessons.length}`} />
+      <TopBar course={course} position={position} />
       <div className={s.layout}>
         <main className={s.main}>
-          <Stage course={course} lesson={lesson} />
+          <Stage
+            course={course}
+            lesson={lesson}
+            resumeAt={done(lesson.id) ? 0 : byLesson(lesson.id)?.positionSeconds ?? 0}
+            onVideoProgress={tracking ? (p) => save(lesson.id, p).catch(() => undefined) : undefined}
+          />
           <div className={s.content}>
-            {/* Teachers usually number titles themselves ("Bài 2: …"), so no prefix here. */}
-            <h1 className={s.lessonTitle}>{lesson.title}</h1>
+            <div className={s.titleRow}>
+              {/* Teachers usually number titles themselves ("Bài 2: …"), so no prefix here. */}
+              <h1 className={s.lessonTitle}>{lesson.title}</h1>
+              {tracking && lesson.canWatch && (
+                <Button
+                  variant={done(lesson.id) ? 'subtle' : 'outline'}
+                  size="sm"
+                  aria-pressed={done(lesson.id)}
+                  onClick={() => toggle(lesson.id, !done(lesson.id))}
+                >
+                  {done(lesson.id) ? '✓ Đã học' : 'Đánh dấu đã học'}
+                </Button>
+              )}
+            </div>
             <Tabs<TabId>
               label="Nội dung bài"
               idPrefix="lesson-tab"
@@ -149,30 +184,38 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
         </main>
         <aside className={s.side} aria-label="Nội dung khoá học">
           <h2 className={s.sideHead}>Nội dung khoá học</h2>
-          <div className={s.sideSub}>{lessons.length} bài giảng</div>
+          <div className={s.sideSub}>
+            {tracking && progress ? `${doneCount} / ${watchable.length} bài đã học` : `${lessons.length} bài giảng`}
+          </div>
           <ol className={s.items}>
             {lessons.map((l, i) => {
               const label = `${i + 1}. ${l.title}`;
               const meta = [lessonDuration(l), i === index ? 'đang xem' : '', !l.canWatch ? 'đã khoá' : '']
                 .filter(Boolean)
                 .join(' · ');
-              const inner = (
-                <>
-                  <span className={s.itemIcon}>{l.canWatch ? <PlayIcon size={14} /> : <LockIcon size={14} />}</span>
-                  <span className={s.itemText}>
-                    <span>{label}</span>
-                    {meta && <span className={s.itemMeta}>{meta}</span>}
-                  </span>
-                </>
-              );
+              const showTick = tracking && l.canWatch;
               return (
-                <li key={l.id}>
+                <li key={l.id} className={s.itemRow} data-current={i === index || undefined}>
+                  {showTick ? (
+                    <input
+                      type="checkbox"
+                      className={s.tick}
+                      checked={done(l.id)}
+                      onChange={(e) => toggle(l.id, e.target.checked)}
+                      aria-label={`Đã học: ${label}`}
+                    />
+                  ) : (
+                    <span className={s.itemIcon}>{l.canWatch ? <PlayIcon size={14} /> : <LockIcon size={14} />}</span>
+                  )}
                   <Link
                     href={routes.learn(course.id, l.id)}
                     className={s.item}
                     aria-current={i === index ? 'page' : undefined}
                   >
-                    {inner}
+                    <span className={s.itemText}>
+                      <span>{label}</span>
+                      {meta && <span className={s.itemMeta}>{meta}</span>}
+                    </span>
                   </Link>
                 </li>
               );
@@ -185,7 +228,19 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
 }
 
 /** The video, or the locked state with what to do next. Never renders a URL for a locked lesson. */
-function Stage({ course, lesson }: { course: CourseItem; lesson: LessonItem }) {
+function Stage({
+  course,
+  lesson,
+  resumeAt = 0,
+  onVideoProgress,
+}: {
+  course: CourseItem;
+  lesson: LessonItem;
+  /** Seconds to resume an uploaded video from (0 = start). */
+  resumeAt?: number;
+  /** Called with the position of an uploaded video (throttled, plus on pause/end). */
+  onVideoProgress?: (p: { positionSeconds: number; durationSeconds: number }) => void;
+}) {
   const { user } = useAuth();
 
   if (!lesson.canWatch) {
@@ -245,12 +300,14 @@ function Stage({ course, lesson }: { course: CourseItem; lesson: LessonItem }) {
   }
 
   if (lesson.sourceType === 'UPLOAD' && lesson.streamPath) {
-    const src = buildMediaUrl(lesson.streamPath);
     return (
       <div className={s.stage}>
-        <video key={src} controls controlsList="nodownload" preload="metadata" src={src}>
-          Trình duyệt của bạn không hỗ trợ phát video.
-        </video>
+        <UploadedVideo
+          key={lesson.id}
+          src={buildMediaUrl(lesson.streamPath)}
+          resumeAt={resumeAt}
+          onProgress={onVideoProgress}
+        />
       </div>
     );
   }
@@ -297,5 +354,60 @@ function Documents({ course }: { course: CourseItem }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+/** How often a playing video reports its position to the server. */
+const SAVE_EVERY_S = 15;
+
+function UploadedVideo({
+  src,
+  resumeAt,
+  onProgress,
+}: {
+  src: string;
+  resumeAt: number;
+  onProgress?: (p: { positionSeconds: number; durationSeconds: number }) => void;
+}) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const lastSaved = useRef(0);
+  const resumed = useRef(false);
+
+  const report = (force: boolean, ended = false) => {
+    const v = ref.current;
+    if (!v || !onProgress || !Number.isFinite(v.duration) || v.duration <= 0) return;
+    const duration = Math.max(1, Math.round(v.duration));
+    // At the end, report the full length: rounding 3.97 s down would miss 90%.
+    const pos = ended ? duration : Math.round(v.currentTime);
+    if (!force && Math.abs(pos - lastSaved.current) < SAVE_EVERY_S) return;
+    lastSaved.current = pos;
+    onProgress({ positionSeconds: pos, durationSeconds: duration });
+  };
+
+  // Resume where the learner stopped, unless that is the very start or end.
+  const resume = () => {
+    const v = ref.current;
+    if (!v || resumed.current) return;
+    resumed.current = true;
+    if (resumeAt > 5 && Number.isFinite(v.duration) && resumeAt < v.duration - 5) {
+      v.currentTime = resumeAt;
+      lastSaved.current = resumeAt;
+    }
+  };
+
+  return (
+    <video
+      ref={ref}
+      controls
+      controlsList="nodownload"
+      preload="metadata"
+      src={src}
+      onLoadedMetadata={resume}
+      onTimeUpdate={() => report(false)}
+      onPause={() => report(true)}
+      onEnded={() => report(true, true)}
+    >
+      Trình duyệt của bạn không hỗ trợ phát video.
+    </video>
   );
 }
