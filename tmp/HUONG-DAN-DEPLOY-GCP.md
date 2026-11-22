@@ -63,12 +63,13 @@ Khi `NODE_ENV=production`, server **không khởi động** nếu thiếu hoặc
 | `UPLOAD_DIR` | `/tmp/vankinh-uploads` | | Đặt sẵn trong Dockerfile; chỉ là thư mục tạm cho tài liệu/phụ đề trước khi lên bucket |
 | `MAX_VIDEO_SIZE_MB` | `2000` (tuỳ bạn) | | Video đi thẳng lên bucket nên có thể lớn hơn 32 MB |
 | `MAX_DOC_SIZE_MB` | `30` | | Phải dưới 32 MB (giới hạn Cloud Run) |
-| `MAIL_TRANSPORT` | `smtp` | nên có | `console` bị chặn ở production (PR #31) |
-| `MAIL_FROM` | `Vân Kính <no-reply@<tên miền>>` | | Địa chỉ đã xác minh ở nhà cung cấp email |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER` | theo nhà cung cấp (#16) | | Cổng 465 = TLS, cổng khác = STARTTLS |
-| `SMTP_PASS` | mật khẩu / API key SMTP | | Secret Manager |
-| `MAIL_DEV_OUTBOX` | `false` | | **Không bao giờ** bật ở production |
-| `TRUST_PROXY` | `1` | | Cloud Run có một proxy phía trước: lấy đúng IP để giới hạn số lần quên mật khẩu |
+| `MAIL_TRANSPORT` | `smtp` | có | Thiếu hoặc `console` (chỉ in thư ra log) thì server không khởi động |
+| `MAIL_FROM` | `Vân Kính <no-reply@<tên miền>>` | có | Địa chỉ đã xác minh ở nhà cung cấp email (SPF/DKIM), nếu không thư vào Spam |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER` | Gmail: `smtp.gmail.com`, `465`, địa chỉ Gmail · SendGrid: `smtp.sendgrid.net`, `587`, `apikey` · Resend: `smtp.resend.com`, `465`, `resend` | có (`SMTP_PORT` mặc định 587) | Cổng 465 = TLS ngay, cổng khác = bắt buộc STARTTLS |
+| `SMTP_PASS` | Gmail: mật khẩu ứng dụng · SendGrid/Resend: API key | có | Secret Manager |
+| `MAIL_DEV_OUTBOX` | `false` | | `true` bị chặn ở production: lộ đường dẫn đặt lại mật khẩu |
+| `TRUST_PROXY` | `1` | nên có | Cloud Run có một proxy phía trước: lấy đúng IP để giới hạn số lần quên mật khẩu. Thiếu thì chỉ cảnh báo |
+| `PASSWORD_RESET_MAX_PER_EMAIL`, `PASSWORD_RESET_MAX_PER_IP` | `3`, `10` | | Số đường dẫn đặt lại mật khẩu tối đa mỗi giờ (mặc định đã là 3 và 10) |
 
 Không đặt `FAKE_PAYMENT_CHECKSUM_KEY` và `GOOGLE_APPLICATION_CREDENTIALS` trên Cloud Run
 (server dùng service account của dịch vụ, không cần file key).
@@ -240,8 +241,9 @@ done
 ```
 
 - Vòng lặp lấy **mọi** file trong thư mục, nên file mới tự được chạy. Tại thời điểm viết, danh sách
-  kết thúc bằng `20261122_2310_terms_consent.sql` (ô đồng ý điều khoản) và
-  `20261122_2320_course_reviews.sql` (đánh giá khoá học); kiểm tra bằng `ls server/db/migrations`.
+  kết thúc bằng `20261122_2300_password_resets.sql` (quên mật khẩu), `20261122_2310_terms_consent.sql`
+  (ô đồng ý điều khoản) và `20261122_2320_course_reviews.sql` (đánh giá khoá học); kiểm tra bằng
+  `ls server/db/migrations`.
 - Mỗi migration idempotent (`IF NOT EXISTS`, có `BEGIN/COMMIT`), chạy lại không hỏng dữ liệu.
   Vẫn chạy đủ, đúng thứ tự, vì file sau dựa vào bảng của file trước.
 - Chạy migration **trước** khi deploy bản server mới cần cột/bảng mới.
@@ -377,7 +379,9 @@ Làm theo thứ tự; dừng lại ở bước đầu tiên bị lỗi.
 - [ ] `curl https://<API>/api/health` trả OK. Log server không có `Production configuration is incomplete`,
       không có cảnh báo `STORAGE_BACKEND is not "gcs"`.
 - [ ] Đăng ký một học viên mới, đăng nhập, tải lại trang vẫn còn đăng nhập (cookie `Secure`).
-- [ ] Quên mật khẩu: nhận được email, đường dẫn mở đúng `https://<tên miền web>/...`.
+- [ ] Quên mật khẩu với email thật của bạn: thư vào hộp thư chính (không vào Spam), đường dẫn mở đúng
+  `https://<tên miền web>/reset-password`, đặt xong đăng nhập được bằng mật khẩu mới, và thiết bị khác đang
+  đăng nhập tài khoản đó bị đăng xuất.
 - [ ] Giáo viên tải lên một video > 40 MB: DevTools thấy `PUT https://storage.googleapis.com/...`
       chạy tới 100%, rồi `POST /api/lessons/upload/confirm` 201. Tải một tài liệu và một ảnh bìa.
 - [ ] Học viên **chưa** mua: `curl -i https://<API>/api/lessons/<id bài trả phí>/stream` → `403`.

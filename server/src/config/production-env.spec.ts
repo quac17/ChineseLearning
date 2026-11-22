@@ -11,6 +11,11 @@ const good = {
   PAYMENT_GATEWAY: 'payos',
   STORAGE_BACKEND: 'gcs',
   MAIL_TRANSPORT: 'smtp',
+  SMTP_HOST: 'smtp.example.com',
+  SMTP_USER: 'user',
+  SMTP_PASS: 'pass',
+  MAIL_FROM: 'Vân Kính <no-reply@example.com>',
+  TRUST_PROXY: '1',
 };
 
 describe('production configuration', () => {
@@ -34,6 +39,11 @@ describe('production configuration', () => {
     ['CORS with a trailing slash', { CORS_ORIGIN: 'https://vankinh.vn/' }, /CORS_ORIGIN/],
     ['no APP_URL', { APP_URL: undefined }, /APP_URL/],
     ['the fake gateway', { PAYMENT_GATEWAY: 'fake' }, /PAYMENT_GATEWAY/],
+    ['no mail transport (console by default)', { MAIL_TRANSPORT: undefined }, /MAIL_TRANSPORT/],
+    ['the console mailer', { MAIL_TRANSPORT: 'console' }, /MAIL_TRANSPORT/],
+    ['SMTP without a password', { SMTP_PASS: undefined }, /SMTP_PASS/],
+    ['SMTP without a sender', { MAIL_FROM: undefined }, /MAIL_FROM/],
+    ['the dev mail outbox', { MAIL_DEV_OUTBOX: 'true' }, /MAIL_DEV_OUTBOX/],
   ])('refuses %s', (_, patch, message) => {
     const { errors } = checkProductionEnv({ ...good, ...patch });
     expect(errors).toHaveLength(1);
@@ -44,8 +54,8 @@ describe('production configuration', () => {
     expect(checkProductionEnv({ ...good, CORS_ORIGIN: 'https://vankinh.vn, https://www.vankinh.vn' }).errors).toEqual([]);
   });
 
-  it('only warns about local storage and missing mail', () => {
-    const { errors, warnings } = checkProductionEnv({ ...good, STORAGE_BACKEND: undefined, MAIL_TRANSPORT: undefined });
+  it('only warns about local storage and a missing TRUST_PROXY', () => {
+    const { errors, warnings } = checkProductionEnv({ ...good, STORAGE_BACKEND: undefined, TRUST_PROXY: undefined });
     expect(errors).toEqual([]);
     expect(warnings).toHaveLength(2);
   });

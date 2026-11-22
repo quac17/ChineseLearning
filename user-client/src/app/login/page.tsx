@@ -86,15 +86,21 @@ export default function LoginPage() {
             placeholder="ban@email.com"
           />
         </Field>
-        <Field label="Mật khẩu">
-          <Input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-            required
-          />
-        </Field>
+        {/* The link sits outside the <label>, so the field keeps the accessible name "Mật khẩu". */}
+        <div className={s.passwordField}>
+          <Field label="Mật khẩu">
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
+            />
+          </Field>
+          <Link href="/forgot-password" className={s.forgot}>
+            Quên mật khẩu?
+          </Link>
+        </div>
         <Button type="submit" variant="ink" block loading={submitting} disabled={!online || !email || !password}>
           Đăng nhập
         </Button>
