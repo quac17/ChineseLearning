@@ -14,7 +14,9 @@ const ADMIN_NAV = [
 ];
 
 /** Learner pages rebuilt on the new design: they lay out their own width. */
-const REBUILT = ['/courses', '/my-courses', '/account', '/checkout', '/flashcards', '/quiz', '/writing'];
+const REBUILT = ['/courses', '/my-courses', '/account', '/checkout', '/flashcards', '/quiz', '/writing', '/login', '/register'];
+/** Pages that show public/images/stock photos must carry the credit line. */
+const WITH_STOCK_PHOTOS = ['/'];
 
 /**
  * Chooses the chrome per area: learner pages get header/footer/tab bar,
@@ -52,7 +54,7 @@ export function AppChrome({ children }: { children: ReactNode }) {
     );
   }
 
-  const rebuilt = REBUILT.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  const rebuilt = pathname === '/' || REBUILT.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
   return (
     <>
@@ -65,7 +67,7 @@ export function AppChrome({ children }: { children: ReactNode }) {
         {children}
       </main>
       {/* Turn photo credits on for pages that show public/images/stock photos. */}
-      <SiteFooter />
+      <SiteFooter showPhotoCredits={WITH_STOCK_PHOTOS.includes(pathname)} />
 
       <MobileTabBar />
     </>

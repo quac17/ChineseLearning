@@ -67,15 +67,12 @@ Làm lại theo các board `Admin*.dc.html`. **Không làm lại** hai trang đ�
 
 ## Claude
 
-- [ ] Giai đoạn 4: quên mật khẩu qua email, lưu video trên Google Cloud Storage.
+- [ ] Giai đoạn 4: quên mật khẩu qua email (thêm link "Quên mật khẩu?" vào `/login` và hai
+      màn "Quên mật khẩu" / "Kiểm tra hộp thư" của `WebAuth`), lưu video trên Google Cloud Storage.
 
 ## Chưa giao
 
-- [ ] Làm lại trang chủ (`WebHome`), đăng nhập và đăng ký (`WebAuth`) theo thiết kế.
-      Hiện vẫn là giao diện cũ, còn chữ "Đang tải…" thay cho skeleton. Trang chủ vẫn đọc
-      flashcard/quiz mẫu cứng (`DEMO_FLASHCARDS`, `DEMO_QUIZZES` trong `src/lib/modules.ts`);
-      khi làm lại thì lấy từ `/practice/decks` và xoá dữ liệu cứng đó.
-- [ ] Footer vẫn hiện "Đăng nhập / Tạo tài khoản" khi đã đăng nhập
-      (`src/components/layout/SiteFooter.tsx`).
+- [ ] Trang điều khoản sử dụng và chính sách bảo mật (nội dung do chủ dự án cung cấp), rồi
+      thêm ô đồng ý vào form đăng ký như board `WebAuth`.
 - [ ] Hệ thống đánh giá thật (học viên đã mua chấm 1–5 sao kèm nhận xét), khi học viên
       online đã đông. Xem `docs/design/DECISIONS.md`.

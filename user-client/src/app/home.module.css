@@ -1,0 +1,243 @@
+/* Home (docs/design/canvas/WebHome.dc.html). */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+  padding-top: 24px;
+}
+.wrap {
+  max-width: 1340px;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  width: 100%;
+}
+
+/* Hero: photo with a white card over it; card flows below on phones. */
+.hero {
+  position: relative;
+}
+.heroImg {
+  height: 400px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--prog-hsk);
+}
+.heroImg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.heroCard {
+  position: absolute;
+  left: calc(var(--gutter) + 48px);
+  top: 64px;
+  width: 440px;
+  background: var(--card);
+  color: var(--ink);
+  padding: 24px;
+  box-shadow: var(--shadow-float);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.heroCard h1 {
+  margin: 0;
+  font-size: clamp(30px, 3.4vw, 40px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.heroCard p {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.sectionHead {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.sectionHead h2 {
+  margin: 0;
+  font-size: clamp(24px, 2.6vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.sectionHead p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.box {
+  border: 1px solid var(--line);
+  border-top: 0;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.boxHead {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  max-width: 720px;
+}
+.boxHead h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+}
+.boxHead p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+}
+.grid5 {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.goals {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+.goal {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 16px;
+}
+.goal:hover span:last-child {
+  text-decoration: underline;
+}
+.goalImg {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.goalImg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.goalTag {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  padding: 4px 8px;
+  border-radius: var(--radius);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.band {
+  background: var(--surface);
+  padding: 40px 0;
+}
+.bandImg {
+  height: 220px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+.bandImg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.why {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+}
+.why h3 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 800;
+}
+.why p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.teach {
+  background: #1c1d1f;
+  color: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.teach h2 {
+  margin: 0 0 6px;
+  font-size: 24px;
+  font-weight: 800;
+}
+.teach p {
+  margin: 0;
+  color: #c9cdd1;
+  font-size: 15px;
+}
+.teachButton {
+  background: #ffffff !important;
+  color: #1c1d1f !important;
+}
+
+@media (max-width: 1100px) {
+  .grid5 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 900px) {
+  .grid5,
+  .goals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 760px) {
+  .page {
+    gap: 40px;
+    padding-top: 12px;
+  }
+  .heroImg {
+    height: 220px;
+  }
+  .heroCard {
+    position: static;
+    width: auto;
+    box-shadow: none;
+    padding: 16px 0 0;
+    background: transparent;
+  }
+  .box {
+    padding: 20px 16px;
+  }
+  .why {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .bandImg {
+    height: 160px;
+  }
+}

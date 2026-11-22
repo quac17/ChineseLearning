@@ -1,204 +1,217 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useModule } from '@/context/ModuleContext';
+import { useEffect, useMemo, useState } from 'react';
+import { Alert, CourseCard, EmptyState, LinkButton, Skeleton, Tabs } from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
 import { apiRequest } from '@/lib/api';
-import { DEMO_FLASHCARDS, DEMO_QUIZZES, PROGRAM_MODULES } from '@/lib/modules';
-import { CourseItem } from '@/lib/types';
+import { courseMeta, isOnSale, routes } from '@/lib/courses';
+import { PROGRAMS } from '@/lib/programs';
+import { SUPPORT_CONTACT } from '@/lib/site';
+import type { CourseItem, ProgramModule } from '@/lib/types';
+import s from './home.module.css';
+
+/** Tab order on the home page (design: HSK first). */
+const TABS: ProgramModule[] = ['hsk', 'yct', 'easy', 'talk'];
+
+const PROGRAM_COPY: Record<ProgramModule, { title: string; text: string }> = {
+  hsk: {
+    title: 'Lộ trình HSK: thi đỗ từng cấp',
+    text: 'Bài giảng video theo từng cấp, tài liệu Word / PowerPoint, flashcard và quiz bốn dạng sinh từ từ vựng của mỗi bài.',
+  },
+  yct: {
+    title: 'YCT: tiếng Trung cho thiếu nhi',
+    text: 'Bài ngắn, nhiều hình ảnh và bài hát, để bé học cùng bố mẹ và làm quen chữ Hán.',
+  },
+  easy: {
+    title: 'Easy Steps: bắt đầu từ số 0',
+    text: 'Phát âm, chào hỏi và những từ đầu tiên, nhẹ nhàng cho người mới và cho bé.',
+  },
+  talk: {
+    title: 'Giao tiếp đời sống và công việc',
+    text: 'Hội thoại thực tế: mua sắm, gọi món, du lịch, email và họp với đối tác.',
+  },
+};
+
+/** Stock photos (public/images/stock, credits in the footer). Never Vân Kính's own students. */
+const GOALS: Array<{ program: ProgramModule; label: string; img: string; alt: string }> = [
+  { program: 'easy', label: 'Mới bắt đầu từ số 0', img: 'brush.jpg', alt: 'Cây bút lông viết thư pháp đặt trên giá sứ' },
+  { program: 'yct', label: 'Cho con học YCT', img: 'kids.jpg', alt: 'Các em nhỏ cùng đọc sách trong lớp học' },
+  { program: 'hsk', label: 'Thi chứng chỉ HSK', img: 'study-group.jpg', alt: 'Nhóm bạn trẻ ôn bài với sách và laptop' },
+  { program: 'talk', label: 'Giao tiếp khi đi làm', img: 'tea.jpg', alt: 'Pha trà kiểu Triều Châu trên khay gỗ' },
+];
 
 export default function HomePage() {
-  const { activeModule, setActiveModule, theme } = useModule();
   const { user } = useAuth();
-  const [courses, setCourses] = useState<CourseItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [courses, setCourses] = useState<CourseItem[] | null>(null);
+  const [error, setError] = useState('');
+  const [tab, setTab] = useState<ProgramModule>('hsk');
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    const qs = activeModule === 'all' ? '' : `?module=${activeModule}`;
-    apiRequest<CourseItem[]>(`/courses${qs}`)
-      .then((data) => {
-        if (!cancelled) setCourses(data);
-      })
-      .catch(() => {
-        if (!cancelled) setCourses([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+    apiRequest<CourseItem[]>('/courses')
+      .then((data) => !cancelled && setCourses(data))
+      .catch((err: Error) => !cancelled && setError(err.message || 'Không tải được khoá học.'));
     return () => {
       cancelled = true;
     };
-  }, [activeModule, user?.id]);
+  }, [user?.id]);
 
-  const filteredFlashcards = DEMO_FLASHCARDS.filter(
-    (f) => activeModule === 'all' || f.module === activeModule,
-  );
-  const filteredQuizzes = DEMO_QUIZZES.filter(
-    (q) => activeModule === 'all' || q.module === activeModule,
+  // Courses without lessons yet stay in the catalog but are not advertised here.
+  const ready = useMemo(() => (courses ?? []).filter((c) => c.lessons.length > 0), [courses]);
+  const inTab = useMemo(() => ready.filter((c) => c.module === tab).slice(0, 5), [ready, tab]);
+  const latest = useMemo(
+    () => [...ready].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5),
+    [ready],
   );
 
   return (
-    <>
-      <section className="hero">
-        <h1 className="han">{theme.han}</h1>
-        <p>{theme.desc}</p>
-        <div className="row" style={{ marginTop: 16, position: 'relative' }}>
-          <Link href="/courses" className="btn">
-            Vào học ngay
-          </Link>
-          {!user && (
-            <Link
-              href="/login"
-              className="btn alt"
-              style={{ background: 'rgba(255,255,255,0.12)', color: '#fff', borderColor: 'rgba(255,255,255,0.35)' }}
-            >
-              Đăng nhập tài khoản
-            </Link>
-          )}
-          {(user?.role === 'TEACHER' || user?.role === 'ADMIN') && (
-            <Link
-              href="/teacher"
-              className="btn alt"
-              style={{ background: 'rgba(255,255,255,0.12)', color: '#fff', borderColor: 'rgba(255,255,255,0.35)' }}
-            >
-              Không gian Giáo viên
-            </Link>
-          )}
+    <div className={s.page}>
+      <section className={`${s.wrap} ${s.hero}`} aria-labelledby="hero-title">
+        <div className={s.heroImg}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/stock/great-wall.jpg" alt="Vạn Lý Trường Thành uốn qua những dãy núi xanh" />
+        </div>
+        <div className={s.heroCard}>
+          <h1 id="hero-title">Học tiếng Trung theo cách của bạn</h1>
+          <p>Khoá học video HSK, YCT và giao tiếp cho người Việt. Xem bài học thử miễn phí trước khi mua.</p>
+          <div>
+            <LinkButton href={routes.catalog()} variant="accent">
+              Xem bài học thử
+            </LinkButton>
+          </div>
         </div>
       </section>
 
-      {activeModule === 'all' ? (
-        <>
-          <h2>Chọn chương trình</h2>
-          <div className="grid">
-            {PROGRAM_MODULES.map((m) => (
-              <button
-                key={m.id}
-                type="button"
-                className="mod"
-                style={{ '--c': m.c1 } as React.CSSProperties}
-                onClick={() => setActiveModule(m.id)}
-              >
-                <span className="han">{m.han}</span>
-                <b>{m.name}</b>
-                <span>{m.card}</span>
-              </button>
-            ))}
+      <section className={s.wrap} aria-labelledby="programs-title">
+        <div className={s.sectionHead}>
+          <h2 id="programs-title">Mọi cấp độ, từ chào hỏi đến HSK</h2>
+          <p>Chọn chương trình, bắt đầu bằng bài học thử miễn phí.</p>
+        </div>
+        <Tabs<ProgramModule>
+          label="Chương trình"
+          idPrefix="home-tab"
+          value={tab}
+          onChange={setTab}
+          items={TABS.map((id) => ({ id, label: PROGRAMS[id].name }))}
+        />
+        <div className={s.box} role="tabpanel" id={`home-tab-panel-${tab}`} aria-labelledby={`home-tab-${tab}`}>
+          <div className={s.boxHead}>
+            <h3>{PROGRAM_COPY[tab].title}</h3>
+            <p>{PROGRAM_COPY[tab].text}</p>
+            <LinkButton href={routes.catalog({ program: tab })} variant="outline" size="sm">
+              Xem các khoá {PROGRAMS[tab].name}
+            </LinkButton>
           </div>
+          <CourseGrid courses={courses ? inTab : null} error={error} empty={`Chưa có khoá ${PROGRAMS[tab].name} nào.`} />
+        </div>
+      </section>
 
-          <h2>Khóa học mới nhất</h2>
-          {loading ? (
-            <p className="hint">Đang tải danh sách khóa học...</p>
-          ) : courses.length === 0 ? (
-            <div className="card">
-              <p style={{ margin: 0 }}>
-                Chưa kết nối được máy chủ API hoặc chưa có khóa học nào. Hãy đảm bảo Backend đang chạy.
-              </p>
-            </div>
-          ) : (
-            <div className="lessons">
-              {courses.map((course) => (
-                <div className="les" key={course.id}>
-                  <div className="t">
-                    <b>{course.title}</b>
-                    <br />
-                    <small>
-                      {course.lessons.length} video · {course.documents.length} tài liệu · GV:{' '}
-                      {course.teacher?.fullName || 'Vân Kính'}
-                    </small>
-                  </div>
-                  <span className={`tag ${course.hasAccess ? 'free' : 'paid'}`}>
-                    {course.isFree
-                      ? 'Miễn phí'
-                      : course.hasAccess
-                      ? 'Đã cấp quyền'
-                      : 'Cần cấp quyền'}
-                  </span>
-                  <Link href={`/courses/${course.id}`} className="btn alt sm">
-                    Vào khóa học
-                  </Link>
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      ) : (
-        <>
-          <h2>Khóa học & Video ({theme.name})</h2>
-          {loading ? (
-            <p className="hint">Đang tải khóa học...</p>
-          ) : courses.length === 0 ? (
-            <p className="hint">Chưa có khóa học nào trong chương trình này.</p>
-          ) : (
-            <div className="lessons">
-              {courses.map((course) => (
-                <div className="les" key={course.id}>
-                  <div className="t">
-                    <b>{course.title}</b>
-                    <br />
-                    <small>
-                      {course.lessons.length} video bài giảng · {course.documents.length} tài liệu tải về
-                    </small>
-                  </div>
-                  <span className={`tag ${course.hasAccess ? 'free' : 'paid'}`}>
-                    {course.isFree
-                      ? 'Miễn phí'
-                      : course.hasAccess
-                      ? 'Đã mở khóa'
-                      : 'Cần cấp quyền'}
-                  </span>
-                  <Link href={`/courses/${course.id}`} className="btn alt sm">
-                    Mở khóa học
-                  </Link>
-                </div>
-              ))}
-            </div>
-          )}
+      <section className={s.wrap} aria-labelledby="goals-title">
+        <div className={s.sectionHead}>
+          <h2 id="goals-title">Học theo mục tiêu</h2>
+        </div>
+        <div className={s.goals}>
+          {GOALS.map((g) => (
+            <Link key={g.program} href={routes.catalog({ program: g.program })} className={s.goal}>
+              <span className={s.goalImg}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/images/stock/${g.img}`} alt={g.alt} loading="lazy" />
+                <span className={s.goalTag} style={{ background: PROGRAMS[g.program].color }}>
+                  {PROGRAMS[g.program].name}
+                </span>
+              </span>
+              <span>{g.label}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
 
-          {filteredFlashcards.length > 0 && (
-            <>
-              <h2>Flashcard</h2>
-              <div className="lessons">
-                {filteredFlashcards.map((deck) => (
-                  <div className="les" key={deck.id}>
-                    <div className="t">
-                      <b>{deck.title}</b>
-                      <br />
-                      <small>{deck.cards.length} thẻ từ vựng</small>
-                    </div>
-                    <Link href={`/flashcards?deck=${deck.id}`} className="btn alt sm">
-                      Mở thẻ
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
+      <section className={s.band} aria-labelledby="why-title">
+        <div className={s.wrap}>
+          <h2 id="why-title" className="sr-only">
+            Vì sao học trên Vân Kính
+          </h2>
+          <div className={s.bandImg}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/stock/hutong.jpg" alt="Một con phố hutong ở Bắc Kinh với đèn lồng đỏ" loading="lazy" />
+          </div>
+          <div className={s.why}>
+            <div>
+              <h3>Học thử trước, trả tiền sau</h3>
+              <p>Xem bài học thử miễn phí của khoá. Chỉ mua khi thấy hợp cách dạy.</p>
+            </div>
+            <div>
+              <h3>Thanh toán bằng QR ngân hàng</h3>
+              <p>Quét VietQR qua PayOS, khoá học mở ngay khi chuyển khoản thành công.</p>
+            </div>
+            <div>
+              <h3>Ôn tập ngay trong bài</h3>
+              <p>Flashcard, quiz và luyện viết chữ Hán đi kèm từ vựng của từng bài giảng.</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-          {filteredQuizzes.length > 0 && (
-            <>
-              <h2>Quiz ôn tập</h2>
-              <div className="lessons">
-                {filteredQuizzes.map((qz) => (
-                  <div className="les" key={qz.id}>
-                    <div className="t">
-                      <b>{qz.title}</b>
-                      <br />
-                      <small>{qz.questions.length} câu hỏi</small>
-                    </div>
-                    <Link href={`/quiz?quiz=${qz.id}`} className="btn alt sm">
-                      Làm bài
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-        </>
-      )}
-    </>
+      <section className={s.wrap} aria-labelledby="latest-title">
+        <div className={s.sectionHead}>
+          <h2 id="latest-title">Khoá học mới nhất</h2>
+        </div>
+        <CourseGrid courses={courses ? latest : null} error={error} empty="Chưa có khoá học nào." />
+      </section>
+
+      <section className={s.wrap} aria-labelledby="teach-title">
+        <div className={s.teach}>
+          <div>
+            <h2 id="teach-title">Bạn là giáo viên tiếng Trung?</h2>
+            <p>
+              Đăng bài giảng, tài liệu, từ vựng và cấp quyền cho học viên của bạn.
+              {SUPPORT_CONTACT ? ` Liên hệ ${SUPPORT_CONTACT} để mở tài khoản giáo viên.` : ''}
+            </p>
+          </div>
+          <LinkButton
+            href={user?.role === 'TEACHER' || user?.role === 'ADMIN' ? '/teacher' : routes.login('/teacher')}
+            variant="outline"
+            className={s.teachButton}
+          >
+            Vào khu giáo viên
+          </LinkButton>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function CourseGrid({ courses, error, empty }: { courses: CourseItem[] | null; error: string; empty: string }) {
+  if (error) return <Alert tone="error">{error}</Alert>;
+  if (!courses) {
+    return (
+      <div className={s.grid5} aria-busy="true" aria-label="Đang tải khoá học">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <Skeleton height="auto" style={{ aspectRatio: '16 / 9' }} />
+            <Skeleton width="85%" height={18} />
+            <Skeleton width="50%" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  if (courses.length === 0) return <EmptyState title={empty} />;
+  return (
+    <div className={s.grid5}>
+      {courses.map((c) => (
+        <CourseCard
+          key={c.id}
+          href={routes.course(c.id)}
+          title={c.title}
+          program={c.module}
+          teacherName={c.teacher?.fullName}
+          isFree={c.isFree}
+          priceVnd={isOnSale(c) ? c.priceVnd : null}
+          meta={courseMeta(c)}
+        />
+      ))}
+    </div>
   );
 }
