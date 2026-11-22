@@ -12,6 +12,8 @@ listed synonyms in code, issues and test names.
 | **Free course** (`is_free` on a course) | Khoá học miễn phí | A Course whose every lesson is free. | |
 | **Document** (`course_documents`) | Tài liệu | A Word/PowerPoint file attached to a Course, downloadable with access. | attachment |
 | **Enrollment** (`course_enrollments`) | Quyền học khoá học | The row that grants a Student access to a Course (`can_view`). Created by a Teacher/Admin or by a paid Order. | subscription, purchase |
+| **Review** (`course_reviews`) | Đánh giá | 1–5 stars and an optional comment from a Student with access to a paid Course; one per Student and Course. The Teacher's answer is the **reply** (Trả lời); an Admin may **hide** (Ẩn) it with a reason. | rating (that is the admin-entered, sourced survey score), feedback, comment |
+| **Sourced rating** (`rating_value` + `rating_source`) | Điểm khảo sát (kèm nguồn) | A score an Admin enters only together with its real source (e.g. an offline survey). Never merged with Reviews. | |
 | **Access** | Quyền xem | Whether a user may watch a Lesson or download a Document; computed by `checkUserCourseAccess`. | permission (when meaning roles) |
 | **Role** | Vai trò | `ADMIN` (Quản trị), `TEACHER` (Giáo viên), `STUDENT` (Học sinh). | |
 | **Order** (`orders`, planned) | Đơn hàng | One purchase attempt of one Course by one Student, with a status. | payment, transaction |

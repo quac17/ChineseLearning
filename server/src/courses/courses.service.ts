@@ -13,6 +13,7 @@ import { CreateCourseDto, UpdateCourseDto } from './dto/course.dto';
 import { courseSearchClause, courseSearchPattern } from './course-search';
 import { buildOutline } from './course-outline';
 import { checkRating } from './course-proof';
+import { reviewSummary } from '../reviews/reviews.rules';
 import { COVER_CONTENT_TYPES, CoverImageType, detectImageType, normalizeOutcomes, sumDurationMinutes } from './course-meta';
 
 /** Public cover path with a version from the storage key, so a new upload is never served from cache. */
@@ -53,7 +54,7 @@ export class CoursesService {
     if (courseRows.length === 0) return [];
     const courseIds = courseRows.map((c) => c.id);
 
-    const [lessonsRows, docsRows, enrollRows, sectionRows] = await Promise.all([
+    const [lessonsRows, docsRows, enrollRows, sectionRows, reviewRows] = await Promise.all([
       this.db.queryAll(
         `SELECT l.*,
                 (SELECT count(*)::int FROM lesson_vocabulary v WHERE v.lesson_id = l.id) AS vocabulary_count
@@ -80,7 +81,14 @@ export class CoursesService {
          WHERE course_id = ANY($1::varchar[])`,
         [courseIds],
       ),
+      this.db.queryAll(
+        `SELECT course_id, count(*)::int AS count, avg(stars) AS average FROM course_reviews
+         WHERE course_id = ANY($1::varchar[]) AND is_hidden = FALSE
+         GROUP BY course_id`,
+        [courseIds],
+      ),
     ]);
+    const reviewsByCourse = new Map(reviewRows.map((r) => [r.course_id, r]));
 
     const sectionsByCourse = new Map<string, any[]>();
     for (const sec of sectionRows) {
@@ -123,6 +131,7 @@ export class CoursesService {
         lessons: outline.lessons,
         documents: docsByCourse.get(c.id) || [],
         enrollments: enrollsByCourse.get(c.id) || [],
+        reviewStats: reviewsByCourse.get(c.id) ?? null,
       };
     });
   }
@@ -207,6 +216,11 @@ export class CoursesService {
         course.rating_value != null && course.rating_source
           ? { value: Number(course.rating_value), source: course.rating_source }
           : null,
+      /**
+       * Real reviews from learners who bought the course (#41), never merged
+       * with the sourced `rating`. `average` is null below REVIEWS_MIN_TO_SHOW.
+       */
+      reviews: reviewSummary(course.reviewStats?.count ?? 0, course.reviewStats?.average ?? null),
       /** Accounts that can open the course right now (open enrollments). */
       learnerCount: (course.enrollments || []).length,
       /** Offline-class learners, shown apart ("+80 lớp offline"), never added to learnerCount. */
@@ -410,6 +424,7 @@ export class CoursesService {
       coverUrl: null,
       totalDurationMinutes: 0,
       rating: null,
+      reviews: { average: null, count: 0 },
       learnerCount: 0,
       offlineLearnerCount: null,
       sortOrder: created.sort_order,

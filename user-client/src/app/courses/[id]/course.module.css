@@ -70,6 +70,14 @@
 .heroRating > span {
   font-size: 14px;
 }
+.heroMeta .heroRating a {
+  color: var(--rating);
+  font-weight: 700;
+  text-decoration: none;
+}
+.heroMeta .heroRating a:hover {
+  text-decoration: underline;
+}
 .heroMuted {
   color: #c9cdd1;
 }

@@ -158,6 +158,18 @@ export function learnerText(online: number, offline: number | null | undefined):
   return null;
 }
 
+/**
+ * Course reviews (#41): the server returns `reviews.average` only from this
+ * many visible reviews on; the constant mirrors server/src/reviews/reviews.rules.ts.
+ */
+export const REVIEWS_MIN_TO_SHOW = 3;
+export const REVIEW_TEXT_MAX = 1000;
+
+/** 4.7 → "4,7" */
+export function formatAverage(value: number): string {
+  return value.toLocaleString('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+}
+
 /** A paid course that can be bought right now. */
 export function isOnSale(course: Pick<CourseItem, 'isFree' | 'priceVnd'>): boolean {
   return !course.isFree && typeof course.priceVnd === 'number' && course.priceVnd > 0;

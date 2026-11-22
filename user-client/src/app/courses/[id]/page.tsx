@@ -2,12 +2,14 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useState } from 'react';
 import { Badge, EmptyState, LinkButton, Rating, Skeleton } from '@/components/ui';
 import { FileIcon, LockIcon, PlayIcon } from '@/components/course/icons';
 import { useCourse } from '@/components/course/useCourse';
 import { useAuth } from '@/context/AuthContext';
 import { buildMediaUrl, formatFileSize } from '@/lib/api';
 import { BuyButton } from '@/components/course/BuyButton';
+import { CourseReviews, HeroReviews } from '@/components/course/Reviews';
 import {
   LEVELS,
   courseOutline,
@@ -26,7 +28,7 @@ import {
 } from '@/lib/courses';
 import { PROGRAMS, formatVnd } from '@/lib/programs';
 import { REFUND_POLICY } from '@/lib/site';
-import type { CourseItem, LessonItem } from '@/lib/types';
+import type { CourseItem, LessonItem, ReviewSummary } from '@/lib/types';
 import s from './course.module.css';
 
 export default function CoursePage() {
@@ -58,6 +60,8 @@ function CourseDetail({ course }: { course: CourseItem }) {
   const p = PROGRAMS[course.module];
   const lessons = sortedLessons(course);
   const hasDocs = course.documents.length > 0;
+  // Starts from the course payload; the reviews section refreshes it after the learner posts.
+  const [reviews, setReviews] = useState<ReviewSummary | undefined>(course.reviews);
 
   return (
     <>
@@ -80,6 +84,12 @@ function CourseDetail({ course }: { course: CourseItem }) {
               {course.rating && (
                 <span className={s.heroRating}>
                   <Rating value={course.rating.value} source={course.rating.source} />
+                </span>
+              )}
+              {/* Real learner reviews: a separate number from the sourced survey rating above. */}
+              {reviews?.average != null && (
+                <span className={s.heroRating}>
+                  <HeroReviews summary={reviews} />
                 </span>
               )}
               {learnerText(course.learnerCount ?? 0, course.offlineLearnerCount) && (
@@ -196,6 +206,14 @@ function CourseDetail({ course }: { course: CourseItem }) {
                   {course.teacher.bio && <p className={s.teacherBio}>{course.teacher.bio}</p>}
                 </div>
               </div>
+            </section>
+          )}
+
+          {/* Free courses take no reviews (only buyers review, #41). */}
+          {!course.isFree && (
+            <section className={s.section} aria-labelledby="danh-gia">
+              <h2 id="danh-gia">Đánh giá của học viên</h2>
+              <CourseReviews course={course} onSummary={setReviews} />
             </section>
           )}
         </div>
