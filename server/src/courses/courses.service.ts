@@ -163,6 +163,7 @@ export class CoursesService {
       sortOrder: course.sort_order ?? 0,
       isFree: course.is_free,
       isPublished: course.is_published,
+      priceVnd: course.price_vnd ?? null,
       teacherId: course.teacher_id,
       teacher: {
         id: course.teacher_id,
@@ -278,6 +279,15 @@ export class CoursesService {
       user,
       new Set(enrollments.map((e) => e.course_id)),
     );
+  }
+
+  async setPrice(id: string, priceVnd: number | null) {
+    const row = await this.db.queryOne(
+      'UPDATE courses SET price_vnd = $1, updated_at = NOW() WHERE id = $2 RETURNING id, price_vnd',
+      [priceVnd, id],
+    );
+    if (!row) throw new NotFoundException('Không tìm thấy khóa học.');
+    return { id: row.id, priceVnd: row.price_vnd };
   }
 
   async create(dto: CreateCourseDto, user: AuthUser) {

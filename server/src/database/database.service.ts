@@ -1,6 +1,6 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Pool, QueryResult, QueryResultRow } from 'pg';
+import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
 
 @Injectable()
 export class DatabaseService implements OnModuleInit, OnModuleDestroy {
@@ -50,5 +50,25 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   ): Promise<T[]> {
     const res = await this.pool.query<T>(sql, params);
     return res.rows;
+  }
+
+  /**
+   * Runs `work` on one dedicated connection inside BEGIN/COMMIT, rolling back
+   * if it throws. Never issue BEGIN on the shared pool: each query may land
+   * on a different connection.
+   */
+  async withTransaction<T>(work: (client: PoolClient) => Promise<T>): Promise<T> {
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await work(client);
+      await client.query('COMMIT');
+      return result;
+    } catch (err) {
+      await client.query('ROLLBACK').catch(() => undefined);
+      throw err;
+    } finally {
+      client.release();
+    }
   }
 }

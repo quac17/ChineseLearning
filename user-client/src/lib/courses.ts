@@ -17,6 +17,9 @@ export const routes = {
       : `/learn/${encodeURIComponent(courseId)}`,
   myCourses: '/my-courses',
   account: '/account',
+  checkout: (orderId: string) => `/checkout/${encodeURIComponent(orderId)}`,
+  /** Login that comes back to `next` (same-site paths only). */
+  login: (next?: string) => (next ? `/login?next=${encodeURIComponent(next)}` : '/login'),
 };
 
 export function parseProgram(value: string | null | undefined): ProgramModule | null {
@@ -52,4 +55,9 @@ export function courseMeta(course: Pick<CourseItem, 'lessons' | 'documents'>): s
 /** Durations are free text from teachers ("12 phút", "14:00"); show them as given. */
 export function lessonDuration(lesson: Pick<LessonItem, 'duration'>): string {
   return lesson.duration?.trim() || '';
+}
+
+/** A paid course that can be bought right now. */
+export function isOnSale(course: Pick<CourseItem, 'isFree' | 'priceVnd'>): boolean {
+  return !course.isFree && typeof course.priceVnd === 'number' && course.priceVnd > 0;
 }

@@ -7,8 +7,14 @@ import { MobileTabBar } from './MobileTabBar';
 import { SiteFooter } from './SiteFooter';
 import { SiteHeader } from './SiteHeader';
 
+const ADMIN_NAV = [
+  { href: '/admin', label: 'Tổng quan' },
+  { href: '/admin/prices', label: 'Giá khoá học' },
+  { href: '/admin/orders', label: 'Đơn hàng' },
+];
+
 /** Learner pages rebuilt on the new design: they lay out their own width. */
-const REBUILT = ['/courses', '/my-courses', '/account'];
+const REBUILT = ['/courses', '/my-courses', '/account', '/checkout'];
 
 /**
  * Chooses the chrome per area: learner pages get header/footer/tab bar,
@@ -29,7 +35,7 @@ export function AppChrome({ children }: { children: ReactNode }) {
 
   if (pathname.startsWith('/admin')) {
     return (
-      <DashboardShell area="admin" nav={[{ href: '/admin', label: 'Tổng quan' }]}>
+      <DashboardShell area="admin" nav={ADMIN_NAV}>
         <div className="legacy-dash">{children}</div>
       </DashboardShell>
     );

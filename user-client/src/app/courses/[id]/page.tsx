@@ -7,8 +7,10 @@ import { FileIcon, LockIcon, PlayIcon } from '@/components/course/icons';
 import { useCourse } from '@/components/course/useCourse';
 import { useAuth } from '@/context/AuthContext';
 import { buildMediaUrl, formatFileSize } from '@/lib/api';
-import { firstLesson, lessonDuration, previewLesson, routes, sortedLessons } from '@/lib/courses';
-import { PROGRAMS } from '@/lib/programs';
+import { BuyButton } from '@/components/course/BuyButton';
+import { firstLesson, isOnSale, lessonDuration, previewLesson, routes, sortedLessons } from '@/lib/courses';
+import { PROGRAMS, formatVnd } from '@/lib/programs';
+import { REFUND_POLICY } from '@/lib/site';
 import type { CourseItem, LessonItem } from '@/lib/types';
 import s from './course.module.css';
 
@@ -178,7 +180,7 @@ function LessonRow({ course, lesson, index }: { course: CourseItem; lesson: Less
   );
 }
 
-/** The buy box. No checkout yet (PayOS lands in phase 3): access is granted by the teacher. */
+/** The buy box: price + QR checkout when on sale, otherwise how to get access. */
 function BuyBox({ course }: { course: CourseItem }) {
   const { user } = useAuth();
   const p = PROGRAMS[course.module];
@@ -214,16 +216,32 @@ function BuyBox({ course }: { course: CourseItem }) {
               <p className={s.note}>Khoá học chưa có bài giảng.</p>
             )}
           </>
+        ) : isOnSale(course) ? (
+          <>
+            <p className={s.price}>{formatVnd(course.priceVnd!)}</p>
+            <BuyButton courseId={course.id} block />
+            {preview && (
+              <LinkButton href={routes.learn(course.id, preview.id)} variant="outline" block>
+                Xem bài học thử
+              </LinkButton>
+            )}
+            {REFUND_POLICY && <p className={s.note} style={{ textAlign: 'center' }}>{REFUND_POLICY}</p>}
+            {!user && (
+              <p className={s.note} style={{ textAlign: 'center' }}>
+                Đã mua rồi? <Link href={routes.login(routes.course(course.id))}>Đăng nhập</Link> để vào học.
+              </p>
+            )}
+          </>
         ) : (
           <>
-            <p className={s.price}>Khoá học trả phí</p>
+            <p className={s.price}>Chưa mở bán</p>
             <p className={s.note}>
               {user
-                ? 'Thanh toán bằng QR sắp ra mắt. Hiện tại, liên hệ giáo viên phụ trách để được mở khoá cho tài khoản của bạn.'
-                : 'Đã được mở khoá? Đăng nhập để vào học. Thanh toán bằng QR sắp ra mắt.'}
+                ? 'Khoá học này chưa mở bán trực tuyến. Liên hệ giáo viên phụ trách để được mở khoá cho tài khoản của bạn.'
+                : 'Đã được mở khoá? Đăng nhập để vào học.'}
             </p>
             {!user && (
-              <LinkButton href="/login" variant="ink" block>
+              <LinkButton href={routes.login(routes.course(course.id))} variant="ink" block>
                 Đăng nhập
               </LinkButton>
             )}

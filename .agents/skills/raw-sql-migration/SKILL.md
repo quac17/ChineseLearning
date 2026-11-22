@@ -17,7 +17,7 @@ description: >-
 | `server/db/sql/01_schema.sql` | Full DDL. `CREATE TABLE IF NOT EXISTS`, constraints named explicitly, indexes at the bottom. |
 | `server/db/sql/02_master_data.sql` | Reference rows (`roles`, `program_modules`). |
 | `server/db/sql/03_seed_data.sql` | Demo accounts, courses, lessons, enrollments. E2E tests depend on it. |
-| `server/db/sql/04_demo_data.sql` | Extra local-only demo data (`yarn db:demo`, ids `demo-*`). Never loaded by e2e; keep it free of ratings, counts and prices. |
+| `server/db/sql/04_demo_data.sql` | Extra local-only demo data (`yarn db:demo`, ids `demo-*`). Never loaded by e2e; keep it free of ratings and student counts; prices there are test values. |
 | `server/db/scripts/db-cli.ts` | `init`, `generate`, `reset`, `seed`, `dump`. Table order lives in `TABLES_IN_ORDER`. |
 
 `yarn db:reset` drops every table and rebuilds from 01 + 02. `yarn db:seed`

@@ -13,6 +13,8 @@ export const WEB_URL = `http://localhost:${WEB_PORT}`;
 export const REPO_ROOT = path.resolve(__dirname, '..');
 export const AUTH_DIR = path.join(__dirname, '.auth');
 export const UPLOAD_DIR = path.join(__dirname, '.tmp', 'uploads');
+/** Checksum key of the fake payment gateway in the e2e stack (not a real key). */
+export const FAKE_CHECKSUM_KEY = 'e2e-fake-checksum-key';
 
 /**
  * Env for every child process (db-cli, server). Values set here win over
@@ -51,5 +53,9 @@ export function serverEnv(): Record<string, string> {
     JWT_SECRET: process.env.JWT_SECRET || 'e2e-only-not-a-secret',
     COOKIE_SECURE: 'false',
     COOKIE_SAME_SITE: 'lax',
+    // Fake gateway: specs sign PayOS-style webhooks with this key. Never real PayOS.
+    PAYMENT_GATEWAY: 'fake',
+    FAKE_PAYMENT_CHECKSUM_KEY: FAKE_CHECKSUM_KEY,
+    APP_URL: WEB_URL,
   };
 }

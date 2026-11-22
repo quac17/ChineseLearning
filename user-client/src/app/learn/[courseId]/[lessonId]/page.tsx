@@ -8,7 +8,9 @@ import { FileIcon, LockIcon, PlayIcon } from '@/components/course/icons';
 import { useCourse } from '@/components/course/useCourse';
 import { useAuth } from '@/context/AuthContext';
 import { buildMediaUrl, formatFileSize } from '@/lib/api';
-import { lessonDuration, previewLesson, routes, sortedLessons } from '@/lib/courses';
+import { BuyButton } from '@/components/course/BuyButton';
+import { isOnSale, lessonDuration, previewLesson, routes, sortedLessons } from '@/lib/courses';
+import { formatVnd } from '@/lib/programs';
 import type { CourseItem, LessonItem } from '@/lib/types';
 import s from '../../player.module.css';
 
@@ -188,19 +190,29 @@ function Stage({ course, lesson }: { course: CourseItem; lesson: LessonItem }) {
 
   if (!lesson.canWatch) {
     const preview = previewLesson(course);
+    const onSale = isOnSale(course);
+    const here = routes.learn(course.id, lesson.id);
     return (
       <div className={s.stage}>
         <div className={s.locked}>
           <LockIcon size={40} />
           <h2>Bài học này đã khoá</h2>
           <p>
-            {user
-              ? 'Tài khoản của bạn chưa được mở khoá khoá học này. Liên hệ giáo viên phụ trách để được mở khoá; thanh toán bằng QR sắp ra mắt.'
-              : 'Đăng nhập nếu bạn đã được mở khoá khoá học này, hoặc xem bài học thử miễn phí.'}
+            {onSale
+              ? `Mua khoá học (${formatVnd(course.priceVnd!)}) bằng mã QR để mở toàn bộ bài giảng.`
+              : user
+                ? 'Khoá học này chưa mở bán trực tuyến. Liên hệ giáo viên phụ trách để được mở khoá.'
+                : 'Đăng nhập nếu bạn đã được mở khoá khoá học này, hoặc xem bài học thử miễn phí.'}
           </p>
           <div className={s.lockedActions}>
+            {onSale && <BuyButton courseId={course.id} size="sm" label="Mua khoá học" />}
             {!user && (
-              <LinkButton href="/login" variant="accent" size="sm">
+              <LinkButton
+                href={routes.login(here)}
+                variant={onSale ? 'outline' : 'accent'}
+                size="sm"
+                className={onSale ? s.onDark : undefined}
+              >
                 Đăng nhập
               </LinkButton>
             )}

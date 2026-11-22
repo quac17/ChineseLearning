@@ -26,7 +26,10 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       const u = await login(email, password);
-      if (u.role === 'ADMIN') router.push('/admin');
+      // ?next= brings the learner back (e.g. to the course they wanted to buy).
+      const next = new URLSearchParams(window.location.search).get('next');
+      if (next && next.startsWith('/') && !next.startsWith('//')) router.push(next);
+      else if (u.role === 'ADMIN') router.push('/admin');
       else if (u.role === 'TEACHER') router.push('/teacher');
       else router.push('/courses');
     } catch (err: any) {

@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { Role } from '../common/types/domain.types';
 import { CoursesService } from './courses.service';
-import { CreateCourseDto, ReorderCoursesDto, UpdateCourseDto } from './dto/course.dto';
+import { CreateCourseDto, ReorderCoursesDto, SetCoursePriceDto, UpdateCourseDto } from './dto/course.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../common/guards/optional-jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -68,6 +68,14 @@ export class CoursesController {
     @CurrentUser() user: AuthUser,
   ) {
     return this.coursesService.update(id, dto, user);
+  }
+
+  /** Prices are set by admins only; teachers can read them but not change them. */
+  @Patch(':id/price')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  setPrice(@Param('id') id: string, @Body() dto: SetCoursePriceDto) {
+    return this.coursesService.setPrice(id, dto.priceVnd);
   }
 
   @Delete(':id')

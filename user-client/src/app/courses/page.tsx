@@ -7,12 +7,12 @@ import { Alert, Badge, Button, Checkbox, EmptyState, LinkButton, Select, Skeleto
 import { useAuth } from '@/context/AuthContext';
 import { useModule } from '@/context/ModuleContext';
 import { apiRequest } from '@/lib/api';
-import { courseMeta, hasPreview, parseProgram, routes } from '@/lib/courses';
-import { PROGRAMS, PROGRAM_ORDER } from '@/lib/programs';
+import { courseMeta, hasPreview, isOnSale, parseProgram, routes } from '@/lib/courses';
+import { PROGRAMS, PROGRAM_ORDER, formatVnd } from '@/lib/programs';
 import type { CourseItem } from '@/lib/types';
 import s from './catalog.module.css';
 
-type SortKey = 'relevant' | 'newest' | 'title';
+type SortKey = 'relevant' | 'newest' | 'title' | 'price';
 
 export default function CatalogPage() {
   return (
@@ -76,6 +76,10 @@ function Catalog() {
     });
     if (sort === 'newest') list = [...list].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     if (sort === 'title') list = [...list].sort((a, b) => a.title.localeCompare(b.title, 'vi'));
+    if (sort === 'price') {
+      const price = (c: CourseItem) => (c.isFree ? 0 : c.priceVnd ?? Number.MAX_SAFE_INTEGER);
+      list = [...list].sort((a, b) => price(a) - price(b));
+    }
     return list;
   }, [courses, onlyFree, onlyPaid, withPreview, sort]);
 
@@ -158,6 +162,7 @@ function Catalog() {
               <Select id="sort" value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
                 <option value="relevant">Phù hợp nhất</option>
                 <option value="newest">Mới nhất</option>
+                <option value="price">Giá thấp đến cao</option>
                 <option value="title">Tên A–Z</option>
               </Select>
             </div>
@@ -220,8 +225,9 @@ function CourseRow({ course }: { course: CourseItem }) {
           {course.hasAccess && !course.isFree && <Badge tone="owned">Đã mở khoá</Badge>}
         </span>
       </div>
-      {/* Prices arrive with checkout (PayOS); until then only free courses show one. */}
-      <span className={s.price}>{course.isFree ? 'Miễn phí' : ''}</span>
+      <span className={s.price}>
+        {course.isFree ? 'Miễn phí' : isOnSale(course) ? formatVnd(course.priceVnd!) : ''}
+      </span>
     </Link>
   );
 }

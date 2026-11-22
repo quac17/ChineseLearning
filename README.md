@@ -97,6 +97,22 @@ yarn skills:install
 | **Học sinh A** | `studentA@vankinh.vn` | `Student@123` | Đã được cấp quyền khóa **HSK 1** |
 | **Học sinh B** | `studentB@vankinh.vn` | `Student@123` | Chưa được cấp quyền khóa trả phí |
 
+## Thanh toán PayOS
+
+PayOS **không có môi trường sandbox**: mọi giao dịch qua PayOS là tiền thật.
+
+- **Mặc định (`PAYMENT_GATEWAY=fake` trong `server/.env`):** dùng cổng giả lập.
+  Trang thanh toán vẫn hiện mã QR (không quét được) và nút **"Giả lập: đã thanh toán"**.
+  Nút này đi qua đúng đường xử lý webhook thật. Cổng giả lập tự chặn khi `NODE_ENV=production`.
+- **Thử PayOS thật:** đặt `PAYMENT_GATEWAY=payos` và 3 key `PAYOS_*` (lấy ở my.payos.vn),
+  rồi mua khoá demo "Giao tiếp du lịch Trung Quốc" giá 2.000 ₫ (`yarn db:demo`).
+  Ở local, PayOS không gọi được webhook vào máy bạn. Trang thanh toán tự hỏi lại PayOS
+  vài giây một lần nên vẫn mở khoá sau khi trả tiền.
+- **Giá khoá học:** admin đặt ở `/admin/prices`. Để trống nghĩa là chưa mở bán.
+  Đơn hàng xem ở `/admin/orders`.
+- DB đang có dữ liệu thì chạy migration
+  `server/db/migrations/20261122_1200_payments.sql` (chạy lại nhiều lần vẫn an toàn).
+
 ## Dữ liệu demo để thử giao diện (`yarn db:demo`)
 
 Seed ở trên rất ít vì bộ test e2e dựa vào nó. Để có nhiều khoá học, bài học và
@@ -109,7 +125,7 @@ yarn db:reset && yarn db:seed && yarn db:demo
 `yarn db:demo` chạy lại được bao nhiêu lần cũng được: nó xoá rồi tạo lại các dòng
 `demo-*`, ghi tài liệu mẫu vào `server/uploads/documents/` và tạo video mẫu
 (thẻ tiêu đề 4 giây, cần Chromium của Playwright) vào `server/uploads/videos/`.
-Toàn bộ là nội dung bịa để thử giao diện, không có đánh giá, số học viên hay giá.
+Toàn bộ là nội dung bịa để thử giao diện, không có đánh giá hay số học viên. Giá trên các khoá là giá thử để test thanh toán.
 
 Mật khẩu mọi tài khoản demo: `Demo@123`.
 

@@ -40,7 +40,10 @@ export function DashboardShell({ area, nav, children }: DashboardShellProps) {
           </span>
         </Link>
         {nav.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+          // The most specific matching item wins, so /admin is not active on /admin/orders.
+          const matches = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+          const best = nav.filter((n) => matches(n.href)).sort((a, b) => b.href.length - a.href.length)[0];
+          const active = best?.href === item.href;
           return (
             <Link key={item.href} href={item.href} className={s.sideLink} aria-current={active ? 'page' : undefined}>
               {item.label}
