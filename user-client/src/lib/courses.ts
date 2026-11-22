@@ -1,4 +1,4 @@
-import type { CourseItem, CourseProgress, CourseSection, LessonItem, ProgramModule } from './types';
+import type { CourseItem, CourseLevel, CourseProgress, CourseSection, LessonItem, ProgramModule } from './types';
 import { PROGRAM_ORDER } from './programs';
 
 /** URL helpers, so routes are spelled in one place. */
@@ -92,16 +92,56 @@ export function hasPreview(course: Pick<CourseItem, 'lessons'>): boolean {
   return course.lessons.some((l) => l.isFree);
 }
 
-/** "3 bài · 1 tài liệu" (only the parts that exist). */
-export function courseMeta(course: Pick<CourseItem, 'lessons' | 'documents'>): string {
+export const LEVELS: Record<CourseLevel, { label: string; hint: string }> = {
+  BEGINNER: { label: 'Mới bắt đầu', hint: 'HSK 1–2' },
+  INTERMEDIATE: { label: 'Trung cấp', hint: 'HSK 3–4' },
+  ADVANCED: { label: 'Nâng cao', hint: 'HSK 5–6' },
+};
+export const LEVEL_ORDER: CourseLevel[] = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
+
+/** 45 → "45 phút", 190 → "3 giờ 10 phút", 120 → "2 giờ". */
+export function formatMinutes(minutes: number): string {
+  const m = Math.max(0, Math.round(minutes));
+  if (m < 60) return `${m} phút`;
+  const h = Math.floor(m / 60);
+  const rest = m % 60;
+  return rest ? `${h} giờ ${rest} phút` : `${h} giờ`;
+}
+
+/** Minutes of the lessons that have them. */
+export function lessonsMinutes(lessons: Pick<LessonItem, 'durationMinutes'>[]): number {
+  return lessons.reduce((sum, l) => sum + (l.durationMinutes && l.durationMinutes > 0 ? l.durationMinutes : 0), 0);
+}
+
+/** "3 bài · 3 giờ 10 phút · 1 tài liệu · Mới bắt đầu" (only the parts that exist). */
+export function courseMeta(
+  course: Pick<CourseItem, 'lessons' | 'documents'> & Partial<Pick<CourseItem, 'totalDurationMinutes' | 'level'>>,
+): string {
   const parts = [`${course.lessons.length} bài`];
+  if (course.totalDurationMinutes) parts.push(formatMinutes(course.totalDurationMinutes));
   if (course.documents.length) parts.push(`${course.documents.length} tài liệu`);
+  if (course.level) parts.push(LEVELS[course.level].label);
   return parts.join(' · ');
 }
 
-/** Durations are free text from teachers ("12 phút", "14:00"); show them as given. */
-export function lessonDuration(lesson: Pick<LessonItem, 'duration'>): string {
+/** Minutes when the teacher set them, else their free text as given ("14:00"). */
+export function lessonDuration(lesson: Pick<LessonItem, 'duration'> & Partial<Pick<LessonItem, 'durationMinutes'>>): string {
+  if (lesson.durationMinutes && lesson.durationMinutes > 0) return formatMinutes(lesson.durationMinutes);
   return lesson.duration?.trim() || '';
+}
+
+/** Catalog "Thời lượng" filter. Courses without minutes match none of them. */
+export type DurationBucket = 'short' | 'medium' | 'long';
+export const DURATION_BUCKETS: Array<{ id: DurationBucket; label: string }> = [
+  { id: 'short', label: 'Dưới 3 giờ' },
+  { id: 'medium', label: '3–10 giờ' },
+  { id: 'long', label: 'Trên 10 giờ' },
+];
+export function durationBucket(totalMinutes: number | undefined): DurationBucket | null {
+  if (!totalMinutes || totalMinutes <= 0) return null;
+  if (totalMinutes < 180) return 'short';
+  if (totalMinutes <= 600) return 'medium';
+  return 'long';
 }
 
 /** A paid course that can be bought right now. */

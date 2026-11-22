@@ -27,6 +27,13 @@ một lần), `DELETE /courses/:courseId/sections/:sectionId` (bài vẫn giữ)
 `PATCH /lessons/:id` `{ sectionId }` (`null` = bỏ khỏi Phần); `POST /lessons/youtube|upload` cũng
 nhận `sectionId`. Tên Phần lưu không kèm số; giao diện tự thêm "Phần 1: ".
 
+API thông tin khoá (#28): `PATCH /courses/:id` nhận thêm `subtitle` (≤ 120 ký tự, `""`/`null` = xoá),
+`level` (`BEGINNER` | `INTERMEDIATE` | `ADVANCED` | `null`) và `outcomes` (tối đa 12 ý, mỗi ý ≤ 160
+ký tự). Ảnh bìa: `POST /courses/:id/cover` (multipart `file`, .jpg/.png/.webp, tối đa
+`MAX_COVER_SIZE_MB` = 2), `DELETE /courses/:id/cover`; khoá trả `coverUrl` (dùng `buildMediaUrl`).
+Thời lượng bài: `durationMinutes` (1–600) trên `POST /lessons/youtube|upload` và `PATCH /lessons/:id`;
+bỏ trống thì server đọc từ ô chữ `duration`. Khoá có `totalDurationMinutes`.
+
 ## Chủ dự án
 
 - [ ] Đăng ký PayOS, lấy `PAYOS_CLIENT_ID`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM_KEY`

@@ -9,11 +9,14 @@ import { useAuth } from '@/context/AuthContext';
 import { buildMediaUrl, formatFileSize } from '@/lib/api';
 import { BuyButton } from '@/components/course/BuyButton';
 import {
+  LEVELS,
   courseOutline,
   firstLesson,
+  formatMinutes,
   hasSections,
   isOnSale,
   lessonDuration,
+  lessonsMinutes,
   previewLesson,
   routes,
   sectionHeading,
@@ -65,9 +68,14 @@ function CourseDetail({ course }: { course: CourseItem }) {
               <Link href={routes.catalog({ program: course.module })}>{p.name}</Link>
             </p>
             <h1 className={s.title}>{course.title}</h1>
-            {course.description && <p className={s.lead}>{firstSentence(course.description)}</p>}
+            {course.subtitle ? (
+              <p className={s.lead}>{course.subtitle}</p>
+            ) : (
+              course.description && <p className={s.lead}>{firstSentence(course.description)}</p>
+            )}
             <p className={s.heroMeta}>
               {course.isFree && <Badge tone="new">Miễn phí</Badge>}
+              {course.level && <span>{LEVELS[course.level].label}</span>}
               {!course.isFree && course.hasAccess && <Badge tone="owned">Bạn đã có quyền xem</Badge>}
               <span>
                 {lessons.length} bài{hasDocs ? ` · ${course.documents.length} tài liệu` : ''}
@@ -88,6 +96,22 @@ function CourseDetail({ course }: { course: CourseItem }) {
 
       <div className={`${s.wrap} ${s.body}`}>
         <div className={`${s.col} ${s.sections}`}>
+          {(course.outcomes?.length ?? 0) > 0 && (
+            <section className={`${s.section} ${s.learnBox}`} aria-labelledby="hoc-duoc">
+              <h2 id="hoc-duoc">Bạn sẽ học được</h2>
+              <ul className={s.learn}>
+                {course.outcomes!.map((item) => (
+                  <li key={item}>
+                    <span className={s.check} aria-hidden="true">
+                      ✓
+                    </span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           <section className={s.section} aria-labelledby="noi-dung">
             <h2 id="noi-dung">Nội dung khoá học</h2>
             <p className={s.sub}>{outlineSummary(course)}</p>
@@ -176,6 +200,7 @@ function outlineSummary(course: CourseItem): string {
   const parts = [];
   if (hasSections(course)) parts.push(`${course.sections!.length} phần`);
   parts.push(`${course.lessons.length} bài`);
+  if (course.totalDurationMinutes) parts.push(`tổng ${formatMinutes(course.totalDurationMinutes)}`);
   return parts.join(' · ');
 }
 
@@ -212,7 +237,10 @@ function SectionBlock({
           <ChevronIcon />
           {sectionHeading(group)}
         </span>
-        <span className={s.partMeta}>{group.lessons.length} bài</span>
+        <span className={s.partMeta}>
+          {group.lessons.length} bài
+          {lessonsMinutes(group.lessons) > 0 && ` · ${formatMinutes(lessonsMinutes(group.lessons))}`}
+        </span>
       </summary>
       {group.lessons.length === 0 ? (
         <p className={s.partEmpty}>Phần này chưa có bài giảng.</p>
@@ -270,6 +298,10 @@ function BuyBox({ course }: { course: CourseItem }) {
     <aside className={s.buy} aria-label={course.hasAccess ? 'Vào học' : 'Mở khoá khoá học'}>
       {previewTarget?.canWatch ? (
         <Link href={routes.learn(course.id, previewTarget.id)} className={s.preview} style={{ background: p.color }}>
+          {course.coverUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={buildMediaUrl(course.coverUrl)} alt="" className={s.coverImg} />
+          )}
           <span className={s.play}>
             <PlayIcon size={22} />
           </span>
@@ -279,7 +311,12 @@ function BuyBox({ course }: { course: CourseItem }) {
         </Link>
       ) : (
         <div className={s.preview} style={{ background: p.color }} aria-hidden="true">
-          <span className={s.previewHan}>{p.han}</span>
+          {course.coverUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={buildMediaUrl(course.coverUrl)} alt="" className={s.coverImg} />
+          ) : (
+            <span className={s.previewHan}>{p.han}</span>
+          )}
         </div>
       )}
       <div className={s.buyBody}>
@@ -332,7 +369,10 @@ function BuyBox({ course }: { course: CourseItem }) {
         )}
         <p className={s.includes}>Khoá học gồm</p>
         <ul className={s.includeList}>
-          <li>{course.lessons.length} bài giảng video</li>
+          <li>
+            {course.lessons.length} bài giảng video
+            {course.totalDurationMinutes ? ` (${formatMinutes(course.totalDurationMinutes)})` : ''}
+          </li>
           {course.documents.length > 0 && <li>{course.documents.length} tài liệu Word / PowerPoint</li>}
           <li>Xem trên web và điện thoại</li>
         </ul>

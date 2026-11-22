@@ -8,6 +8,7 @@ import { Request, Response } from 'express';
 import { DatabaseService } from '../database/database.service';
 import { CoursesService } from '../courses/courses.service';
 import { SectionsService } from '../courses/sections.service';
+import { parseDurationMinutes } from '../courses/course-meta';
 import { StorageService } from '../common/storage/storage.service';
 import { AuthUser } from '../common/decorators/current-user.decorator';
 import { generateId, VideoSourceType } from '../common/types/domain.types';
@@ -27,6 +28,12 @@ export class LessonsService {
     private readonly sections: SectionsService,
     private readonly storage: StorageService,
   ) {}
+
+  /** Explicit minutes win; otherwise read them from the free-text duration. */
+  private minutesFor(dto: { durationMinutes?: number | null; duration?: string }): number | null {
+    if (dto.durationMinutes !== undefined) return dto.durationMinutes;
+    return parseDurationMinutes(dto.duration);
+  }
 
   /** null/undefined = no section; otherwise it must be a section of this course. */
   private async resolveSectionId(sectionId: string | null | undefined, courseId: string): Promise<string | null> {
@@ -59,8 +66,8 @@ export class LessonsService {
 
     return this.db.queryOne(
       `INSERT INTO lessons
-         (id, course_id, title, description, duration, sort_order, is_free, source_type, youtube_id, youtube_url, section_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         (id, course_id, title, description, duration, sort_order, is_free, source_type, youtube_id, youtube_url, section_id, duration_minutes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        RETURNING *`,
       [
         id,
@@ -74,6 +81,7 @@ export class LessonsService {
         youtubeId,
         `https://www.youtube.com/watch?v=${youtubeId}`,
         sectionId,
+        this.minutesFor(dto),
       ],
     );
   }
@@ -103,8 +111,8 @@ export class LessonsService {
 
     return this.db.queryOne(
       `INSERT INTO lessons
-         (id, course_id, title, description, duration, sort_order, is_free, source_type, storage_key, original_file_name, mime_type, file_size, section_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+         (id, course_id, title, description, duration, sort_order, is_free, source_type, storage_key, original_file_name, mime_type, file_size, section_id, duration_minutes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
        RETURNING *`,
       [
         id,
@@ -120,6 +128,7 @@ export class LessonsService {
         file.mimetype || 'video/mp4',
         file.size,
         sectionId,
+        this.minutesFor(dto),
       ],
     );
   }
@@ -146,6 +155,10 @@ export class LessonsService {
     if (dto.duration !== undefined) {
       sets.push(`duration = $${idx++}`);
       params.push(dto.duration.trim() || null);
+    }
+    if (dto.durationMinutes !== undefined || dto.duration !== undefined) {
+      sets.push(`duration_minutes = $${idx++}`);
+      params.push(this.minutesFor(dto));
     }
     if (dto.isFree !== undefined) {
       sets.push(`is_free = $${idx++}`);

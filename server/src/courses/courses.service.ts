@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import * as path from 'path';
 import { DatabaseService } from '../database/database.service';
 import { StorageService } from '../common/storage/storage.service';
 import { AuthUser } from '../common/decorators/current-user.decorator';
@@ -11,6 +12,14 @@ import { generateId, ProgramModule, Role } from '../common/types/domain.types';
 import { CreateCourseDto, UpdateCourseDto } from './dto/course.dto';
 import { courseSearchClause, courseSearchPattern } from './course-search';
 import { buildOutline } from './course-outline';
+import { COVER_CONTENT_TYPES, CoverImageType, detectImageType, normalizeOutcomes, sumDurationMinutes } from './course-meta';
+
+/** Public cover path with a version from the storage key, so a new upload is never served from cache. */
+function coverPath(courseId: string, coverKey: string | null | undefined): string | null {
+  if (!coverKey) return null;
+  const version = path.basename(coverKey).split('.')[0];
+  return `/courses/${encodeURIComponent(courseId)}/cover?v=${encodeURIComponent(version)}`;
+}
 
 @Injectable()
 export class CoursesService {
@@ -137,6 +146,7 @@ export class CoursesService {
         title: lesson.title,
         description: lesson.description,
         duration: lesson.duration,
+        durationMinutes: lesson.duration_minutes ?? null,
         sortOrder: lesson.sort_order ?? 0,
         sectionId: lesson.section_id ?? null,
         isFree: lesson.is_free,
@@ -177,11 +187,20 @@ export class CoursesService {
       };
     });
 
+    const { totalMinutes } = sumDurationMinutes(course.lessons || []);
+
     return {
       id: course.id,
       title: course.title,
+      subtitle: course.subtitle ?? null,
       description: course.description,
       module: course.module as ProgramModule,
+      level: course.level ?? null,
+      outcomes: course.outcomes ?? [],
+      /** Public image path (covers are marketing, not paid content); null = program colour. */
+      coverUrl: coverPath(course.id, course.cover_key),
+      /** Sum of the lessons that have minutes. */
+      totalDurationMinutes: totalMinutes,
       sortOrder: course.sort_order ?? 0,
       isFree: course.is_free,
       isPublished: course.is_published,
@@ -328,8 +347,8 @@ export class CoursesService {
     const nextOrder = (maxRow?.max_order ?? -1) + 1;
 
     const created = await this.db.queryOne(
-      `INSERT INTO courses (id, title, description, module, sort_order, is_free, is_published, teacher_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO courses (id, title, description, module, sort_order, is_free, is_published, teacher_id, subtitle, level, outcomes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *`,
       [
         id,
@@ -340,14 +359,22 @@ export class CoursesService {
         dto.isFree ?? false,
         dto.isPublished ?? true,
         user.id,
+        dto.subtitle ?? null,
+        dto.level ?? null,
+        normalizeOutcomes(dto.outcomes ?? []),
       ],
     );
 
     return {
       id: created.id,
       title: created.title,
+      subtitle: created.subtitle,
       description: created.description,
       module: created.module,
+      level: created.level,
+      outcomes: created.outcomes,
+      coverUrl: null,
+      totalDurationMinutes: 0,
       sortOrder: created.sort_order,
       isFree: created.is_free,
       isPublished: created.is_published,
@@ -359,6 +386,45 @@ export class CoursesService {
       lessons: [],
       documents: [],
     };
+  }
+
+  /**
+   * Stores a new cover (JPEG, PNG or WebP, checked by its bytes) under a
+   * server-generated key and removes the previous file.
+   */
+  async setCover(courseId: string, file: Express.Multer.File | undefined, user: AuthUser) {
+    if (!file?.buffer?.length) throw new BadRequestException('Vui lòng chọn ảnh bìa để tải lên.');
+    const course = await this.assertCanManageCourse(courseId, user);
+    const type = detectImageType(file.buffer);
+    if (!type) throw new BadRequestException('Ảnh bìa phải là tệp JPG, PNG hoặc WebP.');
+
+    const key = this.storage.generateStorageKey('covers', `cover.${type}`);
+    await this.storage.saveBuffer(key, file.buffer);
+    try {
+      await this.db.query('UPDATE courses SET cover_key = $1, updated_at = NOW() WHERE id = $2', [key, courseId]);
+    } catch (err) {
+      await this.storage.deleteFile(key);
+      throw err;
+    }
+    if (course.cover_key && course.cover_key !== key) await this.storage.deleteFile(course.cover_key);
+    return { id: courseId, coverUrl: coverPath(courseId, key) };
+  }
+
+  async removeCover(courseId: string, user: AuthUser) {
+    const course = await this.assertCanManageCourse(courseId, user);
+    await this.db.query('UPDATE courses SET cover_key = NULL, updated_at = NOW() WHERE id = $1', [courseId]);
+    await this.storage.deleteFile(course.cover_key);
+    return { id: courseId, coverUrl: null };
+  }
+
+  /** The cover file to stream (public). */
+  async getCover(courseId: string): Promise<{ key: string; contentType: string }> {
+    const row = await this.db.queryOne('SELECT cover_key FROM courses WHERE id = $1', [courseId]);
+    if (!row?.cover_key || !this.storage.fileExists(row.cover_key)) {
+      throw new NotFoundException('Khoá học chưa có ảnh bìa.');
+    }
+    const ext = path.extname(row.cover_key).slice(1) as CoverImageType;
+    return { key: row.cover_key, contentType: COVER_CONTENT_TYPES[ext] ?? 'application/octet-stream' };
   }
 
   async assertCanManageCourse(courseId: string, user: AuthUser) {
@@ -400,6 +466,18 @@ export class CoursesService {
     if (dto.isPublished !== undefined) {
       sets.push(`is_published = $${idx++}`);
       params.push(dto.isPublished);
+    }
+    if (dto.subtitle !== undefined) {
+      sets.push(`subtitle = $${idx++}`);
+      params.push(dto.subtitle);
+    }
+    if (dto.level !== undefined) {
+      sets.push(`level = $${idx++}`);
+      params.push(dto.level);
+    }
+    if (dto.outcomes !== undefined) {
+      sets.push(`outcomes = $${idx++}`);
+      params.push(normalizeOutcomes(dto.outcomes));
     }
 
     params.push(id);
@@ -446,11 +524,13 @@ export class CoursesService {
       ]),
     ]);
 
+    const course = await this.db.queryOne('SELECT cover_key FROM courses WHERE id = $1', [id]);
     for (const l of lessons) {
       await this.storage.deleteFile(l.storage_key);
       await this.storage.deleteFile(l.subtitle_key);
     }
     for (const d of docs) await this.storage.deleteFile(d.storage_key);
+    await this.storage.deleteFile(course?.cover_key);
 
     await this.db.query('DELETE FROM courses WHERE id = $1', [id]);
     return { deleted: true, id };

@@ -2,6 +2,8 @@ export type Role = 'ADMIN' | 'TEACHER' | 'STUDENT';
 export type ProgramModule = 'easy' | 'yct' | 'hsk' | 'talk';
 export type ModuleSelection = 'all' | ProgramModule;
 export type VideoSourceType = 'UPLOAD' | 'YOUTUBE';
+/** Course level (Cấp độ). */
+export type CourseLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
 
 export interface User {
   id: string;
@@ -24,6 +26,8 @@ export interface LessonItem {
   title: string;
   description?: string | null;
   duration?: string | null;
+  /** Length in whole minutes; preferred over the free-text `duration` when set. */
+  durationMinutes?: number | null;
   sortOrder: number;
   /** Section ("Phần") the lesson belongs to; null = none. */
   sectionId?: string | null;
@@ -68,8 +72,17 @@ export interface CourseDocumentItem {
 export interface CourseItem {
   id: string;
   title: string;
+  /** Short line under the title (≤ 120 characters). */
+  subtitle?: string | null;
   description?: string | null;
   module: ProgramModule;
+  level?: CourseLevel | null;
+  /** "Bạn sẽ học được", one item per line. */
+  outcomes?: string[];
+  /** API path of the public cover image (use buildMediaUrl); null = program colour. */
+  coverUrl?: string | null;
+  /** Sum of the lessons' minutes (lessons without minutes count 0). */
+  totalDurationMinutes?: number;
   sortOrder?: number;
   isFree: boolean;
   isPublished: boolean;

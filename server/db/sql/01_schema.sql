@@ -51,10 +51,15 @@ CREATE TABLE IF NOT EXISTS courses (
   is_published BOOLEAN NOT NULL DEFAULT true,
   teacher_id VARCHAR(64) NOT NULL,
   price_vnd INTEGER,
+  subtitle VARCHAR(120),
+  level VARCHAR(20),
+  outcomes TEXT[] NOT NULL DEFAULT '{}',
+  cover_key TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT courses_pkey PRIMARY KEY (id),
   CONSTRAINT courses_price_vnd_check CHECK (price_vnd IS NULL OR price_vnd > 0),
+  CONSTRAINT courses_level_check CHECK (level IS NULL OR level IN ('BEGINNER', 'INTERMEDIATE', 'ADVANCED')),
   CONSTRAINT courses_module_fkey FOREIGN KEY (module) REFERENCES program_modules(code),
   CONSTRAINT courses_teacher_id_fkey FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -89,9 +94,11 @@ CREATE TABLE IF NOT EXISTS lessons (
   mime_type VARCHAR(120),
   file_size INTEGER,
   section_id VARCHAR(64),
+  duration_minutes INTEGER,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT lessons_pkey PRIMARY KEY (id),
+  CONSTRAINT lessons_duration_minutes_check CHECK (duration_minutes IS NULL OR duration_minutes BETWEEN 1 AND 600),
   CONSTRAINT lessons_source_type_check CHECK (((source_type)::text = ANY ((ARRAY['UPLOAD'::character varying, 'YOUTUBE'::character varying])::text[]))),
   CONSTRAINT lessons_course_id_fkey FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
   CONSTRAINT lessons_section_id_fkey FOREIGN KEY (section_id) REFERENCES course_sections(id) ON DELETE SET NULL

@@ -20,7 +20,7 @@ export class StorageService {
     return this.uploadDir;
   }
 
-  generateStorageKey(folder: 'videos' | 'documents' | 'subtitles', originalName: string): string {
+  generateStorageKey(folder: 'videos' | 'documents' | 'subtitles' | 'covers', originalName: string): string {
     const ext = path.extname(originalName).toLowerCase();
     const uniqueId = `${Date.now()}-${crypto.randomBytes(6).toString('hex')}`;
     return `${folder}/${uniqueId}${ext}`;
