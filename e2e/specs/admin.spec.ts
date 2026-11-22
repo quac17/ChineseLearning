@@ -204,10 +204,11 @@ test.describe('admin area in the UI', () => {
 test.describe('admin area as a teacher', () => {
   test.use({ storageState: storageStateFor('teacher') });
 
-  test('a teacher sees the admin-only notice on the new pages', async ({ page }) => {
-    for (const path of ['/admin/users', '/admin/courses']) {
+  test('a teacher gets the 403 state on the admin pages, with a way back', async ({ page }) => {
+    for (const path of ['/admin', '/admin/users', '/admin/courses']) {
       await page.goto(path);
-      await expect(page.getByRole('heading', { name: /chỉ dành cho Quản trị viên/ })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Bạn không có quyền vào trang này' })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'Về khu giáo viên' })).toHaveAttribute('href', '/teacher');
     }
   });
 });

@@ -14,6 +14,17 @@ export function buildMediaUrl(path: string): string {
   return `${API_BASE}${cleanPath}`;
 }
 
+/** A non-2xx API response. `status` lets pages tell "not found" from a server failure. */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 export async function apiRequest<T>(
   path: string,
   options: RequestInit = {},
@@ -44,7 +55,7 @@ export async function apiRequest<T>(
     } catch {
       // keep default error
     }
-    throw new Error(message);
+    throw new ApiError(message, response.status);
   }
 
   if (response.status === 204) {

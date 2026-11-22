@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Alert, EmptyState, LinkButton, Skeleton } from '@/components/ui';
+import { StatePage } from '@/components/layout/StatePage';
 import { useAuth } from '@/context/AuthContext';
 import { apiRequest } from '@/lib/api';
 import type { CourseItem } from '@/lib/types';
@@ -56,18 +57,18 @@ export default function CourseEditorLayout({ children, params }: { children: Rea
   // GET /courses/:id is public; editing is only for the owner or an admin (the API checks it too).
   if (user && user.role !== 'ADMIN' && course.teacherId !== user.id) {
     return (
-      <div className={s.card}>
-        <EmptyState
-          title="Bạn không quản lý khoá học này"
-          action={
-            <LinkButton href="/teacher/courses" variant="outline">
-              Về khoá học của bạn
-            </LinkButton>
-          }
-        >
-          Chỉ giáo viên phụ trách khoá hoặc Admin mới sửa được.
-        </EmptyState>
-      </div>
+      <StatePage
+        inline
+        kicker="403 · Không có quyền"
+        title="Bạn không quản lý khoá học này"
+        actions={
+          <LinkButton href="/teacher/courses" variant="ink">
+            Về khoá học của bạn
+          </LinkButton>
+        }
+      >
+        Chỉ giáo viên phụ trách khoá hoặc Admin mới sửa được.
+      </StatePage>
     );
   }
 

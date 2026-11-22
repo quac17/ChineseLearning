@@ -58,9 +58,9 @@ test.describe('teacher area', () => {
 test.describe('teacher area as a student', () => {
   test.use({ storageState: storageStateFor('studentB') });
 
-  test('shows the teacher-only notice and no course data', async ({ page }) => {
+  test('shows the 403 state and no course data', async ({ page }) => {
     await page.goto('/teacher/courses');
-    await expect(page.getByRole('heading', { name: 'Khu vực dành cho Giáo viên' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Bạn không có quyền vào trang này' })).toBeVisible();
     await expect(page.getByRole('table')).toHaveCount(0);
     expect((await (await apiAs('studentB')).get('courses/manage')).status()).toBe(403);
   });

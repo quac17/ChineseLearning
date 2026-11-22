@@ -3,6 +3,7 @@ import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { ModuleProvider } from '@/context/ModuleContext';
 import { AppChrome } from '@/components/layout/AppChrome';
+import { OfflineBar } from '@/components/layout/StatePage';
 import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister';
 import { ToastProvider } from '@/components/ui';
 
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <AuthProvider>
           <ModuleProvider>
             <ToastProvider>
+              <OfflineBar />
               <AppChrome>{children}</AppChrome>
             </ToastProvider>
           </ModuleProvider>

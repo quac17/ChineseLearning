@@ -2,7 +2,7 @@
 
 .top {
   position: sticky;
-  top: 0;
+  top: var(--offline-bar-h);
   z-index: 40;
   background: #1c1d1f;
   color: #ffffff;

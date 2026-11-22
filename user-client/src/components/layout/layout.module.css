@@ -3,7 +3,7 @@
 /* Header ----------------------------------------------------------------- */
 .header {
   position: sticky;
-  top: 0;
+  top: var(--offline-bar-h);
   z-index: 40;
   background: var(--bg);
   box-shadow: var(--shadow-bar);
