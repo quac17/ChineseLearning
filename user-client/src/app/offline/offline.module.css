@@ -1,0 +1,50 @@
+/* Offline page (docs/design/canvas/States.dc.html, "Lỗi máy chủ / mất kết nối"). */
+.page {
+  display: flex;
+  justify-content: center;
+  padding: 56px var(--gutter) 80px;
+}
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  max-width: 560px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+.kicker {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.han {
+  font-size: 72px;
+  line-height: 1;
+  color: var(--line);
+}
+.title {
+  font-size: 22px;
+  font-weight: 800;
+}
+.body {
+  font-size: 15px;
+  line-height: 1.5;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+@media (max-width: 760px) {
+  .page {
+    padding: 32px 16px 96px;
+  }
+  .panel {
+    padding: 20px;
+  }
+}
