@@ -19,7 +19,6 @@ Cập nhật: 2026-11-22.
 | Chủ dự án | [#15](https://github.com/quac17/ChineseLearning/issues/15) Duyệt và điền bản nháp Điều khoản sử dụng, Chính sách bảo mật (`user-client/src/content/legal/`) rồi đặt `draft: false` | |
 | Chủ dự án | [#16](https://github.com/quac17/ChineseLearning/issues/16) Chọn dịch vụ gửi email và chuẩn bị Google Cloud Storage | |
 | Chủ dự án + Claude | [#17](https://github.com/quac17/ChineseLearning/issues/17) Triển khai production lên GCP | #14 |
-| Claude (để sau) | [#38](https://github.com/quac17/ChineseLearning/issues/38) Nhắc ôn tập mỗi ngày | |
 
 Bảng này chỉ để nhìn nhanh; khi lệch với GitHub thì GitHub đúng. Đóng hoặc mở issue
 mới thì sửa bảng trong cùng PR.

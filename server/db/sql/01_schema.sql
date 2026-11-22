@@ -349,6 +349,18 @@ CREATE TABLE IF NOT EXISTS password_resets (
   CONSTRAINT password_resets_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Daily review reminder by email (#38). No row = off (opt-in). last_sent_on is
+-- the Vietnam calendar day of the last mail: at most one reminder a day.
+CREATE TABLE IF NOT EXISTS review_reminders (
+  user_id VARCHAR(64) NOT NULL,
+  enabled BOOLEAN NOT NULL DEFAULT false,
+  last_sent_on DATE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT review_reminders_pkey PRIMARY KEY (user_id),
+  CONSTRAINT review_reminders_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_documents_course ON public.course_documents USING btree (course_id, sort_order);
 CREATE INDEX IF NOT EXISTS idx_enrollments_course ON public.course_enrollments USING btree (course_id);

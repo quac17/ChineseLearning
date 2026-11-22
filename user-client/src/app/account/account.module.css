@@ -195,6 +195,15 @@
   white-space: nowrap;
   max-width: 50vw;
 }
+/* A switch row in the phone list ("Nhắc ôn tập mỗi ngày"). */
+.switchItem {
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-bottom: 1px solid var(--line);
+  font-size: 16px;
+}
 .logout {
   color: var(--error);
   font-weight: 700;

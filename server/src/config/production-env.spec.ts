@@ -16,6 +16,7 @@ const good = {
   SMTP_PASS: 'pass',
   MAIL_FROM: 'Vân Kính <no-reply@example.com>',
   TRUST_PROXY: '1',
+  REMINDER_CRON_SECRET: 'r'.repeat(40),
 };
 
 describe('production configuration', () => {
@@ -54,10 +55,15 @@ describe('production configuration', () => {
     expect(checkProductionEnv({ ...good, CORS_ORIGIN: 'https://vankinh.vn, https://www.vankinh.vn' }).errors).toEqual([]);
   });
 
-  it('only warns about local storage and a missing TRUST_PROXY', () => {
-    const { errors, warnings } = checkProductionEnv({ ...good, STORAGE_BACKEND: undefined, TRUST_PROXY: undefined });
+  it('only warns about local storage, a missing TRUST_PROXY and a missing reminder secret', () => {
+    const { errors, warnings } = checkProductionEnv({
+      ...good,
+      STORAGE_BACKEND: undefined,
+      TRUST_PROXY: undefined,
+      REMINDER_CRON_SECRET: undefined,
+    });
     expect(errors).toEqual([]);
-    expect(warnings).toHaveLength(2);
+    expect(warnings).toHaveLength(3);
   });
 
   it('throws with every problem listed at once', () => {

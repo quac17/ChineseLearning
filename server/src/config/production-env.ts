@@ -83,6 +83,10 @@ export function checkProductionEnv(env: Env): EnvReport {
     warnings.push('TRUST_PROXY is not set: behind Cloud Run every request looks like it comes from the proxy, so the per-IP password reset limit counts everyone together.');
   }
 
+  if (!env.REMINDER_CRON_SECRET) {
+    warnings.push('REMINDER_CRON_SECRET is not set: POST /api/reminders/run refuses every call, so no daily review reminder is sent.');
+  }
+
   return { errors, warnings };
 }
 
