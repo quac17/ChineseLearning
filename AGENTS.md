@@ -72,6 +72,10 @@ Third-party skills and their licenses: `.agents/skills/THIRD_PARTY.md`.
 Issues and specs are GitHub issues on `quac17/ChineseLearning`, managed with
 `gh`. See `docs/agents/issue-tracker.md`.
 
+### Open work
+
+Who does what next: `docs/TODO.md`. Remove an item in the PR that finishes it.
+
 ### Domain docs
 
 Single-context: `GLOSSARY.md` at the root, ADRs in `docs/adr/`. See
