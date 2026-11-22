@@ -97,4 +97,33 @@ yarn skills:install
 | **Học sinh A** | `studentA@vankinh.vn` | `Student@123` | Đã được cấp quyền khóa **HSK 1** |
 | **Học sinh B** | `studentB@vankinh.vn` | `Student@123` | Chưa được cấp quyền khóa trả phí |
 
+## Dữ liệu demo để thử giao diện (`yarn db:demo`)
+
+Seed ở trên rất ít vì bộ test e2e dựa vào nó. Để có nhiều khoá học, bài học và
+tài khoản mà bấm thử, nạp thêm dữ liệu demo **chồng lên seed** (chỉ trên DB local):
+
+```bash
+yarn db:reset && yarn db:seed && yarn db:demo
+```
+
+`yarn db:demo` chạy lại được bao nhiêu lần cũng được: nó xoá rồi tạo lại các dòng
+`demo-*`, ghi tài liệu mẫu vào `server/uploads/documents/` và tạo video mẫu
+(thẻ tiêu đề 4 giây, cần Chromium của Playwright) vào `server/uploads/videos/`.
+Toàn bộ là nội dung bịa để thử giao diện, không có đánh giá, số học viên hay giá.
+
+Mật khẩu mọi tài khoản demo: `Demo@123`.
+
+| Email | Vai trò | Dùng để thử |
+|---|---|---|
+| `gv.minh@demo.vankinh.vn` | Giáo viên | HSK 2, HSK 3, du lịch, khoá nháp HSK 4 (chưa xuất bản) |
+| `gv.ha@demo.vankinh.vn` | Giáo viên | Khoá miễn phí (pinyin, ngữ pháp), tiếng Trung công sở |
+| `hv01@demo.vankinh.vn` | Học viên | Có 2 khoá: HSK 2, HSK 3 |
+| `hv02@demo.vankinh.vn` | Học viên | Có khoá công sở |
+| `hv03@demo.vankinh.vn` | Học viên | Có YCT 2 và Easy Steps 2 |
+| `hv04@demo.vankinh.vn` | Học viên | Bị thu hồi quyền HSK 2 (thấy bài bị khoá) |
+| `hv05@demo.vankinh.vn` | Học viên | Chưa có khoá nào (trạng thái trống) |
+| `hv06@demo.vankinh.vn` | Học viên | Tài khoản bị khoá: không đăng nhập được |
+
+Ngoài ra Học sinh A được thêm HSK 2, và "YCT 3 – Sắp ra mắt" là khoá chưa có bài.
+
 Xem thêm hướng dẫn chi tiết tại [tmp/HUONG-DAN-CHAY-LOCAL.md](./tmp/HUONG-DAN-CHAY-LOCAL.md) và [tmp/HUONG-DAN-DEPLOY-GCP.md](./tmp/HUONG-DAN-DEPLOY-GCP.md).

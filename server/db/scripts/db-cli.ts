@@ -393,6 +393,86 @@ async function cmdSeed() {
   }
 }
 
+/** RTF with \uN escapes, so Vietnamese and Chinese survive in a plain-ASCII .doc. */
+function toRtf(lines: string[]): string {
+  const esc = (text: string) =>
+    Array.from(text)
+      .map((ch) => {
+        const code = ch.codePointAt(0)!;
+        if (ch === '\\' || ch === '{' || ch === '}') return `\\${ch}`;
+        if (code < 128) return ch;
+        if (code > 0xffff) return '?';
+        return `\\u${code > 32767 ? code - 65536 : code}?`;
+      })
+      .join('');
+  const body = lines.map((l, i) => (i === 0 ? `\\fs32\\b ${esc(l)}\\b0\\fs22\\par` : `${esc(l)}\\par`));
+  return `{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Arial;}}\n${body.join('\n')}\n}`;
+}
+
+/**
+ * Loads 04_demo_data.sql on top of the seed and writes the demo documents.
+ * Lesson videos are rendered by scripts/demo/make-videos.mjs (needs a browser),
+ * which `yarn db:demo` at the repo root runs right after this.
+ */
+async function cmdDemo() {
+  const client = new Client(getPgConfig());
+  await client.connect();
+  try {
+    const seeded = await client.query(`SELECT 1 FROM users WHERE id = 'user-teacher-01'`);
+    if (seeded.rowCount === 0) {
+      throw new Error('Chưa có seed data. Chạy `yarn db:reset && yarn db:seed` trước khi nạp demo.');
+    }
+
+    await client.query('BEGIN');
+    await client.query(readSqlFile('04_demo_data.sql'));
+
+    const uploadDir = path.resolve(serverRoot, process.env.UPLOAD_DIR || './uploads');
+    const docs = await client.query(
+      `SELECT d.id, d.title, d.description, d.storage_key, c.title AS course_title
+       FROM course_documents d JOIN courses c ON c.id = d.course_id
+       WHERE d.id LIKE 'demo-%'`,
+    );
+    for (const doc of docs.rows) {
+      const filePath = path.join(uploadDir, doc.storage_key);
+      fs.mkdirSync(path.dirname(filePath), { recursive: true });
+      fs.writeFileSync(
+        filePath,
+        toRtf([
+          doc.title,
+          `Khoá học: ${doc.course_title}`,
+          doc.description || '',
+          '',
+          'Tài liệu mẫu tạo bởi yarn db:demo (dữ liệu demo).',
+        ]),
+        'utf-8',
+      );
+      await client.query('UPDATE course_documents SET file_size = $1 WHERE id = $2', [
+        fs.statSync(filePath).size,
+        doc.id,
+      ]);
+    }
+    await client.query('COMMIT');
+
+    const counts = await client.query(
+      `SELECT
+         (SELECT count(*) FROM users WHERE id LIKE 'demo-%')::int AS users,
+         (SELECT count(*) FROM courses WHERE id LIKE 'demo-%')::int AS courses,
+         (SELECT count(*) FROM lessons WHERE id LIKE 'demo-%')::int AS lessons,
+         (SELECT count(*) FROM course_documents WHERE id LIKE 'demo-%')::int AS documents`,
+    );
+    const c = counts.rows[0];
+    console.log(
+      `✔ Đã nạp demo: ${c.users} tài khoản, ${c.courses} khoá học, ${c.lessons} bài, ${c.documents} tài liệu.`,
+    );
+    console.log('  Mật khẩu mọi tài khoản demo: Demo@123 (danh sách trong server/db/sql/04_demo_data.sql).');
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => undefined);
+    throw err;
+  } finally {
+    await client.end();
+  }
+}
+
 async function cmdDump() {
   fs.mkdirSync(DUMPS_DIR, { recursive: true });
   const client = new Client(getPgConfig());
@@ -488,9 +568,12 @@ async function main() {
       case 'dump':
         await cmdDump();
         break;
+      case 'demo':
+        await cmdDemo();
+        break;
       default:
         console.error(
-          'Lệnh không hợp lệ. Sử dụng: init | generate | reset | seed | dump',
+          'Lệnh không hợp lệ. Sử dụng: init | generate | reset | seed | dump | demo',
         );
         process.exit(1);
     }
