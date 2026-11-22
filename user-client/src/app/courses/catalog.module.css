@@ -49,9 +49,40 @@
 .chip:hover {
   background: var(--surface);
 }
-.chip[aria-current='true'] {
+.chip[aria-current='true'],
+.chipOn {
   background: var(--ink);
   color: var(--inverse);
+}
+button.chip {
+  cursor: pointer;
+}
+.chipOn:hover {
+  background: var(--ink);
+}
+.chipX {
+  margin-left: 6px;
+  font-size: 16px;
+}
+ul.chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Phone search bar and "Tìm gần đây" (docs/design/canvas/AppSearch.dc.html). */
+.phoneBar,
+.recent {
+  display: none;
+}
+.recent {
+  flex-direction: column;
+  gap: 10px;
+}
+.recent h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
 }
 
 .layout {
@@ -188,6 +219,17 @@
 }
 
 @media (max-width: 760px) {
+  .phoneBar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .recent {
+    display: flex;
+  }
+  .wideOnly {
+    display: none;
+  }
   .filters {
     max-width: none;
     gap: 0;

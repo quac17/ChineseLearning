@@ -66,7 +66,8 @@ export function SiteHeader() {
         <Link href="/courses" className={`${s.navLink} ${s.hideMd}`}>
           Danh mục
         </Link>
-        <form className={s.search} role="search" onSubmit={onSearch}>
+        {/* On phones the catalog has its own search box (AppSearch), so this one steps aside there. */}
+        <form className={`${s.search} ${pathname === '/courses' ? s.searchOffOnCatalog : ''}`} role="search" onSubmit={onSearch}>
           <SearchInput
             label="Tìm khoá học"
             placeholder="Tìm khoá học: HSK 1, YCT, giao tiếp…"
