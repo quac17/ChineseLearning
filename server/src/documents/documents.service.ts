@@ -8,7 +8,7 @@ import { Response } from 'express';
 import * as path from 'path';
 import { DatabaseService } from '../database/database.service';
 import { CoursesService } from '../courses/courses.service';
-import { StorageService } from '../common/storage/storage.service';
+import { contentDisposition, StorageService } from '../common/storage/storage.service';
 import { AuthUser } from '../common/decorators/current-user.decorator';
 import { generateId } from '../common/types/domain.types';
 import { UpdateDocumentDto, UploadDocumentDto } from './dto/document.dto';
@@ -32,16 +32,18 @@ export class DocumentsService {
       );
     }
 
+    const storageKey = `documents/${file.filename}`;
     try {
       await this.coursesService.assertCanManageCourse(dto.courseId, user);
+      // On `gcs` multer only wrote a scratch copy: move it into the bucket.
+      await this.storage.persistUpload(storageKey, file.path, file.mimetype || 'application/octet-stream');
     } catch (err) {
-      await this.storage.deleteFile(`documents/${file.filename}`);
+      await this.storage.deleteFile(storageKey);
       throw err;
     }
 
     const id = generateId('doc');
     const ext = path.extname(file.originalname).toLowerCase().replace('.', '');
-    const storageKey = `documents/${file.filename}`;
     const originalFileName = Buffer.from(file.originalname, 'latin1').toString('utf8');
 
     const maxRow = await this.db.queryOne(
@@ -138,18 +140,24 @@ export class DocumentsService {
       }
     }
 
-    const stat = this.storage.getFileStat(doc.storage_key);
-    const encodedName = encodeURIComponent(doc.original_file_name);
-    const asciiFallback = String(doc.original_file_name).replace(/[^\x20-\x7E]/g, '_');
+    const contentType = doc.mime_type || 'application/octet-stream';
 
-    res.setHeader('Content-Type', doc.mime_type || 'application/octet-stream');
-    res.setHeader('Content-Length', stat.size);
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="${asciiFallback}"; filename*=UTF-8''${encodedName}`,
-    );
+    // Bucket: redirect to a short-lived signed URL that downloads under the original name.
+    if (this.storage.usesSignedUrls) {
+      const signed = await this.storage.getSignedReadUrl(doc.storage_key, {
+        contentType,
+        downloadName: doc.original_file_name,
+      });
+      res.setHeader('Cache-Control', 'private, no-store');
+      res.redirect(302, signed.url);
+      return;
+    }
 
-    this.storage.createReadStream(doc.storage_key).pipe(res);
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Length', await this.storage.getFileSize(doc.storage_key));
+    res.setHeader('Content-Disposition', contentDisposition(doc.original_file_name));
+
+    this.storage.pipeTo(res, doc.storage_key);
   }
 
   async remove(id: string, user: AuthUser) {

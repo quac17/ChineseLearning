@@ -383,3 +383,20 @@ export interface MyReviewState {
   reason: string | null;
   review: OwnReview | null;
 }
+
+/**
+ * POST /lessons/upload-url. `direct: true` (bucket storage): PUT the file to
+ * `uploadUrl` with `headers`, then confirm with `storageKey` + `uploadToken`.
+ * `direct: false` (local storage): send the usual multipart upload.
+ */
+export type VideoUploadTicket =
+  | { direct: false }
+  | {
+      direct: true;
+      uploadUrl: string;
+      method: 'PUT';
+      headers: Record<string, string>;
+      expiresAt: string;
+      storageKey: string;
+      uploadToken: string;
+    };

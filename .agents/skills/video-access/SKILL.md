@@ -33,27 +33,47 @@ expiry), change it there and in this file.
 | Lesson type | Who can see it | How it is served |
 |---|---|---|
 | YouTube (`source_type = 'YOUTUBE'`) | Use **only for free preview / marketing** lessons. An unlisted YouTube link is not protection: anyone with the ID can watch. | Embedded player with `youtube_id`. |
-| Upload (`source_type = 'UPLOAD'`) | Free or paid. | Today: `GET /api/lessons/:id/stream` streams from local disk after the access check. Target: GCS signed URL (below). |
+| Upload (`source_type = 'UPLOAD'`) | Free or paid. | `GET /api/lessons/:id/stream` after the access check: streams from disk on `STORAGE_BACKEND=local`, redirects (302) to a GCS signed URL on `gcs`. |
 
 When a teacher marks a YouTube lesson as paid (`is_free = false`), the UI must
 warn that YouTube cannot protect it.
 
-## Target design: GCS signed URLs
+## Storage backends (`StorageService`, `STORAGE_BACKEND`)
 
-1. Uploads are written to a **private** GCS bucket (no public ACL, uniform
-   bucket-level access). `storage_key` stays the object path
-   (`videos/<id>.mp4`), so `StorageService` keeps the same interface with a
-   GCS implementation behind it (local disk stays for dev).
-2. Client asks `GET /api/lessons/:id/play` → server runs the access check →
-   returns `{ url, expiresAt }` where `url` is a V4 signed URL valid for
-   **1–2 hours** (`GCS_SIGNED_URL_TTL_MIN`, default 120).
-3. Never store signed URLs in the DB, never put them in list endpoints
+`local` (default; dev and e2e) keeps files under `UPLOAD_DIR`. `gcs`
+(production) uses a **private** bucket `GCS_BUCKET` (uniform bucket-level
+access, no public objects). `storage_key` is the object path on both
+(`videos/<time>-<hex>.mp4`), so moving files never touches the DB
+(`yarn storage:to-gcs [--dry-run]` copies `server/uploads` to the bucket).
+
+1. **Read.** `GET /lessons/:id/stream` and `GET /documents/:id/download` run
+   the access check, then on `gcs` answer `302` to a V4 signed URL valid
+   `GCS_SIGNED_URL_TTL_MIN` minutes (default 15), `Cache-Control: no-store`.
+   Documents get `response-content-disposition: attachment` with the
+   original name. Subtitles and covers are small and still stream through the
+   API (`StorageService.pipeTo`).
+2. Never store signed URLs in the DB, never put them in list endpoints
    (`GET /courses` returns lesson metadata + `canWatch`, not URLs), never log
    them.
-4. The player requests a fresh URL when it expires or on 403.
-5. Documents follow the same pattern with `Content-Disposition: attachment`.
-6. Credentials: the Cloud Run service account signs URLs; no JSON key files in
-   the repo. Env vars go into `server/.env.example` with placeholder values.
+3. The player asks the stream route again when the URL expires (video
+   `error` → reload at the same time, at most 3 tries in a row). The
+   `<video>` has no `crossOrigin`; the pinyin track is fetched with the
+   cookie and given to `<track>` as a `blob:` URL, so following the redirect
+   to the bucket needs no CORS for reads.
+4. **Upload.** Cloud Run caps request bodies at 32 MB, so videos go straight
+   to the bucket: `POST /lessons/upload-url` (owner check, extension, MIME,
+   `MAX_VIDEO_SIZE_MB`) → signed PUT URL (`GCS_UPLOAD_URL_TTL_MIN`, default
+   30) + an HMAC `uploadToken` tying the key to teacher and course →
+   browser PUTs → `POST /lessons/upload/confirm` (or
+   `PATCH /lessons/:id/upload/confirm`) re-checks the token, ownership and
+   the real object size, deleting an oversized object. On `local` the ticket
+   is `{ direct: false }` and the client uses multipart as before.
+   Documents, subtitles and covers stay multipart and are moved into the
+   bucket after the checks (`persistUpload` / `saveBuffer`). The bucket needs
+   a CORS rule allowing `PUT` from the web origin.
+5. Credentials: Application Default Credentials (the Cloud Run service
+   account, which also needs `roles/iam.serviceAccountTokenCreator` on itself
+   to sign). No JSON key files in the repo.
 
 ## Must-have tests
 

@@ -23,7 +23,7 @@ import type { CourseSection, LessonItem } from '@/lib/types';
 import { FileDrop } from '../../../FileDrop';
 import { move } from '../../../shared';
 import s from '../../../teacher.module.css';
-import { uploadWithProgress } from '../../../upload';
+import { uploadLessonVideo, uploadWithProgress } from '../../../upload';
 import { useEditorCourse } from '../editor';
 
 const VIDEO_ACCEPT = '.mp4,.webm,.mov,.m4v,.ogg,.mkv';
@@ -398,20 +398,19 @@ function LessonForm({
     let savedId = lesson?.id ?? null;
     try {
       if (source === 'UPLOAD' && file) {
-        const fd = new FormData();
-        if (!lesson) fd.append('courseId', courseId);
-        fd.append('title', fields.title);
-        fd.append('description', description);
-        fd.append('durationMinutes', parsedMinutes === null ? '' : String(parsedMinutes));
-        fd.append('isFree', String(isFree));
-        if (sections.length) fd.append('sectionId', sectionId);
-        fd.append('file', file);
-        const saved = await uploadWithProgress<{ id: string }>(
-          lesson ? `/lessons/${lesson.id}/upload` : '/lessons/upload',
-          lesson ? 'PATCH' : 'POST',
-          fd,
-          setProgress,
-        );
+        const saved = await uploadLessonVideo<{ id: string }>({
+          courseId,
+          lessonId: lesson?.id,
+          file,
+          fields: {
+            title: fields.title,
+            description,
+            durationMinutes: parsedMinutes,
+            isFree,
+            ...(sections.length ? { sectionId } : {}),
+          },
+          onProgress: setProgress,
+        });
         savedId = saved?.id ?? savedId;
         // Replacing a video keeps the lesson's other fields; move it to the chosen Phần separately.
         if (lesson && sections.length && (sectionId || null) !== (lesson.sectionId ?? null)) {
