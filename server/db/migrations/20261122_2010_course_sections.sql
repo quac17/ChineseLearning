@@ -2,7 +2,7 @@
 -- Lessons without a section stay valid; a course with no sections lists its
 -- lessons flat, as before.
 -- Idempotent: safe to run twice on a database that already has data.
--- Apply: psql "$DATABASE_URL" -f server/db/migrations/20261122_2000_course_sections.sql
+-- Apply: psql "$DATABASE_URL" -f server/db/migrations/20261122_2010_course_sections.sql
 
 BEGIN;
 
