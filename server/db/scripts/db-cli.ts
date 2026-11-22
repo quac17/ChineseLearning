@@ -26,6 +26,7 @@ const TABLES_IN_ORDER = [
   'orders',
   'payment_events',
   'lesson_progress',
+  'vocab_reviews',
 ];
 
 function getPgConfig(databaseOverride?: string) {

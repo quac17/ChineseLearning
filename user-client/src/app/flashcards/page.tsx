@@ -1,190 +1,173 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { useModule } from '@/context/ModuleContext';
-import { DEMO_FLASHCARDS } from '@/lib/modules';
-
-function shuffleIndices(arr: number[]) {
-  const copy = [...arr];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
-
-function FlashcardsContent() {
-  const searchParams = useSearchParams();
-  const initialDeck = searchParams.get('deck');
-  const { activeModule } = useModule();
-
-  const decks = useMemo(
-    () => DEMO_FLASHCARDS.filter((d) => activeModule === 'all' || d.module === activeModule),
-    [activeModule],
-  );
-
-  const [deckId, setDeckId] = useState<string>(initialDeck || decks[0]?.id || '');
-  const deck = decks.find((d) => d.id === deckId) || decks[0] || null;
-
-  const [order, setOrder] = useState<number[]>([]);
-  const [pos, setPos] = useState(0);
-  const [flipped, setFlipped] = useState(false);
-  const [known, setKnown] = useState<Set<number>>(new Set());
-
-  useEffect(() => {
-    if (!deck) return;
-    setDeckId(deck.id);
-    setOrder(deck.cards.map((_, i) => i));
-    setPos(0);
-    setFlipped(false);
-    try {
-      const saved = JSON.parse(localStorage.getItem(`known:${deck.id}`) || '[]');
-      setKnown(new Set(Array.isArray(saved) ? saved : []));
-    } catch {
-      setKnown(new Set());
-    }
-  }, [deck?.id]);
-
-  if (!deck) {
-    return (
-      <>
-        <h2 style={{ marginTop: 0 }}>Flashcard</h2>
-        <p className="hint">Chưa có bộ thẻ nào cho chương trình này.</p>
-      </>
-    );
-  }
-
-  const cardIndex = order[pos] ?? 0;
-  const card = deck.cards[cardIndex];
-
-  const markKnown = () => {
-    const next = new Set(known);
-    next.add(cardIndex);
-    setKnown(next);
-    try {
-      localStorage.setItem(`known:${deck.id}`, JSON.stringify(Array.from(next)));
-    } catch {
-      // ignore storage errors
-    }
-    setPos((pos + 1) % order.length);
-    setFlipped(false);
-  };
-
-  return (
-    <>
-      <h2 style={{ marginTop: 0 }}>Flashcard từ vựng</h2>
-      <div className="row" style={{ margin: '0 0 14px' }}>
-        {decks.map((d) => (
-          <button
-            key={d.id}
-            type="button"
-            className={`btn ${d.id === deck.id ? '' : 'alt'}`}
-            onClick={() => setDeckId(d.id)}
-          >
-            {d.title}
-          </button>
-        ))}
-      </div>
-
-      <div className="deck">
-        <div>
-          <div className="nums">
-            {order.map((ix, p) => (
-              <button
-                key={`${ix}-${p}`}
-                type="button"
-                className={`${p === pos ? 'on' : ''} ${known.has(ix) ? 'ok' : ''}`}
-                onClick={() => {
-                  setPos(p);
-                  setFlipped(false);
-                }}
-              >
-                {ix + 1}
-              </button>
-            ))}
-          </div>
-          <div className="row">
-            <button
-              type="button"
-              className="btn"
-              onClick={() => {
-                setOrder(shuffleIndices(order));
-                setPos(0);
-                setFlipped(false);
-              }}
-            >
-              Xáo trộn
-            </button>
-            <button
-              type="button"
-              className="btn alt"
-              onClick={() => {
-                setOrder(deck.cards.map((_, i) => i));
-                setPos(0);
-                setFlipped(false);
-              }}
-            >
-              Thứ tự gốc
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <div
-            className={`fc ${flipped ? 'flip' : ''}`}
-            onClick={() => setFlipped((prev) => !prev)}
-          >
-            <div>
-              <div className="face">
-                <div className="big han">{card?.han}</div>
-                <small style={{ color: 'var(--mute)' }}>Bấm để lật thẻ</small>
-              </div>
-              <div className="face back">
-                <div className="han" style={{ fontSize: 40 }}>
-                  {card?.han}
-                </div>
-                <div style={{ fontSize: 22, marginTop: 6 }}>{card?.pinyin}</div>
-                <div style={{ fontSize: 20, marginTop: 6 }}>{card?.vi}</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="row">
-            <button
-              type="button"
-              className="btn alt"
-              onClick={() => {
-                setPos((pos + order.length - 1) % order.length);
-                setFlipped(false);
-              }}
-            >
-              Trước
-            </button>
-            <button
-              type="button"
-              className="btn alt"
-              onClick={() => {
-                setPos((pos + 1) % order.length);
-                setFlipped(false);
-              }}
-            >
-              Sau
-            </button>
-            <button type="button" className="btn jade" onClick={markKnown}>
-              Đã thuộc ({known.size}/{deck.cards.length})
-            </button>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
+import { Suspense, useCallback, useEffect, useState } from 'react';
+import { Button, LinkButton, Skeleton, useToast } from '@/components/ui';
+import { PracticeHub, PracticeShell, SetState, usePracticeSet, usePracticeSource } from '@/components/practice/shared';
+import s from '@/components/practice/practice.module.css';
+import { useAuth } from '@/context/AuthContext';
+import { practiceRoutes, saveReviews, type PracticeSource, type PracticeWord } from '@/lib/practice';
+import { speakChinese } from '@/lib/speech';
 
 export default function FlashcardsPage() {
   return (
-    <Suspense fallback={<p className="hint">Đang tải bộ thẻ...</p>}>
-      <FlashcardsContent />
+    <Suspense fallback={<Skeleton height={320} />}>
+      <Flashcards />
     </Suspense>
+  );
+}
+
+function Flashcards() {
+  const src = usePracticeSource();
+  if (!src) return <PracticeHub />;
+  return <Session key={'due' in src ? 'due' : src.lessonId} src={src} />;
+}
+
+function Session({ src }: { src: PracticeSource }) {
+  const { set, error } = usePracticeSet(src);
+  const [deck, setDeck] = useState<PracticeWord[] | null>(null);
+
+  useEffect(() => {
+    if (set) setDeck(set.words);
+  }, [set]);
+
+  if (!set || !deck || deck.length === 0) return <SetState set={set} error={error} eyebrow="Flashcard" />;
+  return <Deck key={deck.map((w) => w.id).join()} title={set.title} words={deck} src={src} onAgain={setDeck} />;
+}
+
+function Deck({
+  title,
+  words,
+  src,
+  onAgain,
+}: {
+  title: string;
+  words: PracticeWord[];
+  src: PracticeSource;
+  onAgain: (words: PracticeWord[]) => void;
+}) {
+  const { user } = useAuth();
+  const toast = useToast();
+  const [pos, setPos] = useState(0);
+  const [flipped, setFlipped] = useState(false);
+  const [forgot, setForgot] = useState<PracticeWord[]>([]);
+  const done = pos >= words.length;
+  const word = words[Math.min(pos, words.length - 1)];
+
+  const answer = useCallback(
+    (remembered: boolean) => {
+      if (done) return;
+      saveReviews(Boolean(user), [{ vocabularyId: word.id, outcome: remembered ? 'remembered' : 'forgot' }]).catch(() =>
+        toast.show('Không lưu được kết quả ôn tập.'),
+      );
+      if (!remembered) setForgot((f) => [...f, word]);
+      setFlipped(false);
+      setPos((p) => p + 1);
+    },
+    [done, word, user, toast],
+  );
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (done || (e.target as HTMLElement)?.closest('input, textarea, select')) return;
+      if (e.key === ' ' || e.key === 'Enter') {
+        if ((e.target as HTMLElement)?.tagName === 'BUTTON' && e.key === 'Enter') return;
+        e.preventDefault();
+        setFlipped((f) => !f);
+      } else if (e.key === 'ArrowLeft') answer(false);
+      else if (e.key === 'ArrowRight') answer(true);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [answer, done]);
+
+  if (done) {
+    const remembered = words.length - forgot.length;
+    return (
+      <PracticeShell eyebrow={`Flashcard · ${title}`} title="Xong lượt ôn">
+        <section className={s.panel} aria-live="polite">
+          <p className={s.question}>
+            Bạn nhớ {remembered} / {words.length} từ.
+          </p>
+          {forgot.length > 0 && (
+            <p className={s.muted}>
+              {forgot.length} từ chưa nhớ ({forgot.map((w) => w.hanzi).join(', ')}) sẽ quay lại ở lượt sau.
+            </p>
+          )}
+          {!user && <p className={s.muted}>Đăng nhập để lưu kết quả và ôn lại đúng hạn.</p>}
+          <div className={s.row}>
+            {forgot.length > 0 && (
+              <Button variant="ink" onClick={() => onAgain(forgot)}>
+                Ôn lại {forgot.length} từ
+              </Button>
+            )}
+            {'lessonId' in src && (
+              <LinkButton href={practiceRoutes.quiz(src)} variant="outline">
+                Làm quiz bài này
+              </LinkButton>
+            )}
+            <LinkButton href={practiceRoutes.hub} variant="outline">
+              Về Ôn tập
+            </LinkButton>
+          </div>
+        </section>
+      </PracticeShell>
+    );
+  }
+
+  return (
+    <PracticeShell
+      eyebrow={`Flashcard · ${title}`}
+      title={'due' in src ? 'Ôn từ đến hạn' : 'Lật thẻ'}
+      aside={
+        <span className={s.count} aria-live="polite">
+          {pos + 1} / {words.length}
+        </span>
+      }
+    >
+      <button
+        type="button"
+        className={s.cardButton}
+        onClick={() => setFlipped((f) => !f)}
+        aria-label={flipped ? `Mặt sau: ${word.pinyin}, ${word.meaningVi}. Bấm để lật lại.` : `Mặt trước: ${word.hanzi}. Bấm để lật.`}
+      >
+        <span className={s.side}>{flipped ? 'Mặt sau' : 'Mặt trước'}</span>
+        <span className={`han ${s.bigHan}`} lang="zh-CN">
+          {word.hanzi}
+        </span>
+        {flipped && (
+          <>
+            <span className={s.pinyinBig}>{word.pinyin}</span>
+            <span className={s.meaningBig}>{word.meaningVi}</span>
+            {word.exampleZh && (
+              <span className={s.exampleBox}>
+                <span className="han" lang="zh-CN">
+                  {word.exampleZh}
+                </span>
+                {word.exampleVi && (
+                  <>
+                    <br />
+                    <span className={s.muted}>{word.exampleVi}</span>
+                  </>
+                )}
+              </span>
+            )}
+          </>
+        )}
+      </button>
+      <p className={s.hint}>Bấm vào thẻ hoặc phím Space để lật. Phím ← chưa nhớ, → đã nhớ.</p>
+      <div className={s.row} style={{ justifyContent: 'center' }}>
+        <Button variant="subtle" size="sm" onClick={() => speakChinese(word.hanzi) || toast.show('Thiết bị này chưa có giọng đọc tiếng Trung.')}>
+          Nghe phát âm
+        </Button>
+      </div>
+      <div className={s.answers}>
+        <Button variant="outline" size="lg" onClick={() => answer(false)}>
+          Chưa nhớ · ôn lại
+        </Button>
+        <Button variant="ink" size="lg" onClick={() => answer(true)}>
+          Đã nhớ
+        </Button>
+      </div>
+    </PracticeShell>
   );
 }

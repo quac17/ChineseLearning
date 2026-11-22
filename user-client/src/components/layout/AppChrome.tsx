@@ -14,7 +14,7 @@ const ADMIN_NAV = [
 ];
 
 /** Learner pages rebuilt on the new design: they lay out their own width. */
-const REBUILT = ['/courses', '/my-courses', '/account', '/checkout'];
+const REBUILT = ['/courses', '/my-courses', '/account', '/checkout', '/flashcards', '/quiz', '/writing'];
 
 /**
  * Chooses the chrome per area: learner pages get header/footer/tab bar,

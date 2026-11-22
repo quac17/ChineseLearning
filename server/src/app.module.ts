@@ -12,6 +12,7 @@ import { HealthController } from './health.controller';
 import { PaymentsModule } from './payments/payments.module';
 import { ProgressModule } from './progress/progress.module';
 import { VocabularyModule } from './vocabulary/vocabulary.module';
+import { PracticeModule } from './practice/practice.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { VocabularyModule } from './vocabulary/vocabulary.module';
     PaymentsModule,
     ProgressModule,
     VocabularyModule,
+    PracticeModule,
   ],
   controllers: [HealthController],
 })
