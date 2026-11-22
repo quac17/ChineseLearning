@@ -155,3 +155,32 @@ test.describe('sections in the learner pages', () => {
     });
   });
 });
+
+test.describe('sections in the teacher editor', () => {
+  test.use({ storageState: storageStateFor('teacher') });
+
+  test('teacher adds and renames a Phần and moves a lesson into it', async ({ page }) => {
+    const teacher = await apiAs('teacher');
+    const { courseId, lessonIds } = await createCourseWithLessons(teacher, 2);
+    await page.goto(`/teacher/courses/${courseId}/lessons`);
+
+    const parts = page.getByRole('region', { name: 'Phần (chương)' });
+    await parts.getByLabel('Tên phần mới').fill('Mở đầu');
+    await parts.getByRole('button', { name: '+ Thêm phần' }).click();
+    await expect(parts.getByLabel('Tên phần 1')).toHaveValue('Mở đầu');
+    await parts.getByLabel('Tên phần 1').fill('Phát âm');
+    await parts.getByRole('button', { name: 'Lưu tên' }).click();
+    await expect(page.getByText('Đã đổi tên phần')).toBeVisible();
+
+    const lessonsCard = page.getByRole('region', { name: '2 bài giảng' });
+    await lessonsCard.getByRole('button', { name: /^Sửa bài Bài 2/ }).click();
+    await page.getByLabel('Phần', { exact: true }).selectOption({ label: 'Phần 1: Phát âm' });
+    await page.getByRole('button', { name: 'Lưu bài' }).click();
+    await expect(lessonsCard.getByRole('heading', { name: /Phần 1: Phát âm/ })).toBeVisible();
+    await expect(lessonsCard.getByRole('heading', { name: /Bài khác/ })).toBeVisible();
+
+    const outline: Outline = await (await teacher.get(`courses/${courseId}`)).json();
+    expect(outline.sections.map((s) => [s.title, s.lessonIds])).toEqual([['Phát âm', [lessonIds[1]]]]);
+    expect(outline.lessons.map((l) => l.id)).toEqual([lessonIds[1], lessonIds[0]]);
+  });
+});

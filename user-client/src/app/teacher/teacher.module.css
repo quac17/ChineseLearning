@@ -311,6 +311,59 @@
   font-size: 56px;
 }
 
+/* Sections ("Phần") in the Bài giảng tab */
+.partHead {
+  margin: 0;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 15px;
+  font-weight: 700;
+}
+.partList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.partRow {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+.partNo {
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.partAdd {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.partAdd > :first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+@media (max-width: 600px) {
+  .partRow {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .partRow .partNo {
+    display: none;
+  }
+  .partRow .rowActions {
+    grid-column: 1 / -1;
+  }
+}
+
 /* Lesson rows */
 .rows {
   list-style: none;
