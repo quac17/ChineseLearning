@@ -50,6 +50,22 @@ muted `#A6ABAF`, accent `#E0553E`.
 - Chinese: **Noto Serif SC** via a `.han` class. Learning content is always
   汉字 · pinyin with tone marks · Vietnamese meaning, e.g. `你好 · nǐ hǎo · xin chào`.
 
+## Code: use the UI kit, not new CSS
+
+- Tokens: `user-client/src/styles/tokens.css` (light + `[data-theme='dark']`).
+  Base reset: `src/styles/base.css`.
+- Components: `import { Button, LinkButton, Field, Input, Select, SearchInput,
+  Checkbox, Radio, Switch, Tabs, Badge, ProgramBadge, Rating, ProgressBar,
+  Alert, CourseCard, Dialog, useToast, Skeleton, EmptyState, Logo } from
+  '@/components/ui'`. Gallery at `/dev/ui` (dev server only).
+- Chrome: `src/components/layout/` (SiteHeader, SiteFooter, MobileTabBar,
+  DashboardShell, chosen per route by AppChrome). Teacher/admin nav items
+  live in `AppChrome.tsx`.
+- Program colours/labels: `src/lib/programs.ts` (`PROGRAMS`, `formatVnd`).
+- `app/globals.css` below the "LEGACY LAYER" comment is for pages not yet
+  rebuilt; never add to it. A rebuilt page renders its own layout and drops the
+  `legacy` classes it no longer uses.
+
 ## Components (see `Main.dc.html`)
 
 - **Buttons:** radius 4px, weight 700, height 48 (40 small, 56 CTA). Accent =

@@ -239,7 +239,7 @@ export default function ProfilePage() {
 
       {/* Khóa học đã được cấp quyền (dành cho Học sinh) */}
       {user.role === 'STUDENT' && (
-        <div style={{ marginTop: 24 }}>
+        <div id="khoa-hoc" style={{ marginTop: 24 }}>
           <h3>Khóa học bạn đã được cấp quyền ({enrollments.length})</h3>
           {enrollments.length === 0 ? (
             <p className="hint">
