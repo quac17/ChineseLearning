@@ -8,11 +8,7 @@ import { StorageService } from '../common/storage/storage.service';
 import { AuthUser } from '../common/decorators/current-user.decorator';
 import { generateId, ProgramModule, Role } from '../common/types/domain.types';
 import { CreateCourseDto, UpdateCourseDto } from './dto/course.dto';
-
-/** Escapes LIKE wildcards so "100%" or "a_b" match literally (default escape char is \). */
-function escapeLike(value: string): string {
-  return value.replace(/[\\%_]/g, (ch) => `\\${ch}`);
-}
+import { courseSearchClause, courseSearchPattern } from './course-search';
 
 @Injectable()
 export class CoursesService {
@@ -198,11 +194,10 @@ export class CoursesService {
       where.push(`c.module = $${params.length}`);
     }
 
-    const q = typeof search === 'string' ? search.trim().slice(0, 100) : '';
-    if (q) {
-      params.push(`%${escapeLike(q)}%`);
-      const p = `$${params.length}`;
-      where.push(`(c.title ILIKE ${p} OR c.description ILIKE ${p} OR u.full_name ILIKE ${p})`);
+    const pattern = courseSearchPattern(search);
+    if (pattern) {
+      params.push(pattern);
+      where.push(`(${courseSearchClause(`$${params.length}`)})`);
     }
 
     const courseRows = await this.db.queryAll(

@@ -173,6 +173,15 @@ async function exportCurrentSchemaSql(
     '',
   ];
 
+  // Extensions first: course search calls unaccent().
+  const extRes = await client.query(
+    `SELECT extname FROM pg_extension WHERE extname <> 'plpgsql' ORDER BY extname`,
+  );
+  for (const ext of extRes.rows) {
+    lines.push(`CREATE EXTENSION IF NOT EXISTS ${ext.extname};`);
+  }
+  if (extRes.rows.length) lines.push('');
+
   // Sequences first: column defaults such as nextval('order_code_seq') need them.
   const seqRes = await client.query(
     `SELECT sequence_name, start_value FROM information_schema.sequences

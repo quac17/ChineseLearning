@@ -14,6 +14,20 @@ test.describe('course search API', () => {
     expect(await titles('q=khong-co-khoa-nay')).toEqual([]);
   });
 
+  test('q ignores Vietnamese accents, including đ', async () => {
+    const api = await anonymousApi();
+    const titles = async (qs: string) =>
+      ((await (await api.get(`courses?${qs}`)).json()) as Array<{ title: string }>).map((c) => c.title);
+
+    const giaoTiep = await titles(`q=${encodeURIComponent('giao tiep')}`);
+    expect(giaoTiep).toContain('Giao tiếp đời sống & Thương mại cơ bản');
+    expect(giaoTiep).toContain('HSK 1 – Nền tảng giao tiếp & 150 từ vựng');
+    expect(await titles(`q=${encodeURIComponent('DOI SONG')}`)).toEqual(['Giao tiếp đời sống & Thương mại cơ bản']);
+    expect(await titles(`q=${encodeURIComponent('thieu nhi')}`)).toEqual([expect.stringContaining('YCT')]);
+    expect((await titles(`q=${encodeURIComponent('co ngan')}`)).length).toBeGreaterThanOrEqual(4);
+    expect(await titles(`q=${encodeURIComponent('giao tiep%')}`)).toEqual([]);
+  });
+
   test('wildcards are literal and q combines with module', async () => {
     const api = await anonymousApi();
     expect(await (await api.get('courses?q=%25')).json()).toEqual([]);
