@@ -2,13 +2,13 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, CourseCard, EmptyState, LinkButton, Skeleton, Tabs } from '@/components/ui';
+import { Alert, CourseCard, EmptyState, LinkButton, ProgressBar, Skeleton, Tabs } from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
 import { apiRequest } from '@/lib/api';
 import { courseMeta, isOnSale, routes } from '@/lib/courses';
 import { PROGRAMS } from '@/lib/programs';
 import { SUPPORT_CONTACT } from '@/lib/site';
-import type { CourseItem, ProgramModule } from '@/lib/types';
+import type { CourseItem, MyCourseProgress, ProgramModule } from '@/lib/types';
 import s from './home.module.css';
 
 /** Tab order on the home page (design: HSK first). */
@@ -82,6 +82,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {user?.role === 'STUDENT' && <ContinueLearning userId={user.id} />}
 
       <section className={s.wrap} aria-labelledby="programs-title">
         <div className={s.sectionHead}>
@@ -179,6 +181,64 @@ export default function HomePage() {
         </div>
       </section>
     </div>
+  );
+}
+
+/** Shown to logged-in students right under the hero: courses in progress, latest first. */
+function ContinueLearning({ userId }: { userId: string }) {
+  const [items, setItems] = useState<MyCourseProgress[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setItems(null);
+    apiRequest<MyCourseProgress[]>('/progress/me')
+      .then((data) => {
+        if (cancelled) return;
+        const open = data.filter((p) => p.totalLessons > 0 && p.completedCount < p.totalLessons);
+        open.sort((a, b) => b.lastActivityAt.localeCompare(a.lastActivityAt));
+        setItems(open.slice(0, 3));
+      })
+      // The block is a shortcut; if progress cannot load, the rest of the home page still works.
+      .catch(() => !cancelled && setItems([]));
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  if (!items || items.length === 0) return null;
+
+  return (
+    <section className={s.wrap} aria-labelledby="continue-title">
+      <div className={s.continueHead}>
+        <h2 id="continue-title">Học tiếp</h2>
+        <Link href={routes.myCourses}>Khoá học của tôi</Link>
+      </div>
+      <ul className={s.continueList}>
+        {items.map((p) => {
+          const percent = Math.round((p.completedCount / p.totalLessons) * 100);
+          return (
+            <li key={p.courseId}>
+              {/* /learn/:courseId picks the lesson left half-way, or the next unfinished one. */}
+              <Link href={routes.learn(p.courseId)} className={s.continueItem}>
+                <span className={s.continueCover} style={{ background: PROGRAMS[p.module].color }} aria-hidden="true">
+                  <span className="han">{PROGRAMS[p.module].han}</span>
+                </span>
+                <span className={s.continueText}>
+                  <b>
+                    {p.courseTitle} ·{' '}
+                    {p.lastLesson.completed ? `Vừa học xong: ${p.lastLesson.title}` : p.lastLesson.title}
+                  </b>
+                  <ProgressBar value={percent} label={`Đã học ${percent}%`} />
+                  <span className={s.continueMeta}>
+                    {p.completedCount} / {p.totalLessons} bài
+                  </span>
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 
