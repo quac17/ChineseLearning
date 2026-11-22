@@ -239,6 +239,9 @@ for f in $(ls server/db/migrations/*.sql | sort); do
 done
 ```
 
+- Vòng lặp lấy **mọi** file trong thư mục, nên file mới tự được chạy. Tại thời điểm viết, danh sách
+  kết thúc bằng `20261122_2310_terms_consent.sql` (ô đồng ý điều khoản) và
+  `20261122_2320_course_reviews.sql` (đánh giá khoá học); kiểm tra bằng `ls server/db/migrations`.
 - Mỗi migration idempotent (`IF NOT EXISTS`, có `BEGIN/COMMIT`), chạy lại không hỏng dữ liệu.
   Vẫn chạy đủ, đúng thứ tự, vì file sau dựa vào bảng của file trước.
 - Chạy migration **trước** khi deploy bản server mới cần cột/bảng mới.
