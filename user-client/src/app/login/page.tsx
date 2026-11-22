@@ -8,6 +8,7 @@ import { readNext, withNext } from '@/components/auth/useNext';
 import s from '@/components/auth/auth.module.css';
 import { useAuth } from '@/context/AuthContext';
 import { routes } from '@/lib/courses';
+import { useOnline } from '@/lib/useOnline';
 
 /**
  * Seed accounts (demo-only passwords from the README), as one-click fills.
@@ -30,6 +31,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const online = useOnline();
   const [registerHref, setRegisterHref] = useState('/register');
 
   useEffect(() => setRegisterHref(withNext('/register')), []);
@@ -93,7 +95,7 @@ export default function LoginPage() {
             required
           />
         </Field>
-        <Button type="submit" variant="ink" block loading={submitting} disabled={!email || !password}>
+        <Button type="submit" variant="ink" block loading={submitting} disabled={!online || !email || !password}>
           Đăng nhập
         </Button>
         <p className={s.switch}>

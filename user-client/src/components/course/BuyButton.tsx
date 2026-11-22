@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { apiRequest } from '@/lib/api';
 import { routes } from '@/lib/courses';
 import type { OrderItem } from '@/lib/types';
+import { useOnline } from '@/lib/useOnline';
 
 /**
  * "Mua ngay bằng QR": creates (or reuses) an order and opens the checkout
@@ -31,6 +32,7 @@ export function BuyButton({
   const pathname = usePathname();
   const toast = useToast();
   const [busy, setBusy] = useState(false);
+  const online = useOnline();
 
   if (!user) {
     return (
@@ -55,7 +57,7 @@ export function BuyButton({
   };
 
   return (
-    <Button variant="accent" size={size} block={block} loading={busy} onClick={buy} className={className}>
+    <Button variant="accent" size={size} block={block} loading={busy} disabled={!online} onClick={buy} className={className}>
       {label}
     </Button>
   );

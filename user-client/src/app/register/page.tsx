@@ -8,6 +8,7 @@ import { readNext, withNext } from '@/components/auth/useNext';
 import s from '@/components/auth/auth.module.css';
 import { useAuth } from '@/context/AuthContext';
 import { routes } from '@/lib/courses';
+import { useOnline } from '@/lib/useOnline';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -17,6 +18,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const online = useOnline();
   const [loginHref, setLoginHref] = useState('/login');
 
   useEffect(() => setLoginHref(withNext('/login')), []);
@@ -86,7 +88,7 @@ export default function RegisterPage() {
           variant="accent"
           block
           loading={submitting}
-          disabled={fullName.trim().length < 2 || !email || password.length < 6}
+          disabled={!online || fullName.trim().length < 2 || !email || password.length < 6}
         >
           Tạo tài khoản
         </Button>

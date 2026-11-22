@@ -60,7 +60,14 @@
   --content-narrow: 1180px;
   --gutter: 24px;
 
+  /* Height of the "Bạn đang ngoại tuyến" bar; sticky headers sit below it. */
+  --offline-bar-h: 0px;
+
   color-scheme: light;
+}
+
+:root[data-network='offline'] {
+  --offline-bar-h: 36px;
 }
 
 :root[data-theme='dark'] {

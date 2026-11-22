@@ -39,9 +39,12 @@ test.describe('role guards on the API', () => {
 test.describe('role areas in the UI', () => {
   test.use({ storageState: storageStateFor('studentB') });
 
-  test('a student sees the admin-only notice on /admin', async ({ page }) => {
-    await page.goto('/admin');
-    await expect(page.getByRole('heading', { name: /chỉ dành cho Quản trị viên/ })).toBeVisible();
+  test('a student gets the 403 state on /admin and /teacher, with a way back', async ({ page }) => {
+    for (const path of ['/admin', '/admin/orders', '/teacher']) {
+      await page.goto(path);
+      await expect(page.getByRole('heading', { name: 'Bạn không có quyền vào trang này' })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'Về khoá học của tôi' })).toHaveAttribute('href', '/my-courses');
+    }
   });
 });
 
