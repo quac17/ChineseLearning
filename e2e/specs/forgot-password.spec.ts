@@ -21,6 +21,9 @@ async function newAccount(password = 'Matkhau@123') {
 
 test('forgot password: mail, set a new one, log in with it', async ({ page }) => {
   const { api, email, password, fullName } = await newAccount();
+  // Tokens carry whole-second timestamps and one second of skew is allowed:
+  // let the clock pass a second boundary so the register cookie is "before" the reset.
+  await new Promise((r) => setTimeout(r, 1100));
 
   await page.goto('/login');
   await page.getByRole('link', { name: 'Quên mật khẩu?' }).click();
