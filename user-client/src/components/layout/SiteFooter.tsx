@@ -13,10 +13,10 @@ export function SiteFooter({ showPhotoCredits = false }: { showPhotoCredits?: bo
         <div className={s.footCols}>
           <nav aria-label="Chương trình">
             <ul>
-              <li><Link href="/courses">Easy Steps</Link></li>
-              <li><Link href="/courses">YCT</Link></li>
-              <li><Link href="/courses">HSK</Link></li>
-              <li><Link href="/courses">Giao tiếp</Link></li>
+              <li><Link href="/courses?program=easy">Easy Steps</Link></li>
+              <li><Link href="/courses?program=yct">YCT</Link></li>
+              <li><Link href="/courses?program=hsk">HSK</Link></li>
+              <li><Link href="/courses?program=talk">Giao tiếp</Link></li>
             </ul>
           </nav>
           <nav aria-label="Ôn tập">
@@ -28,7 +28,7 @@ export function SiteFooter({ showPhotoCredits = false }: { showPhotoCredits?: bo
           </nav>
           <nav aria-label="Tài khoản">
             <ul>
-              <li><Link href="/profile">Tài khoản</Link></li>
+              <li><Link href="/account">Tài khoản</Link></li>
               <li><Link href="/login">Đăng nhập</Link></li>
               <li><Link href="/register">Tạo tài khoản</Link></li>
             </ul>
