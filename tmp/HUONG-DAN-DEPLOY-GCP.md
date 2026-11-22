@@ -26,7 +26,8 @@ Làm lần lượt từ mục 1 đến mục 12. Mỗi lệnh dưới đây ch�
 | Database | Cloud SQL PostgreSQL 16 | Nối qua socket `/cloudsql/<INSTANCE_CONN>` |
 | Video, tài liệu, phụ đề, ảnh bìa | Cloud Storage, bucket **riêng tư** | `STORAGE_BACKEND=gcs`. Video tải thẳng từ trình duyệt giáo viên lên bucket bằng signed URL; học viên chỉ nhận link có thời hạn (15 phút) **sau khi** server kiểm tra quyền xem |
 | Docker image | Artifact Registry | |
-| Bí mật | Secret Manager | `JWT_SECRET`, `DATABASE_URL`, `PAYOS_*`, `SMTP_PASS` |
+| Bí mật | Secret Manager | `JWT_SECRET`, `DATABASE_URL`, `PAYOS_*`, `SMTP_PASS`, `REMINDER_CRON_SECRET` |
+| Lịch chạy | Cloud Scheduler | Mỗi tối gọi `POST /api/reminders/run` để gửi email nhắc ôn tập (mục 10.3) |
 
 Cloud Run giới hạn thân request 32 MB, nên video lớn không đi qua server mà đi thẳng lên
 bucket. Tài liệu vẫn tải qua server: giữ `MAX_DOC_SIZE_MB=30`.
@@ -70,6 +71,9 @@ Khi `NODE_ENV=production`, server **không khởi động** nếu thiếu hoặc
 | `MAIL_DEV_OUTBOX` | `false` | | `true` bị chặn ở production: lộ đường dẫn đặt lại mật khẩu |
 | `TRUST_PROXY` | `1` | nên có | Cloud Run có một proxy phía trước: lấy đúng IP để giới hạn số lần quên mật khẩu. Thiếu thì chỉ cảnh báo |
 | `PASSWORD_RESET_MAX_PER_EMAIL`, `PASSWORD_RESET_MAX_PER_IP` | `3`, `10` | | Số đường dẫn đặt lại mật khẩu tối đa mỗi giờ (mặc định đã là 3 và 10) |
+| `REMINDER_CRON_SECRET` | chuỗi ngẫu nhiên ≥ 32 ký tự | nên có | Secret Manager. Cloud Scheduler gửi trong header `X-Cron-Secret`; để trống thì `POST /api/reminders/run` luôn trả 401 và không ai nhận email nhắc ôn tập |
+| `REMINDER_CRON_ENABLED` | `false` | | Lịch chạy ngay trong server, chỉ cho máy chủ luôn bật. Cloud Run tắt máy khi không có request nên dùng Cloud Scheduler |
+| `API_PUBLIC_URL` | `https://<tên miền API>/api` | | Có thì email nhắc ôn tập mang header `List-Unsubscribe` một chạm (Gmail, Outlook hiện nút huỷ đăng ký) |
 
 Không đặt `FAKE_PAYMENT_CHECKSUM_KEY` và `GOOGLE_APPLICATION_CREDENTIALS` trên Cloud Run
 (server dùng service account của dịch vụ, không cần file key).
@@ -204,9 +208,10 @@ new_secret vankinh-payos-client-id
 new_secret vankinh-payos-api-key
 new_secret vankinh-payos-checksum-key
 new_secret vankinh-smtp-pass
+new_secret vankinh-reminder-cron-secret # ví dụ tạo bằng: openssl rand -hex 32
 
 for s in vankinh-jwt-secret vankinh-database-url vankinh-payos-client-id \
-         vankinh-payos-api-key vankinh-payos-checksum-key vankinh-smtp-pass; do
+         vankinh-payos-api-key vankinh-payos-checksum-key vankinh-smtp-pass vankinh-reminder-cron-secret; do
   gcloud secrets add-iam-policy-binding $s \
     --member="serviceAccount:${SA}" --role="roles/secretmanager.secretAccessor"
 done
@@ -242,8 +247,8 @@ done
 
 - Vòng lặp lấy **mọi** file trong thư mục, nên file mới tự được chạy. Tại thời điểm viết, danh sách
   kết thúc bằng `20261122_2300_password_resets.sql` (quên mật khẩu), `20261122_2310_terms_consent.sql`
-  (ô đồng ý điều khoản) và `20261122_2320_course_reviews.sql` (đánh giá khoá học); kiểm tra bằng
-  `ls server/db/migrations`.
+  (ô đồng ý điều khoản), `20261122_2320_course_reviews.sql` (đánh giá khoá học) và
+  `20261122_2330_review_reminders.sql` (nhắc ôn tập); kiểm tra bằng `ls server/db/migrations`.
 - Mỗi migration idempotent (`IF NOT EXISTS`, có `BEGIN/COMMIT`), chạy lại không hỏng dữ liệu.
   Vẫn chạy đủ, đúng thứ tự, vì file sau dựa vào bảng của file trước.
 - Chạy migration **trước** khi deploy bản server mới cần cột/bảng mới.
@@ -270,7 +275,7 @@ gcloud run deploy vankinh-server \
   --timeout 3600 \
   --add-cloudsql-instances ${INSTANCE_CONN} \
   --set-env-vars "^@^NODE_ENV=production@JWT_EXPIRES_IN=7d@COOKIE_NAME=vankinh_token@COOKIE_SECURE=true@COOKIE_SAME_SITE=none@CORS_ORIGIN=${WEB_URL}@APP_URL=${WEB_URL}@PAYMENT_GATEWAY=payos@STORAGE_BACKEND=gcs@GCS_BUCKET=${BUCKET_NAME}@GCS_SIGNED_URL_TTL_MIN=15@GCS_UPLOAD_URL_TTL_MIN=30@MAX_VIDEO_SIZE_MB=2000@MAX_DOC_SIZE_MB=30@MAIL_TRANSPORT=smtp@MAIL_FROM=Vân Kính <no-reply@CHANGE_DOMAIN>@SMTP_HOST=CHANGE_SMTP_HOST@SMTP_PORT=465@SMTP_USER=CHANGE_SMTP_USER@MAIL_DEV_OUTBOX=false@TRUST_PROXY=1" \
-  --set-secrets "JWT_SECRET=vankinh-jwt-secret:latest,DATABASE_URL=vankinh-database-url:latest,PAYOS_CLIENT_ID=vankinh-payos-client-id:latest,PAYOS_API_KEY=vankinh-payos-api-key:latest,PAYOS_CHECKSUM_KEY=vankinh-payos-checksum-key:latest,SMTP_PASS=vankinh-smtp-pass:latest"
+  --set-secrets "JWT_SECRET=vankinh-jwt-secret:latest,DATABASE_URL=vankinh-database-url:latest,PAYOS_CLIENT_ID=vankinh-payos-client-id:latest,PAYOS_API_KEY=vankinh-payos-api-key:latest,PAYOS_CHECKSUM_KEY=vankinh-payos-checksum-key:latest,SMTP_PASS=vankinh-smtp-pass:latest,REMINDER_CRON_SECRET=vankinh-reminder-cron-secret:latest"
 
 export API_URL=$(gcloud run services describe vankinh-server --format="value(status.url)")
 curl -fsS ${API_URL}/api/health && echo " ← backend OK"
@@ -368,6 +373,39 @@ gcloud run services update vankinh-server --region $REGION \
 5. Sửa `origin` trong `cors.json` của bucket thành `https://vankinh.vn` (mục 5.3).
 6. Đổi URL webhook PayOS thành `https://api.vankinh.vn/api/payments/webhook/payos`.
 
+### 10.3 Nhắc ôn tập mỗi ngày (Cloud Scheduler)
+
+Học viên bật "Nhắc ôn tập mỗi ngày" trong trang Tài khoản. Mỗi lần `POST /api/reminders/run` chạy, server
+gửi một email cho mỗi học viên đã bật, tài khoản còn hoạt động và đang có từ đến hạn trong hộp ôn tập.
+Mỗi người tối đa **một email mỗi ngày (giờ Việt Nam)**: gọi lại trong ngày, hay hai lần gọi cùng lúc,
+không gửi thêm. Email có đường dẫn tắt nhắc ôn tập không cần đăng nhập.
+
+```bash
+gcloud services enable cloudscheduler.googleapis.com
+
+export REMINDER_SECRET=$(gcloud secrets versions access latest --secret=vankinh-reminder-cron-secret)
+
+# 19:00 giờ Việt Nam mỗi ngày. Đổi ${API_URL} sang tên miền API khi đã gắn (mục 10.2).
+gcloud scheduler jobs create http vankinh-review-reminders \
+  --location $REGION \
+  --schedule "0 19 * * *" \
+  --time-zone "Asia/Ho_Chi_Minh" \
+  --uri "${API_URL}/api/reminders/run" \
+  --http-method POST \
+  --headers "X-Cron-Secret=${REMINDER_SECRET}" \
+  --attempt-deadline 300s
+
+# Chạy thử ngay: log server có dòng "Nhắc ôn tập <ngày>: … đã gửi …"
+gcloud scheduler jobs run vankinh-review-reminders --location $REGION
+```
+
+- Đổi secret: thêm phiên bản mới trong Secret Manager, deploy lại backend, rồi
+  `gcloud scheduler jobs update http vankinh-review-reminders --location $REGION --update-headers "X-Cron-Secret=<secret mới>"`.
+- Gọi tay: `curl -X POST -H "X-Cron-Secret: $REMINDER_SECRET" ${API_URL}/api/reminders/run`.
+- Máy chủ luôn bật (VM) có thể thay Cloud Scheduler bằng `REMINDER_CRON_ENABLED=true` (và `REMINDER_CRON`,
+  mặc định `0 19 * * *` giờ Việt Nam). Bật cả hai cũng không gửi trùng.
+- Đổi tên miền API thì cập nhật `--uri` của job: `gcloud scheduler jobs update http vankinh-review-reminders --location $REGION --uri ...`.
+
 ---
 
 ## 11. Checklist sau khi deploy
@@ -382,6 +420,9 @@ Làm theo thứ tự; dừng lại ở bước đầu tiên bị lỗi.
 - [ ] Quên mật khẩu với email thật của bạn: thư vào hộp thư chính (không vào Spam), đường dẫn mở đúng
   `https://<tên miền web>/reset-password`, đặt xong đăng nhập được bằng mật khẩu mới, và thiết bị khác đang
   đăng nhập tài khoản đó bị đăng xuất.
+- [ ] Bật "Nhắc ôn tập mỗi ngày" cho một tài khoản thử có từ đến hạn, chạy
+  `gcloud scheduler jobs run vankinh-review-reminders --location $REGION`: nhận đúng một email; chạy lại không
+  nhận thêm; đường dẫn "Tắt nhắc ôn tập" trong email tắt được.
 - [ ] Giáo viên tải lên một video > 40 MB: DevTools thấy `PUT https://storage.googleapis.com/...`
       chạy tới 100%, rồi `POST /api/lessons/upload/confirm` 201. Tải một tài liệu và một ảnh bìa.
 - [ ] Học viên **chưa** mua: `curl -i https://<API>/api/lessons/<id bài trả phí>/stream` → `403`.

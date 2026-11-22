@@ -23,6 +23,8 @@ export const AUTH_DIR = path.join(__dirname, '.auth');
 export const UPLOAD_DIR = path.join(__dirname, '.tmp', 'uploads');
 /** Checksum key of the fake payment gateway in the e2e stack (not a real key). */
 export const FAKE_CHECKSUM_KEY = 'e2e-fake-checksum-key';
+/** X-Cron-Secret of the reminder job in the e2e stack (not a real secret). */
+export const REMINDER_SECRET = 'e2e-reminder-cron-secret';
 
 /**
  * Env for every child process (db-cli, server). Values set here win over
@@ -70,5 +72,8 @@ export function serverEnv(): Record<string, string> {
     MAIL_DEV_OUTBOX: 'true',
     // Every spec calls from 127.0.0.1, so the per-IP limit is lifted; the per-account limit stays real.
     PASSWORD_RESET_MAX_PER_IP: '1000',
+    // Specs run the daily reminder job through POST /api/reminders/run (not a real secret).
+    REMINDER_CRON_SECRET: REMINDER_SECRET,
+    REMINDER_CRON_ENABLED: 'false',
   };
 }

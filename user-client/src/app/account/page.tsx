@@ -3,12 +3,12 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import Link from 'next/link';
-import { Alert, Badge, Button, EmptyState, Field, Input, LinkButton, Radio, Skeleton, Textarea } from '@/components/ui';
+import { Alert, Badge, Button, EmptyState, Field, Input, LinkButton, Radio, Skeleton, Switch, Textarea, useToast } from '@/components/ui';
 import type { BadgeTone } from '@/components/ui';
 import { apiRequest } from '@/lib/api';
 import { routes } from '@/lib/courses';
 import { formatVnd } from '@/lib/programs';
-import type { OrderItem, OrderStatus } from '@/lib/types';
+import type { OrderItem, OrderStatus, ReviewReminderSettings } from '@/lib/types';
 import { useAuth } from '@/context/AuthContext';
 import { useModule, type ThemePreference } from '@/context/ModuleContext';
 import { SUPPORT_CONTACT } from '@/lib/site';
@@ -18,12 +18,13 @@ const ROLE_LABEL: Record<string, string> = { ADMIN: 'Quản trị viên', TEACHE
 
 type Msg = { tone: 'success' | 'error'; text: string } | null;
 
-type SectionId = 'ho-so' | 'bao-mat' | 'don-hang' | 'giao-dien' | 'ho-tro';
+type SectionId = 'ho-so' | 'nhac-on-tap' | 'bao-mat' | 'don-hang' | 'giao-dien' | 'ho-tro';
 
 export default function AccountPage() {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
   const { open, show, close } = useOpenSection();
+  const reminder = useReviewReminder(user?.role === 'STUDENT');
 
   // A link like /account#giao-dien: the sections only exist once the user has loaded.
   const ready = !loading && Boolean(user);
@@ -97,6 +98,11 @@ export default function AccountPage() {
               Đơn hàng
             </SettingsRow>
           )}
+          {isStudent && (
+            <li className={s.switchItem}>
+              <ReminderSwitch reminder={reminder} />
+            </li>
+          )}
         </ul>
         <h2 className={s.group}>Tài khoản</h2>
         <ul className={s.list}>
@@ -127,6 +133,11 @@ export default function AccountPage() {
           <a href="#bao-mat" className={s.navItem}>
             Bảo mật
           </a>
+          {isStudent && (
+            <a href="#nhac-on-tap" className={s.navItem}>
+              Nhắc ôn tập
+            </a>
+          )}
           {isStudent && (
             <a href="#don-hang" className={s.navItem}>
               Đơn hàng
@@ -171,6 +182,17 @@ export default function AccountPage() {
           </section>
 
           {isStudent && (
+            <section {...sectionProps('nhac-on-tap')}>
+              <h2 id="nhac-on-tap-title">Nhắc ôn tập</h2>
+              <ReminderSwitch reminder={reminder} />
+              <p className={s.muted}>
+                Mỗi tối, nếu trong hộp ôn tập có từ đến hạn, chúng tôi gửi một email tới địa chỉ đăng nhập của bạn. Tối
+                đa một email mỗi ngày; tắt lúc nào cũng được, kể cả bằng đường dẫn trong email.
+              </p>
+            </section>
+          )}
+
+          {isStudent && (
             <section {...sectionProps('don-hang')}>
               <h2 id="don-hang-title">Đơn hàng</h2>
               <Orders />
@@ -196,7 +218,65 @@ export default function AccountPage() {
   );
 }
 
-const SECTIONS: SectionId[] = ['ho-so', 'bao-mat', 'don-hang', 'giao-dien', 'ho-tro'];
+const SECTIONS: SectionId[] = ['ho-so', 'bao-mat', 'nhac-on-tap', 'don-hang', 'giao-dien', 'ho-tro'];
+
+type ReviewReminder = ReturnType<typeof useReviewReminder>;
+
+/**
+ * The "Nhắc ôn tập mỗi ngày" switch (AppAccount board), shared by the phone
+ * list and the desktop section. Saved at once; reverted with a toast if the
+ * server refuses.
+ */
+function useReviewReminder(active: boolean) {
+  const toast = useToast();
+  const [enabled, setEnabled] = useState<boolean | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!active) return;
+    let cancelled = false;
+    apiRequest<ReviewReminderSettings>('/reminders/settings')
+      .then((data) => !cancelled && setEnabled(data.enabled))
+      .catch((err: Error) => !cancelled && setError(err.message || 'Không tải được cài đặt nhắc ôn tập.'));
+    return () => {
+      cancelled = true;
+    };
+  }, [active]);
+
+  const toggle = async (next: boolean) => {
+    const before = enabled;
+    setEnabled(next);
+    setSaving(true);
+    try {
+      const saved = await apiRequest<ReviewReminderSettings>('/reminders/settings', {
+        method: 'PUT',
+        body: JSON.stringify({ enabled: next }),
+      });
+      setEnabled(saved.enabled);
+      toast.show(saved.enabled ? 'Đã bật nhắc ôn tập mỗi ngày.' : 'Đã tắt nhắc ôn tập mỗi ngày.');
+    } catch (err) {
+      setEnabled(before);
+      toast.show((err as Error).message || 'Không lưu được cài đặt nhắc ôn tập.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return { enabled, saving, error, toggle };
+}
+
+function ReminderSwitch({ reminder }: { reminder: ReviewReminder }) {
+  if (reminder.error) return <Alert tone="error">{reminder.error}</Alert>;
+  return (
+    <Switch
+      label="Nhắc ôn tập mỗi ngày"
+      checked={reminder.enabled ?? false}
+      disabled={reminder.enabled === null || reminder.saving}
+      onChange={reminder.toggle}
+    />
+  );
+}
 
 /**
  * Which section is open on phones, kept in the URL hash so a row can be linked

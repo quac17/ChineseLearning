@@ -400,3 +400,8 @@ export type VideoUploadTicket =
       storageKey: string;
       uploadToken: string;
     };
+
+/** GET / PUT /reminders/settings: the daily review reminder by email. */
+export interface ReviewReminderSettings {
+  enabled: boolean;
+}
