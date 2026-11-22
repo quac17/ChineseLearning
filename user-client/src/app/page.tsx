@@ -117,7 +117,7 @@ export default function HomePage() {
                       ? 'Đã cấp quyền'
                       : 'Cần cấp quyền'}
                   </span>
-                  <Link href={`/courses?courseId=${course.id}`} className="btn alt sm">
+                  <Link href={`/courses/${course.id}`} className="btn alt sm">
                     Vào khóa học
                   </Link>
                 </div>
@@ -150,7 +150,7 @@ export default function HomePage() {
                       ? 'Đã mở khóa'
                       : 'Cần cấp quyền'}
                   </span>
-                  <Link href={`/courses?courseId=${course.id}`} className="btn alt sm">
+                  <Link href={`/courses/${course.id}`} className="btn alt sm">
                     Mở khóa học
                   </Link>
                 </div>

@@ -9,6 +9,11 @@ import { AuthUser } from '../common/decorators/current-user.decorator';
 import { generateId, ProgramModule, Role } from '../common/types/domain.types';
 import { CreateCourseDto, UpdateCourseDto } from './dto/course.dto';
 
+/** Escapes LIKE wildcards so "100%" or "a_b" match literally (default escape char is \). */
+function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, (ch) => `\\${ch}`);
+}
+
 @Injectable()
 export class CoursesService {
   constructor(
@@ -163,6 +168,7 @@ export class CoursesService {
         id: course.teacher_id,
         fullName: course.teacher_name,
         email: course.teacher_email,
+        bio: course.teacher_bio ?? null,
       },
       hasAccess: hasCourseAccess,
       createdAt: course.created_at,
@@ -171,28 +177,38 @@ export class CoursesService {
     };
   }
 
-  async findAll(moduleFilter: string | undefined, user: AuthUser | null) {
-    const validModule =
-      moduleFilter && ['easy', 'yct', 'hsk', 'talk'].includes(moduleFilter)
-        ? moduleFilter
-        : null;
+  /**
+   * Published courses, optionally filtered by program and a search term that
+   * matches the title, description or teacher name (case-insensitive).
+   */
+  async findAll(
+    moduleFilter: string | undefined,
+    search: string | undefined,
+    user: AuthUser | null,
+  ) {
+    const where = ['c.is_published = TRUE'];
+    const params: unknown[] = [];
 
-    const courseRows = validModule
-      ? await this.db.queryAll(
-          `SELECT c.*, u.full_name AS teacher_name, u.email AS teacher_email
-           FROM courses c
-           JOIN users u ON u.id = c.teacher_id
-           WHERE c.is_published = TRUE AND c.module = $1
-           ORDER BY c.sort_order ASC, c.created_at ASC`,
-          [validModule],
-        )
-      : await this.db.queryAll(
-          `SELECT c.*, u.full_name AS teacher_name, u.email AS teacher_email
-           FROM courses c
-           JOIN users u ON u.id = c.teacher_id
-           WHERE c.is_published = TRUE
-           ORDER BY c.sort_order ASC, c.created_at ASC`,
-        );
+    if (moduleFilter && ['easy', 'yct', 'hsk', 'talk'].includes(moduleFilter)) {
+      params.push(moduleFilter);
+      where.push(`c.module = $${params.length}`);
+    }
+
+    const q = typeof search === 'string' ? search.trim().slice(0, 100) : '';
+    if (q) {
+      params.push(`%${escapeLike(q)}%`);
+      const p = `$${params.length}`;
+      where.push(`(c.title ILIKE ${p} OR c.description ILIKE ${p} OR u.full_name ILIKE ${p})`);
+    }
+
+    const courseRows = await this.db.queryAll(
+      `SELECT c.*, u.full_name AS teacher_name, u.email AS teacher_email, u.bio AS teacher_bio
+       FROM courses c
+       JOIN users u ON u.id = c.teacher_id
+       WHERE ${where.join(' AND ')}
+       ORDER BY c.sort_order ASC, c.created_at ASC`,
+      params,
+    );
 
     const [enriched, enrollments] = await Promise.all([
       this.attachCourseRelations(courseRows),
@@ -213,13 +229,13 @@ export class CoursesService {
     const courseRows =
       user.role === Role.ADMIN
         ? await this.db.queryAll(
-            `SELECT c.*, u.full_name AS teacher_name, u.email AS teacher_email
+            `SELECT c.*, u.full_name AS teacher_name, u.email AS teacher_email, u.bio AS teacher_bio
              FROM courses c
              JOIN users u ON u.id = c.teacher_id
              ORDER BY c.sort_order ASC, c.created_at ASC`,
           )
         : await this.db.queryAll(
-            `SELECT c.*, u.full_name AS teacher_name, u.email AS teacher_email
+            `SELECT c.*, u.full_name AS teacher_name, u.email AS teacher_email, u.bio AS teacher_bio
              FROM courses c
              JOIN users u ON u.id = c.teacher_id
              WHERE c.teacher_id = $1
@@ -236,7 +252,7 @@ export class CoursesService {
 
   async findOne(id: string, user: AuthUser | null) {
     const row = await this.db.queryOne(
-      `SELECT c.*, u.full_name AS teacher_name, u.email AS teacher_email
+      `SELECT c.*, u.full_name AS teacher_name, u.email AS teacher_email, u.bio AS teacher_bio
        FROM courses c
        JOIN users u ON u.id = c.teacher_id
        WHERE c.id = $1`,

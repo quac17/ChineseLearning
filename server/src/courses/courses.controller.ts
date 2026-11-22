@@ -26,9 +26,10 @@ export class CoursesController {
   @UseGuards(OptionalJwtAuthGuard)
   findAll(
     @Query('module') moduleFilter: string | undefined,
+    @Query('q') search: string | undefined,
     @CurrentUser() user: AuthUser | null,
   ) {
-    return this.coursesService.findAll(moduleFilter, user);
+    return this.coursesService.findAll(moduleFilter, search, user);
   }
 
   @Get('manage')

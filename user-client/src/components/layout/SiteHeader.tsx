@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useModule } from '@/context/ModuleContext';
+import { routes } from '@/lib/courses';
 import { PROGRAMS, PROGRAM_ORDER } from '@/lib/programs';
 import { LinkButton, Logo, SearchInput } from '@/components/ui';
 import { ThemeToggle } from './ThemeToggle';
@@ -37,6 +38,13 @@ export function SiteHeader() {
 
   useEffect(() => setMenuOpen(false), [pathname]);
 
+  // Show the current search term on the catalog; clear it elsewhere. Read from
+  // window rather than useSearchParams, which would need a Suspense boundary
+  // around the whole header.
+  useEffect(() => {
+    setQ(pathname === '/courses' ? new URLSearchParams(window.location.search).get('q') ?? '' : '');
+  }, [pathname]);
+
   const onSearch = (e: FormEvent) => {
     e.preventDefault();
     const term = q.trim();
@@ -45,7 +53,7 @@ export function SiteHeader() {
 
   const pickProgram = (id: (typeof PROGRAM_ORDER)[number]) => {
     setActiveModule(id);
-    router.push('/courses');
+    router.push(routes.catalog({ program: id }));
   };
 
   const initial = user?.fullName.trim().charAt(0).toUpperCase() ?? '';
@@ -67,6 +75,11 @@ export function SiteHeader() {
             name="q"
           />
         </form>
+        {user?.role === 'STUDENT' && (
+          <Link href={routes.myCourses} className={`${s.navLink} ${s.hideMd}`}>
+            Khoá học của tôi
+          </Link>
+        )}
         {canTeach && (
           <Link href={user?.role === 'ADMIN' ? '/admin' : '/teacher'} className={`${s.navLink} ${s.hideMd}`}>
             {user?.role === 'ADMIN' ? 'Quản trị' : 'Khu giáo viên'}
@@ -94,13 +107,15 @@ export function SiteHeader() {
                       {ROLE_LABEL[user.role] ?? user.role} · {user.email}
                     </span>
                   </div>
-                  <Link role="menuitem" href="/courses" className={s.menuItem}>
-                    Khoá học
-                  </Link>
+                  {user.role === 'STUDENT' && (
+                    <Link role="menuitem" href={routes.myCourses} className={s.menuItem}>
+                      Khoá học của tôi
+                    </Link>
+                  )}
                   <Link role="menuitem" href="/flashcards" className={s.menuItem}>
                     Ôn tập
                   </Link>
-                  <Link role="menuitem" href="/profile" className={s.menuItem}>
+                  <Link role="menuitem" href={routes.account} className={s.menuItem}>
                     Tài khoản
                   </Link>
                   {canTeach && (

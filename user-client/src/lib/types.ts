@@ -64,6 +64,7 @@ export interface CourseItem {
     id: string;
     fullName: string;
     email: string;
+    bio?: string | null;
   };
   hasAccess: boolean;
   createdAt: string;

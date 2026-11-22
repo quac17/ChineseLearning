@@ -17,6 +17,9 @@ export default defineConfig({
   retries: isCI ? 1 : 0,
   workers: isCI ? 2 : undefined,
   reporter: isCI ? [['github'], ['html', { open: 'never', outputFolder: '../playwright-report' }]] : 'list',
+  // Locally `next dev` compiles each route on first visit, which can take
+  // longer than the 5s default; CI serves a production build.
+  expect: { timeout: isCI ? 5_000 : 15_000 },
   use: {
     baseURL: WEB_URL,
     locale: 'vi-VN',

@@ -1,6 +1,7 @@
 import { APIRequestContext, expect, test } from '@playwright/test';
 import { SEED, anonymousApi, apiAs, storageStateFor } from '../fixtures/auth';
-import { createPaidCourse, setAccess } from '../fixtures/data';
+import { createPaidCourse, setAccess, uniq } from '../fixtures/data';
+import { API_URL } from '../env';
 
 // Paid content is gated by course_enrollments.can_view. These checks hit the
 // API directly: hiding a button is not access control.
@@ -69,22 +70,49 @@ test.describe('uploaded paid lesson and document', () => {
   });
 });
 
-// The legacy /courses page has no roles on its rows, hence `.les`. The learner
-// pages PR replaces this page and these locators.
-test.describe('learner page shows the locked state', () => {
-  test('logged out: paid HSK 1 lesson is marked locked', async ({ page }) => {
+test.describe('learner pages show the locked state', () => {
+  test('logged out: course page offers the preview, player locks the paid lesson', async ({ page }) => {
+    await page.goto(`/courses/${SEED.hsk1}`);
+    await expect(page.getByRole('heading', { level: 1, name: /HSK 1/ })).toBeVisible();
+    const curriculum = page.getByRole('region', { name: 'Nội dung khoá học' });
+    await expect(curriculum.getByRole('link', { name: 'Xem thử' })).toBeVisible();
+    // The paid lesson is listed but not linked.
+    await expect(curriculum.getByRole('link', { name: /Bài 2: Giới thiệu bản thân/ })).toHaveCount(0);
+
+    await page.goto(`/learn/${SEED.hsk1}/${SEED.hsk1PaidLesson}`);
+    await expect(page.getByRole('heading', { name: 'Bài học này đã khoá' })).toBeVisible();
+    await expect(page.locator('iframe, video')).toHaveCount(0);
+  });
+
+  test('old /courses?courseId= links open the course page', async ({ page }) => {
     await page.goto(`/courses?courseId=${SEED.hsk1}`);
-    const paidRow = page.locator('.les', { hasText: 'Bài 2: Giới thiệu bản thân' });
-    await expect(paidRow.getByText('Đã khóa')).toBeVisible();
-    await expect(paidRow.getByRole('button', { name: 'Mở khóa' })).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`/courses/${SEED.hsk1}$`));
   });
 
   test.describe('as studentA', () => {
     test.use({ storageState: storageStateFor('studentA') });
-    test('paid HSK 1 lesson is open', async ({ page }) => {
-      await page.goto(`/courses?courseId=${SEED.hsk1}`);
-      const paidRow = page.locator('.les', { hasText: 'Bài 2: Giới thiệu bản thân' });
-      await expect(paidRow.getByText('Được xem')).toBeVisible();
+
+    test('plays the paid HSK 1 lesson', async ({ page }) => {
+      await page.goto(`/learn/${SEED.hsk1}/${SEED.hsk1PaidLesson}`);
+      await expect(page.getByRole('heading', { level: 1, name: /Giới thiệu bản thân/ })).toBeVisible();
+      await expect(page.locator('iframe[title*="Giới thiệu bản thân"]')).toBeVisible();
     });
+
+    test('my courses lists HSK 1 and opens the player', async ({ page }) => {
+      await page.goto('/my-courses');
+      await page.getByRole('link', { name: /HSK 1/ }).click();
+      await expect(page).toHaveURL(new RegExp(`/learn/${SEED.hsk1}/[^/]+$`));
+    });
+  });
+
+  test('a new student sees an empty my-courses page', async ({ page }) => {
+    // A fresh account: studentB can be granted access by a parallel spec.
+    // page.request shares the browser's cookies, so this also logs the page in.
+    const res = await page.request.post(`${API_URL}/auth/register`, {
+      data: { fullName: 'Học viên mới', email: `moi-${uniq()}@e2e.test`, password: 'Matkhau@123' },
+    });
+    expect(res.status(), await res.text()).toBe(201);
+    await page.goto('/my-courses');
+    await expect(page.getByRole('heading', { name: 'Bạn chưa có khoá học nào' })).toBeVisible();
   });
 });
