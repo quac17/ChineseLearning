@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+set -e
+
+echo "🔍 Đang chạy kiểm tra CI/CD trước khi push..."
+node scripts/ci-check.mjs

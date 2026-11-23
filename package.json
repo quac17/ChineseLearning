@@ -31,6 +31,9 @@
     "client:start": "yarn --cwd user-client start",
     "skills:install": "npx -y skills experimental_install -a codex",
     "skills:update": "npx -y skills update -p -y",
+    "hooks:install": "git config core.hooksPath .githooks",
+    "check:ci": "node scripts/ci-check.mjs",
+    "check:all": "node scripts/ci-check.mjs --e2e",
     "e2e": "playwright test -c e2e/playwright.config.ts",
     "e2e:ui": "playwright test -c e2e/playwright.config.ts --ui"
   },
