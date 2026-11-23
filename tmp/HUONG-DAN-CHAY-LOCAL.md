@@ -1,4 +1,4 @@
-# Hướng dẫn chạy Local – Vân Kính
+# Hướng dẫn chạy Local – Chinese Learner
 
 Kiến trúc chạy local:
 - **PostgreSQL 16**: chạy trong **Docker Compose** (`docker-compose.yml`).
@@ -92,9 +92,9 @@ yarn client:build
 ## Bước 6: Kiểm thử nhanh xác thực Cookie, Hồ sơ cá nhân & 3 Vai trò
 
 1. Vào `http://localhost:3000/login` → đăng nhập bằng 1 trong 4 tài khoản mẫu (Admin / Giáo viên / Học sinh A / Học sinh B).
-2. Nhấn **F5 tải lại trang**: phiên đăng nhập vẫn được duy trì tự động nhờ **HTTP-only Cookie** (`vankinh_token`).
+2. Nhấn **F5 tải lại trang**: phiên đăng nhập vẫn được duy trì tự động nhờ **HTTP-only Cookie** (`chinese_learner_token`).
 3. Bấm vào **tên tài khoản trên thanh Header** → mở trang `/profile` để kiểm thử **cập nhật họ tên, số điện thoại, giới thiệu** và **đổi mật khẩu**.
-4. Đăng nhập **Giáo viên** (`teacher@vankinh.vn` / `Teacher@123`) → vào tab **Giáo viên**:
+4. Đăng nhập **Giáo viên** (`teacher@chineselearner.vn` / `Teacher@123`) → vào tab **Giáo viên**:
    - Tạo khóa học, thêm link YouTube hoặc upload video `.mp4`, upload tài liệu `.doc/.docx/.ppt/.pptx`.
    - Sang tab **4. Cấp quyền Học sinh** để bật/tắt quyền xem khóa học HSK 1 cho Học sinh A / Học sinh B.
 5. Bấm **Đăng xuất** → cookie được xóa sạch khỏi trình duyệt.

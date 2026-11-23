@@ -25,7 +25,7 @@ export class AuthController {
     private readonly passwordResets: PasswordResetService,
     configService: ConfigService,
   ) {
-    this.cookieName = configService.get<string>('COOKIE_NAME') || 'vankinh_token';
+    this.cookieName = configService.get<string>('COOKIE_NAME') || 'chinese_learner_token';
     this.cookieSecure = configService.get<string>('COOKIE_SECURE') === 'true';
     const sameSite = (configService.get<string>('COOKIE_SAME_SITE') || 'lax').toLowerCase();
     this.cookieSameSite =

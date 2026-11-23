@@ -1,5 +1,5 @@
 # Learner web app image for Cloud Run (Next.js standalone output).
-# Build: docker build --build-arg NEXT_PUBLIC_API_URL=https://api.example.vn/api -t vankinh-client ./user-client
+# Build: docker build --build-arg NEXT_PUBLIC_API_URL=https://api.example.vn/api -t chinese-learner-client ./user-client
 
 # 1. Dependencies (cached until package.json / yarn.lock change).
 FROM node:20-alpine AS deps

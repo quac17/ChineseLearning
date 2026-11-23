@@ -59,7 +59,7 @@ export function SiteFooter({ showPhotoCredits = false }: { showPhotoCredits?: bo
             <Link href="/dieu-khoan">Điều khoản sử dụng</Link>
             <Link href="/bao-mat">Chính sách bảo mật</Link>
           </nav>
-          <span>© {new Date().getFullYear()} Vân Kính</span>
+          <span>© {new Date().getFullYear()} Chinese Learner</span>
         </div>
         {showPhotoCredits && <p className={s.credits}>{STOCK_PHOTO_CREDITS}</p>}
       </div>

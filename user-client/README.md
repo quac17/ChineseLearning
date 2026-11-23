@@ -1,4 +1,4 @@
-# Frontend – Vân Kính (`user-client/`)
+# Frontend – Chinese Learner (`user-client/`)
 
 Giao diện web xây dựng bằng **Next.js 14 (App Router + TypeScript)**, duy trì đăng nhập bằng **HTTP-only Cookie (`credentials: 'include'`)**, quản lý gói và chạy lệnh hoàn toàn qua **Yarn**.
 

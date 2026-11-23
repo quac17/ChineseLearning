@@ -4,10 +4,10 @@ import { API_URL, AUTH_DIR } from '../env';
 
 /** Seed accounts from server/db/sql/03_seed_data.sql (demo-only passwords, see README). */
 export const ACCOUNTS = {
-  admin: { email: 'admin@vankinh.vn', password: 'Admin@123', fullName: 'Quản trị viên Vân Kính' },
-  teacher: { email: 'teacher@vankinh.vn', password: 'Teacher@123', fullName: 'Cô Ngân (Giáo viên)' },
-  studentA: { email: 'studentA@vankinh.vn', password: 'Student@123', fullName: 'Nguyễn Văn A (Học sinh)' },
-  studentB: { email: 'studentB@vankinh.vn', password: 'Student@123', fullName: 'Trần Thị B (Học sinh)' },
+  admin: { email: 'admin@chineselearner.vn', password: 'Admin@123', fullName: 'Quản trị viên Chinese Learner' },
+  teacher: { email: 'teacher@chineselearner.vn', password: 'Teacher@123', fullName: 'Cô Ngân (Giáo viên)' },
+  studentA: { email: 'studentA@chineselearner.vn', password: 'Student@123', fullName: 'Nguyễn Văn A (Học sinh)' },
+  studentB: { email: 'studentB@chineselearner.vn', password: 'Student@123', fullName: 'Trần Thị B (Học sinh)' },
 } as const;
 
 export type Role = keyof typeof ACCOUNTS;

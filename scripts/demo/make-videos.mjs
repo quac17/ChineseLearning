@@ -38,9 +38,9 @@ function pgConfig() {
   return {
     host: process.env.POSTGRES_HOST || 'localhost',
     port: Number(process.env.POSTGRES_PORT) || 5433,
-    user: process.env.POSTGRES_USER || 'vankinh',
-    password: process.env.POSTGRES_PASSWORD || 'vankinh_secret',
-    database: process.env.POSTGRES_DB || 'vankinh_db',
+    user: process.env.POSTGRES_USER || 'chinese_learner',
+    password: process.env.POSTGRES_PASSWORD || 'chinese_learner_secret',
+    database: process.env.POSTGRES_DB || 'chinese_learner_db',
   };
 }
 

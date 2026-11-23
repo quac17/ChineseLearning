@@ -33,7 +33,7 @@ A PR is not mergeable while any of these fail.
 - Schema changes ship with an idempotent migration:
   `.agents/skills/raw-sql-migration/SKILL.md`.
 - Frontend data fetching and states: `.agents/skills/nextjs-page/SKILL.md`.
-- UI tokens, typography, Vietnamese copy: `.agents/skills/vankinh-ui/SKILL.md`.
+- UI tokens, typography, Vietnamese copy: `.agents/skills/chinese-learner-ui/SKILL.md`.
 - Identifiers in English, user-facing text in Vietnamese, terms from
   `GLOSSARY.md`.
 - No secrets in code, seed files or logs; new env vars are added to the

@@ -1,6 +1,6 @@
-# Thiết kế giao diện Vân Kính (đã chốt 21/11/2026)
+# Thiết kế giao diện Chinese Learner (đã chốt 21/11/2026)
 
-Bản gốc là canvas thiết kế (kiểu Figma) trên claude.ai: **[Vân Kính – Redesign UI](https://claude.ai/artifact/1c3F1nP6576TYKgy3F6kbZ)**. Canvas đang để riêng tư; muốn người khác xem, chủ canvas mở menu **Share** trên trang để chia sẻ. Từ menu Share › Export có thể xuất PDF hoặc gửi sang công cụ khác.
+Bản gốc là canvas thiết kế (kiểu Figma) trên claude.ai: **[Chinese Learner – Redesign UI](https://claude.ai/artifact/1c3F1nP6576TYKgy3F6kbZ)**. Canvas đang để riêng tư; muốn người khác xem, chủ canvas mở menu **Share** trên trang để chia sẻ. Từ menu Share › Export có thể xuất PDF hoặc gửi sang công cụ khác.
 
 Thư mục [`canvas/`](canvas/) là bản sao mã nguồn các bảng, để đọc và để AI dựng lại giao diện thật:
 
@@ -31,7 +31,7 @@ Các file `.dc.html` cần trình chỉnh sửa canvas mới hiển thị đúng
 - **Bo góc** 4px. App có 5 tab: Nổi bật, Tìm kiếm, Khoá của tôi, Ôn tập, Tài khoản.
 - **Logo:** ấn tròn, lối uốn qua núi lên mây. Xem [`docs/brand/BRAND.md`](../brand/BRAND.md).
 
-Quy tắc chi tiết để code theo: skill [`vankinh-ui`](../../.agents/skills/vankinh-ui/SKILL.md).
+Quy tắc chi tiết để code theo: skill [`chinese-learner-ui`](../../.agents/skills/chinese-learner-ui/SKILL.md).
 
 ## Còn thiếu trước khi ra mắt
 

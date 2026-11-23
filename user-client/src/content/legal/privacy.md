@@ -5,7 +5,7 @@ draft: true
 updated: [Ngày áp dụng]
 ---
 
-Chính sách này giải thích Vân Kính (云径) thu thập những thông tin nào khi bạn học trên website, dùng chúng để làm gì và bạn có những quyền gì. Vân Kính do [Tên đơn vị vận hành] vận hành (gọi là "chúng tôi"). Xem thêm [Điều khoản sử dụng](/dieu-khoan).
+Chính sách này giải thích Chinese Learner thu thập những thông tin nào khi bạn học trên website, dùng chúng để làm gì và bạn có những quyền gì. Chinese Learner do [Tên đơn vị vận hành] vận hành (gọi là "chúng tôi"). Xem thêm [Điều khoản sử dụng](/dieu-khoan).
 
 ## 1. Thông tin chúng tôi thu thập
 
@@ -42,7 +42,7 @@ Chính sách này giải thích Vân Kính (云径) thu thập những thông ti
 ## 3. Ai xem được thông tin của bạn
 
 - **Giáo viên** xem được họ tên, email, số điện thoại và số bài đã hoàn thành của học viên trong khoá học của mình. Để cấp quyền vào khoá, giáo viên cũng tìm được tài khoản học viên theo họ tên, email hoặc số điện thoại.
-- **Quản trị viên** của Vân Kính xem được tài khoản và đơn hàng để vận hành và hỗ trợ.
+- **Quản trị viên** của Chinese Learner xem được tài khoản và đơn hàng để vận hành và hỗ trợ.
 - **Người học khác** trong cùng khoá thấy họ tên của bạn bên cạnh câu hỏi bạn đăng trong mục Hỏi đáp. Ghi chú của bạn chỉ mình bạn xem được.
 - **PayOS** nhận thông tin đơn hàng cần để tạo mã QR và xác nhận thanh toán.
 - **Nhà cung cấp hạ tầng** lưu trữ website, cơ sở dữ liệu và video: [Tên nhà cung cấp và nơi đặt máy chủ, ví dụ Google Cloud tại khu vực nào].
@@ -70,7 +70,7 @@ Chính sách này giải thích Vân Kính (云径) thu thập những thông ti
 
 - Xem và sửa họ tên, số điện thoại, giới thiệu và mật khẩu trong trang Tài khoản.
 - Yêu cầu xem, xuất, xoá dữ liệu, hoặc rút lại sự đồng ý: gửi yêu cầu tới [Email hoặc kênh tiếp nhận yêu cầu về dữ liệu cá nhân]. [Chủ dự án bổ sung: thời gian phản hồi.]
-- [Chủ dự án bổ sung theo tư vấn pháp lý: căn cứ pháp luật Việt Nam về bảo vệ dữ liệu cá nhân áp dụng cho Vân Kính.]
+- [Chủ dự án bổ sung theo tư vấn pháp lý: căn cứ pháp luật Việt Nam về bảo vệ dữ liệu cá nhân áp dụng cho Chinese Learner.]
 
 ## 8. Trẻ em
 

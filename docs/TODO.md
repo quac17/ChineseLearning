@@ -1,13 +1,13 @@
 # TODO
 
 Danh sách việc nằm trên GitHub, không chép lại ở đây:
-**[#42 Hoàn thiện app Vân Kính](https://github.com/quac17/ChineseLearning/issues/42)**
+**[#42 Hoàn thiện app Chinese Learner](https://github.com/quac17/ChineseLearning/issues/42)**
 là issue tổng, liệt kê mọi issue con và thứ tự làm. Cách dùng `gh` với issue:
 `docs/agents/issue-tracker.md`.
 
 Mỗi việc làm trên một nhánh riêng, mở PR vào `main` có dòng `Closes #<số>`, nhờ agent
 của người kia review và CI phải xanh. Thiết kế đã chốt nằm ở `docs/design/` (đọc
-`README.md` và `DECISIONS.md` trước), skill giao diện là `vankinh-ui`.
+`README.md` và `DECISIONS.md` trước), skill giao diện là `chinese-learner-ui`.
 
 Cập nhật: 2026-11-22.
 
@@ -25,7 +25,7 @@ mới thì sửa bảng trong cùng PR.
 
 ## Lưu ý khi lên production
 
-- Tài khoản `admin@vankinh.vn` được seed với mật khẩu ghi công khai trong README:
+- Tài khoản `admin@chineselearner.vn` được seed với mật khẩu ghi công khai trong README:
   **đổi mật khẩu ngay sau lần nạp dữ liệu đầu tiên**.
 - DB đã có dữ liệu thì không reset: chạy lần lượt các file trong `server/db/migrations/`.
 - Không bao giờ commit key PayOS hay key GCP; chỉ điền vào `server/.env`.

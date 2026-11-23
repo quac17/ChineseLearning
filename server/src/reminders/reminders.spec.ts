@@ -37,13 +37,13 @@ describe('review reminder rules', () => {
   });
 
   it('builds the review and unsubscribe links', () => {
-    expect(reminderLinks('https://vankinh.vn/', null, 'user-1', 'a+b')).toEqual({
-      review: 'https://vankinh.vn/flashcards?due=true',
-      unsubscribePage: 'https://vankinh.vn/unsubscribe?u=user-1&s=a%2Bb',
+    expect(reminderLinks('https://chineselearner.vn/', null, 'user-1', 'a+b')).toEqual({
+      review: 'https://chineselearner.vn/flashcards?due=true',
+      unsubscribePage: 'https://chineselearner.vn/unsubscribe?u=user-1&s=a%2Bb',
       unsubscribeOneClick: null,
     });
-    expect(reminderLinks('https://vankinh.vn', 'https://api.vankinh.vn/api', 'u', 's').unsubscribeOneClick).toBe(
-      'https://api.vankinh.vn/api/reminders/unsubscribe?u=u&s=s',
+    expect(reminderLinks('https://chineselearner.vn', 'https://api.chineselearner.vn/api', 'u', 's').unsubscribeOneClick).toBe(
+      'https://api.chineselearner.vn/api/reminders/unsubscribe?u=u&s=s',
     );
   });
 

@@ -10,7 +10,7 @@ test('the manifest makes the app installable: name, icons, standalone', async ({
   const res = await request.get('/manifest.webmanifest');
   expect(res.ok()).toBeTruthy();
   const m = await res.json();
-  expect(m).toMatchObject({ name: 'Vân Kính – Học tiếng Trung', short_name: 'Vân Kính', start_url: '/', scope: '/', display: 'standalone', lang: 'vi' });
+  expect(m).toMatchObject({ name: 'Chinese Learner – Học tiếng Trung', short_name: 'Chinese Learner', start_url: '/', scope: '/', display: 'standalone', lang: 'vi' });
   const sizes = m.icons.map((i: { sizes: string }) => i.sizes);
   expect(sizes).toEqual(expect.arrayContaining(['192x192', '512x512']));
   expect(m.icons.some((i: { purpose?: string }) => i.purpose === 'maskable')).toBeTruthy();

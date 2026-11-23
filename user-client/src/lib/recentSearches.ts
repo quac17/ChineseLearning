@@ -3,7 +3,7 @@
  * A personal convenience, so every storage call is wrapped: private windows and
  * blocked storage simply show no history.
  */
-const KEY = 'vankinh_recent_searches';
+const KEY = 'chinese_learner_recent_searches';
 export const MAX_RECENT_SEARCHES = 5;
 
 /** Puts `term` first, drops a case-insensitive duplicate, keeps the newest few. */

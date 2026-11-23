@@ -29,5 +29,5 @@ yarn skills:install
 
 ## Project skills (written for this repo)
 
-`nestjs-module`, `raw-sql-migration`, `nextjs-page`, `vankinh-ui`,
+`nestjs-module`, `raw-sql-migration`, `nextjs-page`, `chinese-learner-ui`,
 `video-access`, `payment-integration`, `e2e-playwright`.

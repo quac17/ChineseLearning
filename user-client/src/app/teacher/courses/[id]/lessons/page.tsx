@@ -161,6 +161,14 @@ export default function CourseLessonsTab() {
                           />
                         </span>
                         <span className={s.rowActions}>
+                          <a
+                            href={`/learn/${course.id}/${l.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ fontSize: 13, fontWeight: 600, color: 'var(--seal)', textDecoration: 'none', padding: '0 6px' }}
+                          >
+                            Xem thử
+                          </a>
                           <Button variant="outline" size="sm" aria-label={`Sửa bài ${l.title}`} onClick={() => setEditing(l)}>
                             Sửa
                           </Button>

@@ -29,7 +29,7 @@ const uploadDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vk-media-'));
 const env: Record<string, string> = { STORAGE_BACKEND: 'gcs', GCS_BUCKET: 'vk', UPLOAD_DIR: uploadDir, JWT_SECRET: SECRET };
 const config = { get: (k: string) => env[k] } as any;
 
-const user = (id: string, role: Role): AuthUser => ({ id, role, email: `${id}@vankinh.vn`, fullName: id, phone: null, bio: null });
+const user = (id: string, role: Role): AuthUser => ({ id, role, email: `${id}@chineselearner.vn`, fullName: id, phone: null, bio: null });
 const admin = user('admin', Role.ADMIN);
 const owner = user('teacher', Role.TEACHER);
 const otherTeacher = user('teacher2', Role.TEACHER);

@@ -43,9 +43,9 @@ function getPgConfig(databaseOverride?: string) {
   return {
     host: process.env.POSTGRES_HOST || 'localhost',
     port: Number(process.env.POSTGRES_PORT) || 5433,
-    user: process.env.POSTGRES_USER || 'vankinh',
-    password: process.env.POSTGRES_PASSWORD || 'vankinh_secret',
-    database: databaseOverride || process.env.POSTGRES_DB || 'vankinh_db',
+    user: process.env.POSTGRES_USER || 'chinese_learner',
+    password: process.env.POSTGRES_PASSWORD || 'chinese_learner_secret',
+    database: databaseOverride || process.env.POSTGRES_DB || 'chinese_learner_db',
   };
 }
 
@@ -54,12 +54,12 @@ function getTargetDatabaseName(): string {
   if (process.env.DATABASE_URL) {
     try {
       const u = new URL(process.env.DATABASE_URL);
-      return u.pathname.replace(/^\//, '') || 'vankinh_db';
+      return u.pathname.replace(/^\//, '') || 'chinese_learner_db';
     } catch {
-      return 'vankinh_db';
+      return 'chinese_learner_db';
     }
   }
-  return 'vankinh_db';
+  return 'chinese_learner_db';
 }
 
 function readSqlFile(fileName: string): string {
@@ -86,7 +86,7 @@ function ensureSampleDocument(): number {
   if (!fs.existsSync(filePath)) {
     const rtf = `{\\rtf1\\ansi\\deff0
 {\\fonttbl{\\f0 Arial;}}
-\\fs28\\b VAN KINH - TAI LIEU HOC TAP HSK 1 (BAI 1 & 2)\\b0\\par
+\\fs28\\b CHINESE LEARNER - TAI LIEU HOC TAP HSK 1 (BAI 1 & 2)\\b0\\par
 \\fs22\\par
 1. Tu vung co ban:\\par
 - Ni hao (Xin chao)\\par
@@ -174,7 +174,7 @@ async function exportCurrentSchemaSql(
 ): Promise<string> {
   const lines: string[] = [
     '-- ============================================================================',
-    '-- 云径 · Vân Kính - PostgreSQL Schema (DDL)',
+    '-- Chinese Learner - PostgreSQL Schema (DDL)',
     `-- Dumped from current DB at: ${timestampIso}`,
     '-- ============================================================================',
     '',
@@ -277,7 +277,7 @@ async function exportCurrentSeedDataSql(
 ): Promise<{ sql: string; rowCount: number }> {
   const lines: string[] = [
     '-- ============================================================================',
-    '-- 云径 · Vân Kính - Seed Data (Dumped from current DB)',
+    '-- Chinese Learner - Seed Data (Dumped from current DB)',
     `-- Dumped at: ${timestampIso}`,
     '-- Lưu ý: Master data (roles, program_modules) được giữ nguyên tại 02_master_data.sql',
     '-- ============================================================================',
@@ -412,10 +412,10 @@ async function cmdSeed() {
     await client.query('COMMIT');
     console.log('✔ Đã nạp seed data từ server/db/sql/03_seed_data.sql.');
     console.log('  Tài khoản mẫu:');
-    console.log('  - Admin:      admin@vankinh.vn    / Admin@123');
-    console.log('  - Giáo viên:  teacher@vankinh.vn  / Teacher@123');
-    console.log('  - Học sinh A: studentA@vankinh.vn / Student@123');
-    console.log('  - Học sinh B: studentB@vankinh.vn / Student@123');
+    console.log('  - Admin:      admin@chineselearner.vn    / Admin@123');
+    console.log('  - Giáo viên:  teacher@chineselearner.vn  / Teacher@123');
+    console.log('  - Học sinh A: studentA@chineselearner.vn / Student@123');
+    console.log('  - Học sinh B: studentB@chineselearner.vn / Student@123');
   } catch (err) {
     await client.query('ROLLBACK');
     throw err;

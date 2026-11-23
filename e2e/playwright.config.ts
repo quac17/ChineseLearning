@@ -36,7 +36,7 @@ export default defineConfig({
   ],
   webServer: [
     {
-      // `db-cli init` creates vankinh_test if missing (the server checks the
+      // `db-cli init` creates chinese_learner_test if missing (the server checks the
       // database on boot). Compiled into its own folder so it never fights
       // `nest start --watch` over dist/.
       command:

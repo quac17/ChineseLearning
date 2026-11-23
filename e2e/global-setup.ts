@@ -4,7 +4,7 @@ import * as path from 'path';
 import { REPO_ROOT, TEST_DB, UPLOAD_DIR, testDbEnv } from './env';
 
 /**
- * Every run starts from 03_seed_data.sql on vankinh_test. Runs before the web
+ * Every run starts from 03_seed_data.sql on chinese_learner_test. Runs before the web
  * servers start, so the API never sees a half-reset database.
  */
 export default function globalSetup() {

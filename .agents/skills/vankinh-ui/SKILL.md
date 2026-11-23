@@ -1,7 +1,7 @@
 ---
-name: vankinh-ui
+name: chinese-learner-ui
 description: >-
-  The approved Vân Kính (云径) UI design for user-client and the mobile app: a
+  The approved Chinese Learner UI design for user-client and the mobile app: a
   course-marketplace layout (white ground, near-black ink, seal-red buy button,
   program colours on covers), Be Vietnam Pro + Noto Serif SC, the round
   path-to-the-clouds logo, component patterns and Vietnamese copy rules. Use
@@ -10,7 +10,7 @@ description: >-
   "trang khoá học", "logo", "restyle", "theo thiết kế".
 ---
 
-# Vân Kính UI (approved design, 2026-11-21)
+# Chinese Learner UI (approved design, 2026-11-21)
 
 The source of truth is the design canvas copied into `docs/design/canvas/`
 (read `docs/design/README.md` first). Match it; when this file and a generic
@@ -88,7 +88,7 @@ muted `#A6ABAF`, accent `#E0553E`.
 
 - **No cart.** One course per purchase via PayOS QR; never add a cart icon,
   "Thêm vào giỏ" or multi-item checkout.
-- **Header:** logo, "Danh mục", wide search, "Dạy trên Vân Kính",
+- **Header:** logo, "Danh mục", wide search, "Dạy trên Chinese Learner",
   outlined "Đăng nhập", black "Đăng ký" (logged in: "Khoá học của tôi" +
   avatar); category row under it.
 - **Home:** photo hero with a white card (H1 + one sentence + accent CTA),
@@ -118,11 +118,11 @@ muted `#A6ABAF`, accent `#E0553E`.
 ## Logo and images
 
 - Logo files: `user-client/public/brand/` (rules in `docs/brand/BRAND.md`).
-  Header uses `vankinh-logo-horizontal-full.svg`, dark surfaces
+  Header uses `chinese-learner-logo-horizontal-full.svg`, dark surfaces
   `…-reversed.svg`; favicon `favicon.svg`. Never retype the wordmark.
 - Stock photos: `user-client/public/images/stock/` with `CREDITS.md`. Every
   page that shows one carries the credit line in its footer. Never present a
-  stock photo as Vân Kính's own students, teachers or classes.
+  stock photo as Chinese Learner's own students, teachers or classes.
 
 ## Copy
 

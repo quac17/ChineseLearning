@@ -50,7 +50,7 @@ export function checkProductionEnv(env: Env): EnvReport {
 
   const origins = (env.CORS_ORIGIN ?? '').split(',').map((o) => o.trim()).filter(Boolean);
   if (origins.length === 0) {
-    errors.push('CORS_ORIGIN is required: the https origin of the web app, e.g. https://vankinh.vn.');
+    errors.push('CORS_ORIGIN is required: the https origin of the web app, e.g. https://chineselearner.vn.');
   } else if (origins.some((o) => !isHttpsOrigin(o))) {
     errors.push('CORS_ORIGIN must list https origins without a trailing slash; "*" is not allowed with the login cookie.');
   }

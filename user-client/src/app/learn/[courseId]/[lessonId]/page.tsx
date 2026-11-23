@@ -10,6 +10,7 @@ import { useCourseProgress } from '@/components/course/useCourseProgress';
 import { VocabularyList } from '@/components/course/VocabularyList';
 import { LessonNotes } from '@/components/course/LessonNotes';
 import { LessonQuestions } from '@/components/course/LessonQuestions';
+import { YouTubePlayer } from '@/components/course/YouTubePlayer';
 import { useAuth } from '@/context/AuthContext';
 import { buildMediaUrl, formatFileSize } from '@/lib/api';
 import { BuyButton } from '@/components/course/BuyButton';
@@ -467,13 +468,7 @@ function Stage({
   if (lesson.sourceType === 'YOUTUBE' && lesson.youtubeId) {
     return (
       <div className={`${s.stage} ${s.stagePlaying}`}>
-        <iframe
-          key={lesson.id}
-          src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(lesson.youtubeId)}?rel=0`}
-          title={lesson.title}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowFullScreen
-        />
+        <YouTubePlayer key={lesson.id} youtubeId={lesson.youtubeId} title={lesson.title} />
       </div>
     );
   }

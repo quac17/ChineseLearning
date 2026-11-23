@@ -71,22 +71,22 @@ export function resetPasswordMail(to: string, fullName: string, link: string): M
   const text = [
     `Chào ${name},`,
     '',
-    'Bạn (hoặc ai đó) vừa yêu cầu đặt lại mật khẩu tài khoản Vân Kính.',
+    'Bạn (hoặc ai đó) vừa yêu cầu đặt lại mật khẩu tài khoản Chinese Learner.',
     `Mở đường dẫn sau để đặt mật khẩu mới (hiệu lực ${RESET_TTL_MINUTES} phút, dùng một lần):`,
     link,
     '',
     'Nếu bạn không yêu cầu, hãy bỏ qua email này: mật khẩu của bạn không đổi.',
     '',
-    'Vân Kính',
+    'Chinese Learner',
   ].join('\n');
   const html = `<!doctype html><html lang="vi"><body style="margin:0;padding:24px;background:#F7F9FA;font-family:'Be Vietnam Pro',Arial,sans-serif;color:#1C1D1F">
 <div style="max-width:480px;margin:0 auto;background:#FFFFFF;border:1px solid #D1D7DC;border-radius:4px;padding:28px">
 <p style="margin:0 0 16px;font-size:20px;font-weight:800">Đặt lại mật khẩu</p>
 <p style="margin:0 0 12px;font-size:15px;line-height:1.55">Chào ${escapeHtml(name)},</p>
-<p style="margin:0 0 20px;font-size:15px;line-height:1.55">Bạn (hoặc ai đó) vừa yêu cầu đặt lại mật khẩu tài khoản Vân Kính. Đường dẫn có hiệu lực ${RESET_TTL_MINUTES} phút và chỉ dùng được một lần.</p>
+<p style="margin:0 0 20px;font-size:15px;line-height:1.55">Bạn (hoặc ai đó) vừa yêu cầu đặt lại mật khẩu tài khoản Chinese Learner. Đường dẫn có hiệu lực ${RESET_TTL_MINUTES} phút và chỉ dùng được một lần.</p>
 <p style="margin:0 0 20px"><a href="${escapeHtml(link)}" style="display:inline-block;background:#1C1D1F;color:#FFFFFF;font-weight:700;font-size:16px;text-decoration:none;padding:14px 22px;border-radius:4px">Đặt mật khẩu mới</a></p>
 <p style="margin:0 0 12px;font-size:13px;line-height:1.5;color:#6A6F73">Nút không bấm được? Dán đường dẫn này vào trình duyệt:<br><a href="${escapeHtml(link)}" style="color:#C2321C;word-break:break-all">${escapeHtml(link)}</a></p>
 <p style="margin:0;font-size:13px;line-height:1.5;color:#6A6F73">Nếu bạn không yêu cầu, hãy bỏ qua email này: mật khẩu của bạn không đổi.</p>
 </div></body></html>`;
-  return { to, subject: 'Đặt lại mật khẩu Vân Kính', text, html };
+  return { to, subject: 'Đặt lại mật khẩu Chinese Learner', text, html };
 }

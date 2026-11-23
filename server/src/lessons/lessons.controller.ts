@@ -9,6 +9,7 @@ import {
   Post,
   Req,
   Res,
+  ServiceUnavailableException,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -99,6 +100,11 @@ export class LessonsController {
     @UploadedFile() file: Express.Multer.File,
     @CurrentUser() user: AuthUser,
   ) {
+    if (process.env.VIDEO_UPLOAD_DISABLED === 'true') {
+      throw new ServiceUnavailableException(
+        'Chức năng upload video lên kho lưu trữ hiện đang tạm khóa. Vui lòng sử dụng link video YouTube Unlisted.',
+      );
+    }
     return this.lessonsService.createUploadedLesson(dto, file, user);
   }
 
@@ -150,6 +156,11 @@ export class LessonsController {
     @UploadedFile() file: Express.Multer.File,
     @CurrentUser() user: AuthUser,
   ) {
+    if (process.env.VIDEO_UPLOAD_DISABLED === 'true') {
+      throw new ServiceUnavailableException(
+        'Chức năng upload video lên kho lưu trữ hiện đang tạm khóa. Vui lòng sử dụng link video YouTube Unlisted.',
+      );
+    }
     return this.lessonsService.replaceVideoFile(id, dto, file, user);
   }
 

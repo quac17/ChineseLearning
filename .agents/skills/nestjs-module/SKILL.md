@@ -1,7 +1,7 @@
 ---
 name: nestjs-module
 description: >-
-  Add or change a NestJS backend feature in server/ the Vân Kính way: module,
+  Add or change a NestJS backend feature in server/ the Chinese Learner way: module,
   controller, service, class-validator DTOs, role guards and raw SQL through
   DatabaseService. Use when adding an API endpoint, a new resource, a guard,
   or changing server logic. Triggers: "thêm API", "tạo endpoint", "thêm module",

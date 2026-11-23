@@ -24,7 +24,7 @@ const uploadDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vk-storage-'));
 const config = (env: Record<string, string | undefined>) =>
   ({ get: (key: string) => ({ UPLOAD_DIR: uploadDir, ...env })[key] }) as any;
 const gcs = (env: Record<string, string> = {}) =>
-  new StorageService(config({ STORAGE_BACKEND: 'gcs', GCS_BUCKET: 'vankinh-media', ...env }));
+  new StorageService(config({ STORAGE_BACKEND: 'gcs', GCS_BUCKET: 'chinese-learner-media', ...env }));
 
 const NOW = Date.parse('2026-11-22T10:00:00Z');
 
@@ -51,7 +51,7 @@ describe('StorageService backend switch', () => {
   it('opens the configured bucket on gcs', () => {
     const storage = gcs();
     expect(storage.usesSignedUrls).toBe(true);
-    expect(mockBucketFn).toHaveBeenCalledWith('vankinh-media');
+    expect(mockBucketFn).toHaveBeenCalledWith('chinese-learner-media');
   });
 });
 

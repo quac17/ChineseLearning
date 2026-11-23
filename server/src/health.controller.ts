@@ -10,7 +10,7 @@ export class HealthController {
     await this.db.query('SELECT 1');
     return {
       status: 'ok',
-      service: 'vankinh-server',
+      service: 'chinese-learner-server',
       database: 'postgresql-raw-sql',
       timestamp: new Date().toISOString(),
     };

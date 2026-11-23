@@ -103,7 +103,7 @@ export class PayosGateway implements PaymentGateway {
 
   async cancel(orderCode: number): Promise<void> {
     await this.call('POST', `/v2/payment-requests/${orderCode}/cancel`, {
-      cancellationReason: 'Đơn hết hạn hoặc bị huỷ trên Vân Kính',
+      cancellationReason: 'Đơn hết hạn hoặc bị huỷ trên Chinese Learner',
     }).catch(() => undefined);
   }
 }

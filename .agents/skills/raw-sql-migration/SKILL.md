@@ -1,7 +1,7 @@
 ---
 name: raw-sql-migration
 description: >-
-  Change the PostgreSQL schema, master data or seed data of Vân Kính, which
+  Change the PostgreSQL schema, master data or seed data of Chinese Learner, which
   uses plain SQL files and a custom db-cli (no ORM, no Prisma). Use when adding
   a table, column, index or constraint, changing seed accounts, or writing a
   migration for an existing database. Triggers: "thêm bảng", "thêm cột",
@@ -43,7 +43,7 @@ production on GCP) cannot be reset, so every schema change ships in two forms.
 3. If a new table was added, append it to `TABLES_IN_ORDER` in `db-cli.ts`
    (parents before children) so `reset`, `seed` and `dump` handle it.
 4. Update `03_seed_data.sql` if seed rows need the new column, and keep the
-   four seed accounts (`admin@`, `teacher@`, `studentA@`, `studentB@vankinh.vn`)
+   four seed accounts (`admin@`, `teacher@`, `studentA@`, `studentB@chineselearner.vn`)
    and their access rules unchanged unless the change is about them: e2e tests
    rely on them.
 5. Verify locally:

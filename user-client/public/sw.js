@@ -1,8 +1,8 @@
 /*
- * Vân Kính service worker: caches the app shell and the offline page, nothing else.
+ * Chinese Learner service worker: caches the app shell and the offline page, nothing else.
  *
  * Never cached (they are access-checked or per-user):
- *   - API calls: another origin (api.vankinh.vn) and any same-origin /api/ path
+ *   - API calls: another origin (api.chineselearner.vn) and any same-origin /api/ path
  *   - video streams (Range requests, destination video/audio) and document downloads
  *   - HTML pages: always from the network; the offline page is the only fallback
  *
@@ -10,7 +10,7 @@
  * Bump VERSION when this file's caching rules change.
  */
 const VERSION = 'v1';
-const SHELL_CACHE = `vankinh-shell-${VERSION}`;
+const SHELL_CACHE = `chinese-learner-shell-${VERSION}`;
 const OFFLINE_URL = '/offline';
 const PRECACHE = [
   OFFLINE_URL,
@@ -18,8 +18,8 @@ const PRECACHE = [
   '/brand/favicon.svg',
   '/brand/icon-192.png',
   '/brand/icon-512.png',
-  '/brand/vankinh-logo-horizontal-full.svg',
-  '/brand/vankinh-logo-horizontal-reversed.svg',
+  '/brand/chinese-learner-logo-horizontal-full.svg',
+  '/brand/chinese-learner-logo-horizontal-reversed.svg',
 ];
 
 /** The offline page must hydrate with no network: cache every build asset its HTML references. */
@@ -47,7 +47,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('vankinh-') && k !== SHELL_CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('chinese-learner-') && k !== SHELL_CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   );
 });

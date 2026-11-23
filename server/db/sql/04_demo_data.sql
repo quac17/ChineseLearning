@@ -1,11 +1,11 @@
 -- ============================================================================
--- 云径 · Vân Kính - Demo data (local UI testing only)
+-- Chinese Learner - Demo data (local UI testing only)
 --
 -- Loaded by `yarn db:demo` ON TOP of 03_seed_data.sql. Never loaded by e2e:
 -- 03_seed_data.sql is the e2e contract and stays small.
 --
 -- Everything here is invented sample content: names, courses, lessons and
--- notes are made up, emails use the demo.vankinh.vn sub-domain, and the
+-- notes are made up, emails use the demo.chineselearner.vn sub-domain, and the
 -- password for every demo account is Demo@123. No ratings or student counts:
 -- those must come from real data (docs/design/DECISIONS.md). Prices below are
 -- test values so checkout can be tried locally; demo-course-travel costs
@@ -26,21 +26,21 @@ DELETE FROM users WHERE id LIKE 'demo-%';
 -- Users (password: Demo@123)
 -- ---------------------------------------------------------------------------
 INSERT INTO users (id, email, password_hash, full_name, phone, bio, role, is_active, created_at, updated_at) VALUES
-  ('demo-teacher-minh', 'gv.minh@demo.vankinh.vn', '$2a$10$r7rBDrXyy2Zcta7wFSIrbuIfA5bG4FDcyFNTTc3AzPpgcO./260e6', 'Thầy Lê Minh', '0911000001',
+  ('demo-teacher-minh', 'gv.minh@demo.chineselearner.vn', '$2a$10$r7rBDrXyy2Zcta7wFSIrbuIfA5bG4FDcyFNTTc3AzPpgcO./260e6', 'Thầy Lê Minh', '0911000001',
    'Dạy HSK 2–4 và tiếng Trung du lịch. Hồ sơ mẫu cho dữ liệu demo.', 'TEACHER', TRUE, now() - interval '200 days', now()),
-  ('demo-teacher-ha', 'gv.ha@demo.vankinh.vn', '$2a$10$r7rBDrXyy2Zcta7wFSIrbuIfA5bG4FDcyFNTTc3AzPpgcO./260e6', 'Cô Phạm Thu Hà', '0911000002',
+  ('demo-teacher-ha', 'gv.ha@demo.chineselearner.vn', '$2a$10$r7rBDrXyy2Zcta7wFSIrbuIfA5bG4FDcyFNTTc3AzPpgcO./260e6', 'Cô Phạm Thu Hà', '0911000002',
    'Chuyên phát âm, ngữ pháp sơ cấp và tiếng Trung công sở. Hồ sơ mẫu cho dữ liệu demo.', 'TEACHER', TRUE, now() - interval '180 days', now()),
-  ('demo-student-01', 'hv01@demo.vankinh.vn', '$2a$10$r7rBDrXyy2Zcta7wFSIrbuIfA5bG4FDcyFNTTc3AzPpgcO./260e6', 'Đỗ Thị Mai', '0922000001',
+  ('demo-student-01', 'hv01@demo.chineselearner.vn', '$2a$10$r7rBDrXyy2Zcta7wFSIrbuIfA5bG4FDcyFNTTc3AzPpgcO./260e6', 'Đỗ Thị Mai', '0922000001',
    'Mục tiêu thi HSK 3 trong năm nay.', 'STUDENT', TRUE, now() - interval '120 days', now()),
-  ('demo-student-02', 'hv02@demo.vankinh.vn', '$2a$10$r7rBDrXyy2Zcta7wFSIrbuIfA5bG4FDcyFNTTc3AzPpgcO./260e6', 'Ngô Văn Hùng', '0922000002',
+  ('demo-student-02', 'hv02@demo.chineselearner.vn', '$2a$10$r7rBDrXyy2Zcta7wFSIrbuIfA5bG4FDcyFNTTc3AzPpgcO./260e6', 'Ngô Văn Hùng', '0922000002',
    'Làm việc với đối tác Trung Quốc, cần viết email và họp.', 'STUDENT', TRUE, now() - interval '90 days', now()),
-  ('demo-student-03', 'hv03@demo.vankinh.vn', '$2a$10$r7rBDrXyy2Zcta7wFSIrbuIfA5bG4FDcyFNTTc3AzPpgcO./260e6', 'Phụ huynh bé Su', NULL,
+  ('demo-student-03', 'hv03@demo.chineselearner.vn', '$2a$10$r7rBDrXyy2Zcta7wFSIrbuIfA5bG4FDcyFNTTc3AzPpgcO./260e6', 'Phụ huynh bé Su', NULL,
    'Cho con 7 tuổi học YCT.', 'STUDENT', TRUE, now() - interval '60 days', now()),
-  ('demo-student-04', 'hv04@demo.vankinh.vn', '$2a$10$r7rBDrXyy2Zcta7wFSIrbuIfA5bG4FDcyFNTTc3AzPpgcO./260e6', 'Vũ Quốc Bảo', NULL,
+  ('demo-student-04', 'hv04@demo.chineselearner.vn', '$2a$10$r7rBDrXyy2Zcta7wFSIrbuIfA5bG4FDcyFNTTc3AzPpgcO./260e6', 'Vũ Quốc Bảo', NULL,
    NULL, 'STUDENT', TRUE, now() - interval '45 days', now()),
-  ('demo-student-05', 'hv05@demo.vankinh.vn', '$2a$10$r7rBDrXyy2Zcta7wFSIrbuIfA5bG4FDcyFNTTc3AzPpgcO./260e6', 'Lý Thanh Tâm', NULL,
+  ('demo-student-05', 'hv05@demo.chineselearner.vn', '$2a$10$r7rBDrXyy2Zcta7wFSIrbuIfA5bG4FDcyFNTTc3AzPpgcO./260e6', 'Lý Thanh Tâm', NULL,
    'Mới bắt đầu, chưa mua khoá nào.', 'STUDENT', TRUE, now() - interval '3 days', now()),
-  ('demo-student-06', 'hv06@demo.vankinh.vn', '$2a$10$r7rBDrXyy2Zcta7wFSIrbuIfA5bG4FDcyFNTTc3AzPpgcO./260e6', 'Tài khoản bị khoá', NULL,
+  ('demo-student-06', 'hv06@demo.chineselearner.vn', '$2a$10$r7rBDrXyy2Zcta7wFSIrbuIfA5bG4FDcyFNTTc3AzPpgcO./260e6', 'Tài khoản bị khoá', NULL,
    'Dùng để thử: tài khoản bị khoá không đăng nhập được.', 'STUDENT', FALSE, now() - interval '30 days', now());
 
 -- ---------------------------------------------------------------------------

@@ -16,7 +16,7 @@ export function vietnamDay(now: Date): string {
   return new Date(now.getTime() + VN_OFFSET_MS).toISOString().slice(0, 10);
 }
 
-const UNSUBSCRIBE_LABEL = 'vankinh:review-reminder-unsubscribe:';
+const UNSUBSCRIBE_LABEL = 'chinese_learner:review-reminder-unsubscribe:';
 
 export function unsubscribeSignature(secret: string, userId: string): string {
   return createHmac('sha256', secret).update(UNSUBSCRIBE_LABEL + userId).digest('base64url');
@@ -78,7 +78,7 @@ export function reviewReminderMail(to: string, fullName: string, dueCount: numbe
     `Không muốn nhận nhắc ôn tập nữa? Tắt tại: ${links.unsubscribePage}`,
     'Bạn cũng có thể tắt "Nhắc ôn tập mỗi ngày" trong trang Tài khoản.',
     '',
-    'Vân Kính',
+    'Chinese Learner',
   ].join('\n');
   const html = `<!doctype html><html lang="vi"><body style="margin:0;padding:24px;background:#F7F9FA;font-family:'Be Vietnam Pro',Arial,sans-serif;color:#1C1D1F">
 <div style="max-width:480px;margin:0 auto;background:#FFFFFF;border:1px solid #D1D7DC;border-radius:4px;padding:28px">

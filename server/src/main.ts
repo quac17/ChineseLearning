@@ -43,7 +43,7 @@ async function bootstrap() {
 
   const port = Number(process.env.PORT) || 4000;
   await app.listen(port, '0.0.0.0');
-  console.log(`Van Kinh NestJS Server listening on http://0.0.0.0:${port}/api`);
+  console.log(`Chinese Learner NestJS Server listening on http://0.0.0.0:${port}/api`);
 }
 
 bootstrap();

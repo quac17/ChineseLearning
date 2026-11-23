@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 
 /**
- * PWA manifest: learners can add Vân Kính to their home screen (Android
+ * PWA manifest: learners can add Chinese Learner to their home screen (Android
  * Chrome install prompt, iOS Safari "Thêm vào màn hình chính"). iOS reads the
  * name and status bar from `appleWebApp` in layout.tsx and the icon from
  * app/apple-icon.png. The service worker is public/sw.js.
@@ -9,8 +9,8 @@ import type { MetadataRoute } from 'next';
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: '/',
-    name: 'Vân Kính – Học tiếng Trung',
-    short_name: 'Vân Kính',
+    name: 'Chinese Learner – Học tiếng Trung',
+    short_name: 'Chinese Learner',
     description: 'Khoá học video tiếng Trung cho người Việt: HSK, YCT, thiếu nhi và giao tiếp.',
     lang: 'vi',
     dir: 'ltr',

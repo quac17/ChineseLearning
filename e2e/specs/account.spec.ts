@@ -75,7 +75,7 @@ test.describe('theme: Sáng / Tối / Theo máy', () => {
 
     await page.getByRole('radio', { name: 'Tối' }).check();
     await expect(html(page)).toHaveAttribute('data-theme', 'dark');
-    expect(await page.evaluate(() => localStorage.getItem('vankinh_theme'))).toBe('dark');
+    expect(await page.evaluate(() => localStorage.getItem('chinese_learner_theme'))).toBe('dark');
 
     // Set before paint by the inline script: already dark when the HTML is parsed.
     await page.reload({ waitUntil: 'domcontentloaded' });
@@ -84,7 +84,7 @@ test.describe('theme: Sáng / Tối / Theo máy', () => {
 
     await page.getByRole('radio', { name: 'Theo máy' }).check();
     await expect(html(page)).toHaveAttribute('data-theme', 'light');
-    expect(await page.evaluate(() => localStorage.getItem('vankinh_theme'))).toBeNull();
+    expect(await page.evaluate(() => localStorage.getItem('chinese_learner_theme'))).toBeNull();
   });
 
   test('the header button still switches and pins the theme', async ({ page }) => {

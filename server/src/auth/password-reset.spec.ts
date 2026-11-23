@@ -50,7 +50,7 @@ describe('reset token rules', () => {
   });
 
   it('puts the token in the URL fragment, so it never reaches a server log', () => {
-    expect(resetLink('https://vankinh.vn/', 'abc_DEF-1')).toBe('https://vankinh.vn/reset-password#token=abc_DEF-1');
+    expect(resetLink('https://chineselearner.vn/', 'abc_DEF-1')).toBe('https://chineselearner.vn/reset-password#token=abc_DEF-1');
   });
 
   it('limits links per account and per IP', () => {
@@ -64,7 +64,7 @@ describe('reset token rules', () => {
     const mail = resetPasswordMail('a@b.vn', '<script>x</script>', 'https://x/reset-password#token=t');
     expect(mail.html).not.toContain('<script>x');
     expect(mail.text).toContain('https://x/reset-password#token=t');
-    expect(mail.subject).toBe('Đặt lại mật khẩu Vân Kính');
+    expect(mail.subject).toBe('Đặt lại mật khẩu Chinese Learner');
   });
 });
 
@@ -191,7 +191,7 @@ describe('mailerFactory', () => {
         SMTP_PORT: '465',
         SMTP_USER: 'user',
         SMTP_PASS: 'pass',
-        MAIL_FROM: 'Vân Kính <no-reply@example.com>',
+        MAIL_FROM: 'Chinese Learner <no-reply@example.com>',
       }),
     );
     expect(mailer.name).toBe('smtp');

@@ -33,7 +33,7 @@ const PROGRAM_COPY: Record<ProgramModule, { title: string; text: string }> = {
   },
 };
 
-/** Stock photos (public/images/stock, credits in the footer). Never Vân Kính's own students. */
+/** Stock photos (public/images/stock, credits in the footer). Never Chinese Learner's own students. */
 const GOALS: Array<{ program: ProgramModule; label: string; img: string; alt: string }> = [
   { program: 'easy', label: 'Mới bắt đầu từ số 0', img: 'brush.jpg', alt: 'Cây bút lông viết thư pháp đặt trên giá sứ' },
   { program: 'yct', label: 'Cho con học YCT', img: 'kids.jpg', alt: 'Các em nhỏ cùng đọc sách trong lớp học' },
@@ -132,7 +132,7 @@ export default function HomePage() {
       <section className={s.band} aria-labelledby="why-title">
         <div className={s.wrap}>
           <h2 id="why-title" className="sr-only">
-            Vì sao học trên Vân Kính
+            Vì sao học trên Chinese Learner
           </h2>
           <div className={s.bandImg}>
             {/* eslint-disable-next-line @next/next/no-img-element */}

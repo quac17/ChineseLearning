@@ -27,7 +27,7 @@ function gatewayFactory(config: ConfigService): PaymentGateway {
     throw new Error('Không được dùng cổng thanh toán giả lập ở production. Đặt PAYMENT_GATEWAY=payos.');
   }
   new Logger('Payments').warn('Đang dùng cổng thanh toán GIẢ LẬP (PAYMENT_GATEWAY=fake).');
-  return new FakeGateway(config.get<string>('FAKE_PAYMENT_CHECKSUM_KEY') || 'vankinh-fake-checksum-key');
+  return new FakeGateway(config.get<string>('FAKE_PAYMENT_CHECKSUM_KEY') || 'chinese-learner-fake-checksum-key');
 }
 
 @Module({

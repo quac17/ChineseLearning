@@ -59,22 +59,22 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_USER: vankinh
-          POSTGRES_PASSWORD: vankinh_secret
-          POSTGRES_DB: vankinh_test
+          POSTGRES_USER: chinese_learner
+          POSTGRES_PASSWORD: chinese_learner_secret
+          POSTGRES_DB: chinese_learner_test
         ports:
           - 5433:5432
         options: >-
-          --health-cmd "pg_isready -U vankinh"
+          --health-cmd "pg_isready -U chinese_learner"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
     env:
       POSTGRES_HOST: localhost
       POSTGRES_PORT: 5433
-      POSTGRES_USER: vankinh
-      POSTGRES_PASSWORD: vankinh_secret
-      POSTGRES_DB: vankinh_test
+      POSTGRES_USER: chinese_learner
+      POSTGRES_PASSWORD: chinese_learner_secret
+      POSTGRES_DB: chinese_learner_test
       JWT_SECRET: ci-only-not-a-secret
       # Ports, NEXT_PUBLIC_API_URL and upload dir come from e2e/env.ts.
     steps:

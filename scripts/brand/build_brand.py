@@ -1,4 +1,4 @@
-"""Build the Vân Kính brand SVG package (round seal: a winding path through the
+"""Build the Chinese Learner brand SVG package (round seal: a winding path through the
 mountains up to a cloud, 云径, which also reads as a tree of knowledge; plus the
 outlined wordmark).
 
@@ -91,10 +91,10 @@ VARIANTS = {
     "mono-light": (WHITE, None, WHITE, WHITE, True),
 }
 
-TITLE = '<title>Vân Kính</title>'
+TITLE = '<title>Chinese Learner</title>'
 
 
-def svg(w, h, body, label="Logo Vân Kính"):
+def svg(w, h, body, label="Logo Chinese Learner"):
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w:.0f} {h:.0f}" '
         f'width="{w:.0f}" height="{h:.0f}" role="img" aria-label="{label}">{TITLE}{body}</svg>\n'
@@ -113,16 +113,16 @@ TRACK = -0.035
 
 for vname, (sf, gf, tf, tagf, ko) in VARIANTS.items():
     # Icon only (64 grid, 2-unit padding already inside the circle radius)
-    write(f"vankinh-icon-{vname}.svg", svg(64, 64, seal(32, 32, 64, sf, gf, ko, "i")))
+    write(f"chinese-learner-icon-{vname}.svg", svg(64, 64, seal(32, 32, 64, sf, gf, ko, "i")))
 
     # Horizontal: seal 64, wordmark cap height ~ 0.5 seal, gap 16
     size = 42
     ch = cap_height(WM_FONT, size)
     base = 32 + ch / 2
-    d, adv = text_path(WM_FONT, "Vân Kính", size, TRACK, 64 + 16, base)
+    d, adv = text_path(WM_FONT, "Chinese Learner", size, TRACK, 64 + 16, base)
     w = 64 + 16 + adv + 2
     write(
-        f"vankinh-logo-horizontal-{vname}.svg",
+        f"chinese-learner-logo-horizontal-{vname}.svg",
         svg(w, 64, seal(32, 32, 64, sf, gf, ko, "h") + f'<path d="{d}" fill="{tf}"/>'),
     )
 
@@ -130,39 +130,39 @@ for vname, (sf, gf, tf, tagf, ko) in VARIANTS.items():
     size_t = 38
     ch_t = cap_height(WM_FONT, size_t)
     base_t = 30
-    d1, adv1 = text_path(WM_FONT, "Vân Kính", size_t, TRACK, 80, base_t)
+    d1, adv1 = text_path(WM_FONT, "Chinese Learner", size_t, TRACK, 80, base_t)
     d2, adv2 = text_path(TAG_FONT, "Học tiếng Trung", 15, 0, 81, base_t + 22)
     w = 80 + max(adv1, adv2) + 2
     write(
-        f"vankinh-logo-horizontal-tagline-{vname}.svg",
+        f"chinese-learner-logo-horizontal-tagline-{vname}.svg",
         svg(w, 64, seal(32, 32, 64, sf, gf, ko, "t")
             + f'<path d="{d1}" fill="{tf}"/><path d="{d2}" fill="{tagf}"/>'),
     )
 
     # Vertical: seal 96 on top, wordmark centred under it
     size_v = 40
-    _, adv_v = text_path(WM_FONT, "Vân Kính", size_v, TRACK, 0, 0)
+    _, adv_v = text_path(WM_FONT, "Chinese Learner", size_v, TRACK, 0, 0)
     w = max(96, adv_v) + 8
-    dv, _ = text_path(WM_FONT, "Vân Kính", size_v, TRACK, (w - adv_v) / 2, 96 + 20 + cap_height(WM_FONT, size_v) + 4)
+    dv, _ = text_path(WM_FONT, "Chinese Learner", size_v, TRACK, (w - adv_v) / 2, 96 + 20 + cap_height(WM_FONT, size_v) + 4)
     h = 96 + 20 + cap_height(WM_FONT, size_v) + 4 + 12
     write(
-        f"vankinh-logo-vertical-{vname}.svg",
+        f"chinese-learner-logo-vertical-{vname}.svg",
         svg(w, h, seal(w / 2, 48, 96, sf, gf, ko, "v") + f'<path d="{dv}" fill="{tf}"/>'),
     )
 
 # Wordmark only
 for vname, color in (("full", INK), ("reversed", WHITE)):
     size = 42
-    d, adv = text_path(WM_FONT, "Vân Kính", size, TRACK, 1, cap_height(WM_FONT, size) + 14)
-    write(f"vankinh-wordmark-{vname}.svg", svg(adv + 2, cap_height(WM_FONT, size) + 26, f'<path d="{d}" fill="{color}"/>'))
+    d, adv = text_path(WM_FONT, "Chinese Learner", size, TRACK, 1, cap_height(WM_FONT, size) + 14)
+    write(f"chinese-learner-wordmark-{vname}.svg", svg(adv + 2, cap_height(WM_FONT, size) + 26, f'<path d="{d}" fill="{color}"/>'))
 
 # Favicon (simplified: no mountains, wider path and cloud)
-write("favicon.svg", svg(64, 64, seal(32, 32, 64, SEAL, None, False, "f", small=True), "Vân Kính"))
+write("favicon.svg", svg(64, 64, seal(32, 32, 64, SEAL, None, False, "f", small=True), "Chinese Learner"))
 
 # App icon: white square (the OS applies its own rounding), seal at 72%
 write(
     "app-icon.svg",
-    svg(1024, 1024, f'<rect width="1024" height="1024" fill="{WHITE}"/>' + seal(512, 512, 740, SEAL, MOUNTAIN, False, "a"), "Vân Kính"),
+    svg(1024, 1024, f'<rect width="1024" height="1024" fill="{WHITE}"/>' + seal(512, 512, 740, SEAL, MOUNTAIN, False, "a"), "Chinese Learner"),
 )
 # Maskable / Android adaptive: the scene fills the square; the launcher crops it
 # to its own shape, and the cloud and path top stay inside the 80% safe zone.
@@ -170,5 +170,5 @@ write(
     "app-icon-maskable.svg",
     svg(1024, 1024, f'<g transform="scale(16)"><rect width="64" height="64" fill="{SEAL}"/>'
         f'<path d="{MOUNTAINS}" fill="{MOUNTAIN}"/><path d="{ROAD}" fill="{WHITE}"/><path d="{CLOUD}" fill="{WHITE}"/></g>',
-        "Vân Kính"),
+        "Chinese Learner"),
 )
