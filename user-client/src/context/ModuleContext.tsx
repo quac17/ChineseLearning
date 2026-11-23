@@ -1,8 +1,10 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { apiRequest } from '@/lib/api';
 import { getModuleTheme, ModuleThemeConfig } from '@/lib/modules';
-import { ModuleSelection } from '@/lib/types';
+import { DEFAULT_PROGRAM_ITEMS, getProgramMeta, ProgramDisplayMeta, PROGRAMS } from '@/lib/programs';
+import { ModuleSelection, ProgramItem } from '@/lib/types';
 
 /** What the learner picked: a fixed theme, or follow the device (the default). */
 export type ThemePreference = 'light' | 'dark' | 'system';
@@ -23,6 +25,10 @@ interface ModuleContextValue {
   toggleColorMode: () => void;
   themePreference: ThemePreference;
   setThemePreference: (pref: ThemePreference) => void;
+  /** Live list of programs loaded from /api/programs. */
+  programs: ProgramItem[];
+  programMap: Record<string, ProgramDisplayMeta>;
+  refreshPrograms: () => Promise<void>;
 }
 
 const ModuleContext = createContext<ModuleContextValue | null>(null);
@@ -53,13 +59,26 @@ export function ModuleProvider({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<'light' | 'dark' | null>(null);
   // null until read from localStorage, so the "follow the device" effect never runs on a guess.
   const [preference, setPreference] = useState<ThemePreference | null>(null);
+  const [programs, setPrograms] = useState<ProgramItem[]>(DEFAULT_PROGRAM_ITEMS);
   const colorMode = mode ?? 'light';
   const theme = getModuleTheme(activeModule);
+
+  const refreshPrograms = useCallback(async () => {
+    try {
+      const list = await apiRequest<ProgramItem[]>('/programs');
+      if (Array.isArray(list) && list.length > 0) {
+        setPrograms(list);
+      }
+    } catch {
+      // Keep fallback DEFAULT_PROGRAM_ITEMS if API is unreachable during initial render.
+    }
+  }, []);
 
   useEffect(() => {
     setPreference(readPreference());
     setMode(document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light');
-  }, []);
+    refreshPrograms();
+  }, [refreshPrograms]);
 
   useEffect(() => {
     if (mode) document.documentElement.dataset.theme = mode;
@@ -83,6 +102,18 @@ export function ModuleProvider({ children }: { children: React.ReactNode }) {
 
   const toggleColorMode = () => setThemePreference(colorMode === 'light' ? 'dark' : 'light');
 
+  const programMap = useMemo(() => {
+    const map: Record<string, ProgramDisplayMeta> = {};
+    for (const p of programs) {
+      map[p.code] = {
+        name: p.name,
+        han: p.han,
+        color: p.color1 || PROGRAMS[p.code]?.color || 'var(--prog-hsk)',
+      };
+    }
+    return map;
+  }, [programs]);
+
   return (
     <ModuleContext.Provider
       value={{
@@ -93,6 +124,9 @@ export function ModuleProvider({ children }: { children: React.ReactNode }) {
         toggleColorMode,
         themePreference: preference ?? 'system',
         setThemePreference,
+        programs,
+        programMap,
+        refreshPrograms,
       }}
     >
       {children}
@@ -104,4 +138,11 @@ export function useModule() {
   const ctx = useContext(ModuleContext);
   if (!ctx) throw new Error('useModule must be used inside ModuleProvider');
   return ctx;
+}
+
+export function usePrograms() {
+  const { programs, programMap, refreshPrograms } = useModule();
+  const programOrder = useMemo(() => programs.map((p) => p.code), [programs]);
+  const getProgram = useCallback((code: string) => getProgramMeta(code, programMap), [programMap]);
+  return { programs, programMap, programOrder, refreshPrograms, getProgram };
 }

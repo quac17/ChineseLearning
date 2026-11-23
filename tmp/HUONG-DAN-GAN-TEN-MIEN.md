@@ -71,16 +71,22 @@ Vẫn tại **Cloud Run → Manage Custom Domains → Add Mapping**:
 ```bash
 gcloud run services update chinese-learner-server \
   --region asia-southeast1 \
-  --update-env-vars "CORS_ORIGIN=https://chineselearner.vn,https://www.chineselearner.vn,COOKIE_SECURE=true,COOKIE_SAME_SITE=lax"
+  --update-env-vars "CORS_ORIGIN=https://chineselearner.vn,https://www.chineselearner.vn,APP_URL=https://chineselearner.vn,API_PUBLIC_URL=https://api.chineselearner.vn/api,COOKIE_SECURE=true,COOKIE_SAME_SITE=lax"
 ```
 > **Lưu ý về Cookie giữa `chineselearner.vn` và `api.chineselearner.vn`:**
 > Cookie được set từ `api.chineselearner.vn` sẽ tự động gửi lại cho mọi request tới `api.chineselearner.vn` (kể cả khi trình duyệt đang mở `https://chineselearner.vn`) miễn là:
-> - Backend trả về `Access-Control-Allow-Credentials: true` và đúng `CORS_ORIGIN=https://chineselearner.vn` (đã cấu hình sẵn trong `server/src/main.ts`).
+> - Backend trả về `Access-Control-Allow-Credentials: true` và đúng `CORS_ORIGIN=https://chineselearner.vn,https://www.chineselearner.vn` (đã cấu hình sẵn trong `server/src/main.ts`).
 > - Frontend gọi API với `credentials: 'include'` (đã cấu hình sẵn trong `user-client/src/lib/api.ts`).
 > - `COOKIE_SECURE=true` và `COOKIE_SAME_SITE=lax`.
+> - `APP_URL=https://chineselearner.vn` để link trả về từ PayOS (`/checkout/...`) và link trong email (quên mật khẩu, nhắc ôn tập) trỏ đúng về web mới.
 
 #### 4.2. Rebuild & Deploy lại Frontend (`chinese-learner-client`) với API domain mới
-Vì `NEXT_PUBLIC_API_URL` được nhúng lúc build Next.js, bạn cần build lại image Frontend với `NEXT_PUBLIC_API_URL=https://api.chineselearner.vn/api` (hoặc để GitHub Actions tự chạy ở tài liệu CI/CD).
+Vì `NEXT_PUBLIC_API_URL` được nhúng lúc build Next.js, bạn cần build lại image Frontend với `NEXT_PUBLIC_API_URL=https://api.chineselearner.vn/api`.
+
+#### 4.3. Cập nhật CORS Bucket GCS, Webhook PayOS & Cloud Scheduler (nếu đang dùng)
+- Sửa `origin` trong `cors.json` của bucket Cloud Storage thành `https://chineselearner.vn` và chạy lại `gcloud storage buckets update`.
+- Cập nhật URL Webhook trên `my.payos.vn` thành `https://api.chineselearner.vn/api/payments/webhook/payos`.
+- Cập nhật `--uri` của job Cloud Scheduler nhắc ôn tập thành `https://api.chineselearner.vn/api/reminders/run`.
 
 ---
 
@@ -115,7 +121,7 @@ Nếu bạn là sinh viên/giảng viên có email trường học (`.edu.vn` / 
    - Sau khi deploy lên Cloud Run, bạn có ngay 2 link HTTPS miễn phí:
      - FE: `https://chinese-learner-client-xxxxxx-as.a.run.app`
      - BE: `https://chinese-learner-server-xxxxxx-as.a.run.app`
-   - Cấu hình trên BE: `COOKIE_SECURE=true`, `COOKIE_SAME_SITE=none`, `CORS_ORIGIN=https://chinese-learner-client-xxxxxx-as.a.run.app`.
+   - Cấu hình trên BE: `COOKIE_SECURE=true`, `COOKIE_SAME_SITE=none`, `CORS_ORIGIN=https://chinese-learner-client-xxxxxx-as.a.run.app`, `APP_URL=https://chinese-learner-client-xxxxxx-as.a.run.app`.
    - Đủ dùng hoàn hảo cho giai đoạn test nội bộ / demo trước khi mua domain `.vn` hoặc `.com`.
 2. **Hoặc dùng tên miền phụ miễn phí có quản trị DNS (`eu.org` / `pp.ua` / `is-a.dev`):**
    - `eu.org` hoặc `nic.ua` (`.pp.ua`) cho phép trỏ Nameserver sang Cloudflare Free miễn phí → sau đó cấu hình giống hệt Phần 1.

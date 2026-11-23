@@ -4,9 +4,9 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
 import { Alert, Button, Checkbox, Dialog, Field, Input, Select, Switch, Textarea, useToast } from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
+import { usePrograms } from '@/context/ModuleContext';
 import { apiRequest, buildMediaUrl } from '@/lib/api';
 import { LEVELS, LEVEL_ORDER } from '@/lib/courses';
-import { PROGRAMS, PROGRAM_ORDER } from '@/lib/programs';
 import type { CourseLevel, ProgramModule } from '@/lib/types';
 import { FileDrop } from '../../../FileDrop';
 import { CourseThumb, studentCount } from '../../../shared';
@@ -18,6 +18,7 @@ export default function CourseInfoTab() {
   const toast = useToast();
   const router = useRouter();
   const { user } = useAuth();
+  const { programs } = usePrograms();
   const { course, reload, setCourse } = useEditorCourse();
   const [title, setTitle] = useState(course.title);
   const [description, setDescription] = useState(course.description ?? '');
@@ -147,9 +148,9 @@ export default function CourseInfoTab() {
         </Field>
         <Field label="Chương trình">
           <Select value={module} onChange={(e) => setModule(e.target.value as ProgramModule)}>
-            {PROGRAM_ORDER.map((m) => (
-              <option key={m} value={m}>
-                {PROGRAMS[m].name}
+            {programs.map((p) => (
+              <option key={p.code} value={p.code}>
+                {p.name}
               </option>
             ))}
           </Select>

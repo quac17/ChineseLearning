@@ -16,8 +16,8 @@ import {
   useToast,
 } from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
+import { usePrograms } from '@/context/ModuleContext';
 import { apiRequest } from '@/lib/api';
-import { PROGRAMS, PROGRAM_ORDER } from '@/lib/programs';
 import type { CourseItem, ProgramModule } from '@/lib/types';
 import {
   CourseThumb,
@@ -44,6 +44,7 @@ function Courses() {
   const router = useRouter();
   const params = useSearchParams();
   const { user } = useAuth();
+  const { programs, getProgram } = usePrograms();
   const isAdmin = user?.role === 'ADMIN';
   const { courses, setCourses, error, reload } = useManagedCourses();
   const [q, setQ] = useState('');
@@ -121,9 +122,9 @@ function Courses() {
         </label>
         <Select id="course-program" value={program} onChange={(e) => setProgram(e.target.value as '' | ProgramModule)}>
           <option value="">Mọi chương trình</option>
-          {PROGRAM_ORDER.map((m) => (
-            <option key={m} value={m}>
-              {PROGRAMS[m].name}
+          {programs.map((p) => (
+            <option key={p.code} value={p.code}>
+              {p.name}
             </option>
           ))}
         </Select>
@@ -187,7 +188,7 @@ function Courses() {
                         </span>
                       </div>
                     </td>
-                    <td className={s.nowrap}>{PROGRAMS[c.module].name}</td>
+                    <td className={s.nowrap}>{getProgram(c.module).name}</td>
                     <td className={s.nowrap}>
                       <StatusBadge published={c.isPublished} />
                     </td>
@@ -270,8 +271,9 @@ function CreateCourseDialog({
   onClose: () => void;
   onCreated: (course: CourseItem) => void;
 }) {
+  const { programs } = usePrograms();
   const [title, setTitle] = useState('');
-  const [module, setModule] = useState<ProgramModule>('hsk');
+  const [module, setModule] = useState<ProgramModule>(programs[0]?.code ?? 'hsk');
   const [isFree, setIsFree] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -328,9 +330,9 @@ function CreateCourseDialog({
         </Field>
         <Field label="Chương trình">
           <Select value={module} onChange={(e) => setModule(e.target.value as ProgramModule)}>
-            {PROGRAM_ORDER.map((m) => (
-              <option key={m} value={m}>
-                {PROGRAMS[m].name}
+            {programs.map((p) => (
+              <option key={p.code} value={p.code}>
+                {p.name}
               </option>
             ))}
           </Select>

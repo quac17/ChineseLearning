@@ -26,7 +26,8 @@ import {
   sortedLessons,
   type OutlineGroup,
 } from '@/lib/courses';
-import { PROGRAMS, formatVnd } from '@/lib/programs';
+import { usePrograms } from '@/context/ModuleContext';
+import { formatVnd } from '@/lib/programs';
 import { REFUND_POLICY } from '@/lib/site';
 import type { CourseItem, LessonItem, ReviewSummary } from '@/lib/types';
 import s from './course.module.css';
@@ -58,11 +59,12 @@ export default function CoursePage() {
 
 function CourseDetail({ course }: { course: CourseItem }) {
   const { user } = useAuth();
+  const { getProgram } = usePrograms();
   const searchParams = useSearchParams();
   const isReviewMode =
     searchParams.get('review') === '1' &&
     (user?.role === 'TEACHER' || user?.role === 'ADMIN');
-  const p = PROGRAMS[course.module];
+  const p = getProgram(course.module);
   const lessons = sortedLessons(course);
   const hasDocs = course.documents.length > 0;
   // Starts from the course payload; the reviews section refreshes it after the learner posts.
@@ -325,7 +327,8 @@ function LessonRow({ course, lesson, index }: { course: CourseItem; lesson: Less
 /** The buy box: price + QR checkout when on sale, otherwise how to get access. */
 function BuyBox({ course }: { course: CourseItem }) {
   const { user } = useAuth();
-  const p = PROGRAMS[course.module];
+  const { getProgram } = usePrograms();
+  const p = getProgram(course.module);
   const start = firstLesson(course);
   const preview = previewLesson(course);
   const previewTarget = course.hasAccess ? start : preview;

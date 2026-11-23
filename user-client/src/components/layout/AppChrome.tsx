@@ -15,6 +15,7 @@ const TEACHER_NAV = [
 const ADMIN_NAV = [
   { href: '/admin', label: 'Thống kê' },
   { href: '/admin/users', label: 'Người dùng' },
+  { href: '/admin/programs', label: 'Chương trình' },
   { href: '/admin/courses', label: 'Khoá học' },
   { href: '/admin/prices', label: 'Giá khoá học' },
   { href: '/admin/ratings', label: 'Đánh giá & học viên' },

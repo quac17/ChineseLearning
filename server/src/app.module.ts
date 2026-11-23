@@ -17,6 +17,7 @@ import { NotesQaModule } from './notes-qa/notes-qa.module';
 import { AdminModule } from './admin/admin.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { RemindersModule } from './reminders/reminders.module';
+import { ProgramsModule } from './programs/programs.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { RemindersModule } from './reminders/reminders.module';
     AdminModule,
     ReviewsModule,
     RemindersModule,
+    ProgramsModule,
   ],
   controllers: [HealthController],
 })

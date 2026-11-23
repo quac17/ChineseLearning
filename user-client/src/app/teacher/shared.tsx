@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Badge } from '@/components/ui';
+import { usePrograms } from '@/context/ModuleContext';
 import { apiRequest } from '@/lib/api';
-import { PROGRAMS } from '@/lib/programs';
 import type { CourseItem, ProgramModule } from '@/lib/types';
 import s from './teacher.module.css';
 
@@ -59,7 +59,8 @@ export function StatusBadge({ published }: { published: boolean }) {
 
 /** Program-colour block with the program's Hanzi until courses have a real cover. */
 export function CourseThumb({ module }: { module: ProgramModule }) {
-  const p = PROGRAMS[module];
+  const { getProgram } = usePrograms();
+  const p = getProgram(module);
   return (
     <span className={s.thumb} style={{ background: p.color }} aria-hidden="true">
       <span className="han">{p.han}</span>
