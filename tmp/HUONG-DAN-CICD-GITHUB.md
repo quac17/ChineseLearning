@@ -1,28 +1,57 @@
-# Hướng dẫn Setup CI/CD trên GitHub Actions (Deploy tự động lên GCP Cloud Run)
+# Hướng dẫn CI/CD & Pre-push Hook (GitHub Actions + GCP Cloud Run)
 
-Tài liệu này hướng dẫn thiết lập quy trình **CI/CD hoàn chỉnh trên GitHub** cho dự án **Chinese Learner** (`server/` + `user-client/`):
-- **CI (Continuous Integration):** Mỗi khi tạo Pull Request hoặc push code, GitHub tự động cài gói bằng Yarn, kiểm tra TypeScript (`tsc --noEmit`) và chạy build kiểm thử cho cả Backend và Frontend.
-- **CD (Continuous Delivery/Deployment):** Khi merge code vào nhánh `main`, GitHub tự động build Docker image, đẩy lên **GCP Artifact Registry** và deploy bản mới lên **GCP Cloud Run** (chỉ deploy phần nào có thay đổi code để tiết kiệm thời gian & chi phí).
+Tài liệu này mô tả quy trình **CI/CD** của dự án **Chinese Learner** (`server/` + `user-client/` + `e2e/`):
+- **Pre-push Hook (Local):** Chạy toàn bộ kiểm tra TypeScript, build và unit test trước khi `git push`, giúp phát hiện lỗi sớm trước khi đẩy lên GitHub.
+- **CI (Continuous Integration):** Đã cấu hình sẵn tại `.github/workflows/ci.yml`. Mỗi khi mở Pull Request hoặc push lên `main`, GitHub Actions tự động chạy build + unit tests (Server), build + type-check (Client), và E2E Playwright với PostgreSQL 16.
+- **CD (Continuous Delivery/Deployment):** Mẫu workflow `.github/workflows/deploy-gcp.yml` để tự động build Docker image, đẩy lên **GCP Artifact Registry** và deploy lên **GCP Cloud Run** khi merge vào `main`.
 
 ---
 
-## 1. Chuẩn bị quyền truy cập GCP cho GitHub Actions
+## 1. Kiểm tra CI tại Local bằng Pre-push Hook
 
-Có 2 cách kết nối GitHub Actions với GCP. **Cách 1 (Service Account JSON)** dễ làm nhanh trong 3 phút; **Cách 2 (Workload Identity Federation)** bảo mật cao hơn cho môi trường Production (không lưu file key tĩnh).
+Repo đã tích hợp sẵn `.githooks/pre-push` và `scripts/ci-check.mjs`:
 
-### Bước 1.1: Tạo Service Account trên GCP
-Chạy các lệnh sau trên máy (hoặc Google Cloud Shell):
+```bash
+# Cài đặt hook một lần sau khi clone repo
+yarn hooks:install
+```
+
+- Mỗi lần chạy `git push`, hook tự động chạy `node scripts/ci-check.mjs`:
+  1. `[1/4]` Server TypeScript check (`yarn --cwd server tsc --noEmit`)
+  2. `[2/4]` Server build (`yarn --cwd server build`)
+  3. `[3/4]` Server unit tests (`yarn --cwd server test --runInBand` trên Windows hoặc `--ci` trên Linux/macOS)
+  4. `[4/4]` Client TypeScript check + Next.js build (`yarn --cwd user-client tsc --noEmit && yarn --cwd user-client build`)
+- Chạy thủ công bất kỳ lúc nào:
+  - `yarn check:ci` — chạy 4 bước trên (nhanh, không gồm E2E).
+  - `yarn check:all` (hoặc `RUN_E2E=1 git push`) — chạy cả 4 bước trên + `[5/5]` E2E Playwright (`yarn e2e`).
+
+---
+
+## 2. Workflow CI hiện tại (`.github/workflows/ci.yml`)
+
+Workflow CI đang hoạt động trong repo gồm 3 job:
+1. **`server` (`Server (build + unit tests)`)**: dùng Node 20, `yarn install --frozen-lockfile`, `yarn build`, `yarn test --ci`.
+2. **`client` (`Client (build + type-check)`)**: dùng Node 20, `yarn install --frozen-lockfile`, `yarn build` với `NEXT_PUBLIC_API_URL=http://localhost:4000/api`.
+3. **`e2e` (`E2E (Playwright)`)**: chạy sau khi `server` và `client` pass (`needs: [server, client]`), bật service `postgres:16` trên cổng `5433`, cài Chromium của Playwright và chạy `yarn e2e` trên DB test `chinese_learner_test`. Nếu fail sẽ upload `playwright-report/` và `test-results/` làm artifact trong 7 ngày.
+
+> **Lưu ý:** Vì CI dùng `yarn install --frozen-lockfile`, không tự ý sửa `package.json` mà quên cập nhật `yarn.lock`.
+
+---
+
+## 3. Thiết lập CD (Tự động Deploy lên GCP Cloud Run)
+
+### Bước 3.1: Chuẩn bị quyền truy cập GCP cho GitHub Actions
+
+Có 2 cách kết nối GitHub Actions với GCP: **Service Account JSON** (nhanh) hoặc **Workload Identity Federation** (khuyến nghị cho production, không lưu key tĩnh).
 
 ```bash
 export PROJECT_ID="YOUR_PROJECT_ID"
 export SA_NAME="github-deployer"
 export SA_EMAIL="${SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
 
-# 1. Tạo Service Account
 gcloud iam service-accounts create $SA_NAME \
   --display-name="GitHub Actions Deployer for Chinese Learner"
 
-# 2. Cấp quyền cần thiết (Build, Push Artifact Registry, Deploy Cloud Run)
 gcloud projects add-iam-policy-binding $PROJECT_ID \
   --member="serviceAccount:${SA_EMAIL}" \
   --role="roles/run.admin"
@@ -36,112 +65,44 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
   --role="roles/iam.serviceAccountUser"
 ```
 
-### Bước 1.2: Tạo Key JSON (Cách 1 — nhanh gọn)
+Tạo key JSON (nếu dùng cách 1):
 ```bash
-gcloud iam service-accounts keys create gcp-sa-key.json \
-  --iam-account=$SA_EMAIL
+gcloud iam service-accounts keys create gcp-sa-key.json --iam-account=$SA_EMAIL
 ```
-Mở file `gcp-sa-key.json`, copy toàn bộ nội dung để dán vào GitHub Secret `GCP_SA_KEY`, sau đó **xóa file `gcp-sa-key.json` khỏi máy** (tuyệt đối không commit lên Git!).
+Dán nội dung vào GitHub Secret `GCP_SA_KEY`, sau đó **xóa file `gcp-sa-key.json` khỏi máy** (tuyệt đối không commit lên Git).
 
-*(Nếu muốn dùng **Cách 2 — Workload Identity Federation không cần JSON key**, tạo Workload Identity Pool & Provider trên GCP IAM trỏ tới repo GitHub của bạn, rồi truyền `workload_identity_provider` và `service_account` vào action `google-github-actions/auth@v2`.)*
-
----
-
-## 2. Khai báo Secrets & Variables trên GitHub Repository
+### Bước 3.2: Khai báo Variables & Secrets trên GitHub Repository
 
 Vào GitHub Repo → **Settings** → **Secrets and variables** → **Actions**:
 
-### A. Tab `Variables` (Thông số không nhạy cảm)
+#### A. Tab `Variables` (Thông số không nhạy cảm)
 | Tên Variable | Giá trị ví dụ |
 |---|---|
 | `GCP_PROJECT_ID` | `chinese-learner-prod-123456` |
 | `GCP_REGION` | `asia-southeast1` |
 | `GCP_ARTIFACT_REPO` | `chinese-learner-repo` |
+| `GCP_RUNTIME_SA` | `chinese-learner-server@chinese-learner-prod-123456.iam.gserviceaccount.com` |
 | `CLOUD_SQL_CONNECTION` | `chinese-learner-prod-123456:asia-southeast1:chinese-learner-pg` |
-| `GCS_UPLOAD_BUCKET` | `chinese-learner-prod-123456-chinese-learner-uploads` |
-| `NEXT_PUBLIC_API_URL` | `https://api.chineselearner.vn/api` *(hoặc URL `*.run.app/api` nếu chưa có tên miền)* |
+| `GCS_BUCKET` | `chinese-learner-prod-123456-chinese-learner-media` |
+| `NEXT_PUBLIC_API_URL` | `https://api.chineselearner.vn/api` |
+| `NEXT_PUBLIC_SUPPORT_CONTACT` | `Zalo 09xx xxx xxx` *(tuỳ chọn)* |
+| `NEXT_PUBLIC_REFUND_POLICY` | `Chính sách hoàn tiền...` *(tuỳ chọn)* |
 | `CORS_ORIGIN` | `https://chineselearner.vn,https://www.chineselearner.vn` |
+| `APP_URL` | `https://chineselearner.vn` |
 | `COOKIE_SAME_SITE` | `lax` *(đổi thành `none` nếu FE & BE khác tên miền `*.run.app`)* |
+| `MAIL_FROM` | `Chinese Learner <no-reply@chineselearner.vn>` |
+| `SMTP_HOST` | `smtp.resend.com` |
+| `SMTP_PORT` | `465` |
+| `SMTP_USER` | `resend` |
 
-### B. Tab `Secrets` (Thông tin bí mật)
+#### B. Tab `Secrets` (Thông tin bí mật)
 | Tên Secret | Giá trị |
 |---|---|
-| `GCP_SA_KEY` | Toàn bộ nội dung file JSON ở Bước 1.2 |
-| `DATABASE_URL` | `postgresql://chinese_learner:MAT_KHAU_MANH@localhost/chinese_learner_db?host=/cloudsql/PROJECT:REGION:chinese-learner-pg` |
-| `JWT_SECRET` | Chuỗi ngẫu nhiên dài tối thiểu 32–64 ký tự |
+| `GCP_SA_KEY` | Toàn bộ nội dung file JSON của `github-deployer` |
 
----
+*(Các biến nhạy cảm runtime như `JWT_SECRET`, `DATABASE_URL`, `PAYOS_*`, `SMTP_PASS`, `REMINDER_CRON_SECRET` đã được lưu trong **GCP Secret Manager** theo `tmp/HUONG-DAN-DEPLOY-GCP.md` mục 6 và gắn qua `--set-secrets`.)*
 
-## 3. Tạo 2 file Workflow trong `.github/workflows/`
-
-Tạo thư mục `.github/workflows/` ở gốc repo và thêm 2 file sau:
-
-### File 1: `.github/workflows/ci.yml` (Tự động kiểm tra code khi tạo PR / Push)
-
-```yaml
-name: CI - Check & Build (Server + Client)
-
-on:
-  pull_request:
-    branches: [main, develop]
-  push:
-    branches: [develop]
-
-jobs:
-  check-server:
-    name: Backend (NestJS) Type-check & Build
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: server
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: yarn
-          cache-dependency-path: server/yarn.lock
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
-
-      - name: TypeScript type-check
-        run: npx tsc --noEmit
-
-      - name: Build NestJS
-        run: yarn build
-
-  check-client:
-    name: Frontend (Next.js) Type-check & Build
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: user-client
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: yarn
-          cache-dependency-path: user-client/yarn.lock
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
-
-      - name: TypeScript type-check
-        run: npx tsc --noEmit
-
-      - name: Build Next.js
-        env:
-          NEXT_PUBLIC_API_URL: http://localhost:4000/api
-        run: yarn build
-```
-
----
-
-### File 2: `.github/workflows/deploy-gcp.yml` (Tự động Deploy lên GCP Cloud Run khi merge vào `main`)
+### Bước 3.3: File `.github/workflows/deploy-gcp.yml`
 
 ```yaml
 name: CD - Deploy to GCP Cloud Run
@@ -149,7 +110,7 @@ name: CD - Deploy to GCP Cloud Run
 on:
   push:
     branches: [main]
-  workflow_dispatch: # Cho phép bấm chạy deploy thủ công trên giao diện GitHub
+  workflow_dispatch:
 
 env:
   PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
@@ -157,7 +118,6 @@ env:
   ARTIFACT_REPO: ${{ vars.GCP_ARTIFACT_REPO }}
 
 jobs:
-  # Phát hiện phần nào thay đổi để không build thừa
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
@@ -207,14 +167,13 @@ jobs:
           gcloud run deploy chinese-learner-server \
             --image "$IMAGE" \
             --region "${{ env.REGION }}" \
-            --execution-environment gen2 \
+            --service-account "${{ vars.GCP_RUNTIME_SA }}" \
             --allow-unauthenticated \
-            --port 4000 \
             --memory 1Gi \
+            --timeout 3600 \
             --add-cloudsql-instances "${{ vars.CLOUD_SQL_CONNECTION }}" \
-            --add-volume "name=uploads,type=cloud-storage,bucket=${{ vars.GCS_UPLOAD_BUCKET }}" \
-            --add-volume-mount "volume=uploads,mount-path=/app/uploads" \
-            --set-env-vars "NODE_ENV=production,UPLOAD_DIR=/app/uploads,JWT_EXPIRES_IN=7d,COOKIE_NAME=chinese_learner_token,COOKIE_SECURE=true,COOKIE_SAME_SITE=${{ vars.COOKIE_SAME_SITE }},CORS_ORIGIN=${{ vars.CORS_ORIGIN }},JWT_SECRET=${{ secrets.JWT_SECRET }},DATABASE_URL=${{ secrets.DATABASE_URL }}"
+            --set-env-vars "^@^NODE_ENV=production@JWT_EXPIRES_IN=7d@COOKIE_NAME=chinese_learner_token@COOKIE_SECURE=true@COOKIE_SAME_SITE=${{ vars.COOKIE_SAME_SITE }}@CORS_ORIGIN=${{ vars.CORS_ORIGIN }}@APP_URL=${{ vars.APP_URL }}@PAYMENT_GATEWAY=payos@STORAGE_BACKEND=gcs@GCS_BUCKET=${{ vars.GCS_BUCKET }}@GCS_SIGNED_URL_TTL_MIN=15@GCS_UPLOAD_URL_TTL_MIN=30@MAX_VIDEO_SIZE_MB=2000@MAX_DOC_SIZE_MB=30@MAIL_TRANSPORT=smtp@MAIL_FROM=${{ vars.MAIL_FROM }}@SMTP_HOST=${{ vars.SMTP_HOST }}@SMTP_PORT=${{ vars.SMTP_PORT }}@SMTP_USER=${{ vars.SMTP_USER }}@MAIL_DEV_OUTBOX=false@TRUST_PROXY=1" \
+            --set-secrets "JWT_SECRET=chinese-learner-jwt-secret:latest,DATABASE_URL=chinese-learner-database-url:latest,PAYOS_CLIENT_ID=chinese-learner-payos-client-id:latest,PAYOS_API_KEY=chinese-learner-payos-api-key:latest,PAYOS_CHECKSUM_KEY=chinese-learner-payos-checksum-key:latest,SMTP_PASS=chinese-learner-smtp-pass:latest,REMINDER_CRON_SECRET=chinese-learner-reminder-cron-secret:latest"
 
   deploy-client:
     name: Build & Deploy Frontend (chinese-learner-client)
@@ -241,6 +200,8 @@ jobs:
           LATEST="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/chinese-learner-client:latest"
           docker build \
             --build-arg "NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}" \
+            --build-arg "NEXT_PUBLIC_SUPPORT_CONTACT=${{ vars.NEXT_PUBLIC_SUPPORT_CONTACT }}" \
+            --build-arg "NEXT_PUBLIC_REFUND_POLICY=${{ vars.NEXT_PUBLIC_REFUND_POLICY }}" \
             -t "$IMAGE" -t "$LATEST" ./user-client
           docker push "$IMAGE"
           docker push "$LATEST"
@@ -252,7 +213,6 @@ jobs:
             --image "$IMAGE" \
             --region "${{ env.REGION }}" \
             --allow-unauthenticated \
-            --port 3000 \
             --memory 512Mi
 ```
 
@@ -263,11 +223,10 @@ jobs:
 1. **Bảo vệ nhánh `main` (Branch Protection):**
    - Vào **Settings → Branches → Add branch protection rule** cho nhánh `main`:
      - Bật **Require a pull request before merging**.
-     - Bật **Require status checks to pass before merging** → chọn `Backend (NestJS) Type-check & Build` và `Frontend (Next.js) Type-check & Build`.
-   - Đảm bảo không ai push trực tiếp code lỗi lên production.
+     - Bật **Require status checks to pass before merging** → chọn `Server (build + unit tests)`, `Client (build + type-check)`, và `E2E (Playwright)`.
 2. **Xử lý thay đổi Database SQL thuần trên Production:**
-   - Khi container `chinese-learner-server` khởi động trên Cloud Run, `server/Dockerfile` tự động chạy `yarn db:generate` (an toàn vì chỉ dùng `CREATE TABLE IF NOT EXISTS` và `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`).
-   - **TUYỆT ĐỐI KHÔNG** chạy `yarn db:reset` hay `yarn db:seed` tự động trong CI/CD production để tránh ghi đè dữ liệu thật của học viên.
-   - Khi có thay đổi cột/bảng mới, hãy thêm câu lệnh `ALTER TABLE ... ADD COLUMN IF NOT EXISTS ...` vào cuối `server/db/sql/01_schema.sql` và kiểm thử trước bằng `yarn db:generate` ở local.
+   - `server/Dockerfile` **không** tự chạy `yarn db:generate` khi khởi động.
+   - Mọi thay đổi bảng/cột mới phải viết thành file migration idempotent (`IF NOT EXISTS`, `BEGIN/COMMIT`) trong `server/db/migrations/YYYYMMDD_HHMM_*.sql` và chạy tay **trước** khi deploy bản server mới (xem `tmp/HUONG-DAN-DEPLOY-GCP.md` mục 7).
+   - **TUYỆT ĐỐI KHÔNG** chạy `yarn db:reset`, `yarn db:seed`, `yarn db:demo` hay `yarn db:dump` trên DB production.
 3. **Rollback nhanh khi gặp sự cố:**
-   - Cloud Run tự lưu lịch sử mọi Revision cũ. Nếu bản deploy mới gặp lỗi, vào **GCP Console → Cloud Run → Revisions** → chọn bản cũ ổn định nhất → bấm **Manage Traffic → 100%** để khôi phục trong 5 giây.
+   - Vào **GCP Console → Cloud Run → Revisions** → chọn bản cũ ổn định nhất → bấm **Manage Traffic → 100%** để khôi phục ngay lập tức.

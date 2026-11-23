@@ -257,7 +257,7 @@ export class CoursesService {
     const where = ['c.is_published = TRUE'];
     const params: unknown[] = [];
 
-    if (moduleFilter && ['easy', 'yct', 'hsk', 'talk'].includes(moduleFilter)) {
+    if (moduleFilter && moduleFilter !== 'all') {
       params.push(moduleFilter);
       where.push(`c.module = $${params.length}`);
     }
@@ -385,7 +385,15 @@ export class CoursesService {
     return { id: row.id, offlineLearnerCount: row.offline_learner_count };
   }
 
+  private async assertProgramExists(code: string) {
+    const row = await this.db.queryOne('SELECT code FROM program_modules WHERE code = $1', [code]);
+    if (!row) {
+      throw new BadRequestException('Chương trình học không tồn tại.');
+    }
+  }
+
   async create(dto: CreateCourseDto, user: AuthUser) {
+    await this.assertProgramExists(dto.module);
     const id = generateId('course');
     const maxRow = await this.db.queryOne(
       'SELECT COALESCE(MAX(sort_order), -1)::int AS max_order FROM courses',
@@ -506,6 +514,7 @@ export class CoursesService {
       params.push(dto.description.trim() || null);
     }
     if (dto.module !== undefined) {
+      await this.assertProgramExists(dto.module);
       sets.push(`module = $${idx++}`);
       params.push(dto.module);
     }

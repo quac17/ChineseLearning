@@ -4,9 +4,9 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, CourseCard, EmptyState, LinkButton, ProgressBar, Skeleton, Tabs } from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
+import { usePrograms } from '@/context/ModuleContext';
 import { apiRequest, buildMediaUrl } from '@/lib/api';
 import { courseMeta, isOnSale, learnerText, routes } from '@/lib/courses';
-import { PROGRAMS } from '@/lib/programs';
 import { SUPPORT_CONTACT } from '@/lib/site';
 import type { CourseItem, MyCourseProgress, ProgramModule } from '@/lib/types';
 import s from './home.module.css';
@@ -43,9 +43,24 @@ const GOALS: Array<{ program: ProgramModule; label: string; img: string; alt: st
 
 export default function HomePage() {
   const { user } = useAuth();
+  const { programs, getProgram } = usePrograms();
   const [courses, setCourses] = useState<CourseItem[] | null>(null);
   const [error, setError] = useState('');
   const [tab, setTab] = useState<ProgramModule>('hsk');
+
+  const tabPrograms = useMemo(() => {
+    const hasHsk = programs.some((p) => p.code === 'hsk');
+    if (!hasHsk) return programs;
+    return [...programs].sort((a, b) => (a.code === 'hsk' ? -1 : b.code === 'hsk' ? 1 : a.sortOrder - b.sortOrder));
+  }, [programs]);
+
+  const activeTabProgram = programs.find((p) => p.code === tab) ?? tabPrograms[0];
+  const activeTabCode = activeTabProgram?.code ?? tab;
+  const activeTabMeta = getProgram(activeTabCode);
+  const activeCopy = PROGRAM_COPY[activeTabCode] ?? {
+    title: activeTabProgram?.cardDesc || activeTabMeta.name,
+    text: activeTabProgram?.description || '',
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -59,7 +74,7 @@ export default function HomePage() {
 
   // Courses without lessons yet stay in the catalog but are not advertised here.
   const ready = useMemo(() => (courses ?? []).filter((c) => c.lessons.length > 0), [courses]);
-  const inTab = useMemo(() => ready.filter((c) => c.module === tab).slice(0, 5), [ready, tab]);
+  const inTab = useMemo(() => ready.filter((c) => c.module === activeTabCode).slice(0, 5), [ready, activeTabCode]);
   const latest = useMemo(
     () => [...ready].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5),
     [ready],
@@ -93,19 +108,19 @@ export default function HomePage() {
         <Tabs<ProgramModule>
           label="Chương trình"
           idPrefix="home-tab"
-          value={tab}
+          value={activeTabCode}
           onChange={setTab}
-          items={TABS.map((id) => ({ id, label: PROGRAMS[id].name }))}
+          items={tabPrograms.map((p) => ({ id: p.code, label: p.name }))}
         />
-        <div className={s.box} role="tabpanel" id={`home-tab-panel-${tab}`} aria-labelledby={`home-tab-${tab}`}>
+        <div className={s.box} role="tabpanel" id={`home-tab-panel-${activeTabCode}`} aria-labelledby={`home-tab-${activeTabCode}`}>
           <div className={s.boxHead}>
-            <h3>{PROGRAM_COPY[tab].title}</h3>
-            <p>{PROGRAM_COPY[tab].text}</p>
-            <LinkButton href={routes.catalog({ program: tab })} variant="outline" size="sm">
-              Xem các khoá {PROGRAMS[tab].name}
+            <h3>{activeCopy.title}</h3>
+            <p>{activeCopy.text}</p>
+            <LinkButton href={routes.catalog({ program: activeTabCode })} variant="outline" size="sm">
+              Xem các khoá {activeTabMeta.name}
             </LinkButton>
           </div>
-          <CourseGrid courses={courses ? inTab : null} error={error} empty={`Chưa có khoá ${PROGRAMS[tab].name} nào.`} />
+          <CourseGrid courses={courses ? inTab : null} error={error} empty={`Chưa có khoá ${activeTabMeta.name} nào.`} />
         </div>
       </section>
 
@@ -114,18 +129,21 @@ export default function HomePage() {
           <h2 id="goals-title">Học theo mục tiêu</h2>
         </div>
         <div className={s.goals}>
-          {GOALS.map((g) => (
-            <Link key={g.program} href={routes.catalog({ program: g.program })} className={s.goal}>
-              <span className={s.goalImg}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/images/stock/${g.img}`} alt={g.alt} loading="lazy" />
-                <span className={s.goalTag} style={{ background: PROGRAMS[g.program].color }}>
-                  {PROGRAMS[g.program].name}
+          {GOALS.map((g) => {
+            const meta = getProgram(g.program);
+            return (
+              <Link key={g.program} href={routes.catalog({ program: g.program })} className={s.goal}>
+                <span className={s.goalImg}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={`/images/stock/${g.img}`} alt={g.alt} loading="lazy" />
+                  <span className={s.goalTag} style={{ background: meta.color }}>
+                    {meta.name}
+                  </span>
                 </span>
-              </span>
-              <span>{g.label}</span>
-            </Link>
-          ))}
+                <span>{g.label}</span>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
@@ -186,6 +204,7 @@ export default function HomePage() {
 
 /** Shown to logged-in students right under the hero: courses in progress, latest first. */
 function ContinueLearning({ userId }: { userId: string }) {
+  const { getProgram } = usePrograms();
   const [items, setItems] = useState<MyCourseProgress[] | null>(null);
 
   useEffect(() => {
@@ -220,8 +239,8 @@ function ContinueLearning({ userId }: { userId: string }) {
             <li key={p.courseId}>
               {/* /learn/:courseId picks the lesson left half-way, or the next unfinished one. */}
               <Link href={routes.learn(p.courseId)} className={s.continueItem}>
-                <span className={s.continueCover} style={{ background: PROGRAMS[p.module].color }} aria-hidden="true">
-                  <span className="han">{PROGRAMS[p.module].han}</span>
+                <span className={s.continueCover} style={{ background: getProgram(p.module).color }} aria-hidden="true">
+                  <span className="han">{getProgram(p.module).han}</span>
                 </span>
                 <span className={s.continueText}>
                   <b>

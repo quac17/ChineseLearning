@@ -4,9 +4,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useModule } from '@/context/ModuleContext';
+import { useModule, usePrograms } from '@/context/ModuleContext';
 import { routes } from '@/lib/courses';
-import { PROGRAMS, PROGRAM_ORDER } from '@/lib/programs';
 import { LinkButton, Logo, SearchInput } from '@/components/ui';
 import { ThemeToggle } from './ThemeToggle';
 import s from './layout.module.css';
@@ -16,6 +15,7 @@ const ROLE_LABEL: Record<string, string> = { ADMIN: 'Quản trị viên', TEACHE
 export function SiteHeader() {
   const { user, logout } = useAuth();
   const { activeModule, setActiveModule } = useModule();
+  const { programs } = usePrograms();
   const router = useRouter();
   const pathname = usePathname();
   const [q, setQ] = useState('');
@@ -51,7 +51,7 @@ export function SiteHeader() {
     router.push(term ? `/courses?q=${encodeURIComponent(term)}` : '/courses');
   };
 
-  const pickProgram = (id: (typeof PROGRAM_ORDER)[number]) => {
+  const pickProgram = (id: string) => {
     setActiveModule(id);
     router.push(routes.catalog({ program: id }));
   };
@@ -151,15 +151,15 @@ export function SiteHeader() {
         </div>
       </div>
       <nav className={s.cats} aria-label="Chương trình và ôn tập">
-        {PROGRAM_ORDER.map((id) => (
+        {programs.map((p) => (
           <button
-            key={id}
+            key={p.code}
             type="button"
             className={s.catBtn}
-            aria-current={pathname.startsWith('/courses') && activeModule === id ? 'true' : undefined}
-            onClick={() => pickProgram(id)}
+            aria-current={pathname.startsWith('/courses') && activeModule === p.code ? 'true' : undefined}
+            onClick={() => pickProgram(p.code)}
           >
-            {PROGRAMS[id].name}
+            {p.name}
           </button>
         ))}
         <span className={s.catSep} aria-hidden="true" />

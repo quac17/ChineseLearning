@@ -1,5 +1,7 @@
+'use client';
+
 import type { CSSProperties, ReactNode } from 'react';
-import { PROGRAMS } from '@/lib/programs';
+import { usePrograms } from '@/context/ModuleContext';
 import type { ProgramModule } from '@/lib/types';
 import s from './ui.module.css';
 
@@ -33,7 +35,8 @@ export function Badge({ tone = 'neutral', children }: { tone?: BadgeTone; childr
 }
 
 export function ProgramBadge({ program }: { program: ProgramModule }) {
-  const p = PROGRAMS[program];
+  const { getProgram } = usePrograms();
+  const p = getProgram(program);
   return (
     <span className={`${s.badge} ${s.program}`} style={{ background: p.color }}>
       {p.name}

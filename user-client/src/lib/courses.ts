@@ -1,5 +1,4 @@
 import type { CourseItem, CourseLevel, CourseProgress, CourseSection, LessonItem, ProgramModule } from './types';
-import { PROGRAM_ORDER } from './programs';
 
 /** URL helpers, so routes are spelled in one place. */
 export const routes = {
@@ -23,7 +22,9 @@ export const routes = {
 };
 
 export function parseProgram(value: string | null | undefined): ProgramModule | null {
-  return value && (PROGRAM_ORDER as string[]).includes(value) ? (value as ProgramModule) : null;
+  const trimmed = value?.trim().toLowerCase();
+  if (!trimmed || trimmed === 'all') return null;
+  return /^[a-z0-9_-]{1,20}$/.test(trimmed) ? trimmed : null;
 }
 
 type WithLessons = Pick<CourseItem, 'lessons'> & Partial<Pick<CourseItem, 'sections'>>;

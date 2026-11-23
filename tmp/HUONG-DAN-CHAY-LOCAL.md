@@ -1,25 +1,26 @@
 # Hướng dẫn chạy Local – Chinese Learner
 
 Kiến trúc chạy local:
-- **PostgreSQL 16**: chạy trong **Docker Compose** (`docker-compose.yml`).
+- **Node.js 20** + **Yarn 1.x**.
+- **PostgreSQL 16**: chạy trong **Docker Compose** (`docker-compose.yml`, mặc định cổng **5433**).
 - **Backend (`server`)** và **Frontend (`user-client`)**: chạy trực tiếp bằng **Yarn** trên 2 terminal tách riêng.
-- **Database**: dùng **SQL thuần** (không dùng Prisma).
+- **Database**: dùng **SQL thuần** (`pg`, không dùng ORM/Prisma).
 
 ---
 
 ## Bước 1: Chuẩn bị file biến môi trường
 
 ```bash
-# Tự động tạo .env, server/.env và user-client/.env.local từ .env.example
+# Tự động tạo .env, server/.env và user-client/.env.local từ .env.example (không ghi đè file đã có)
 yarn env
 
 # (Nếu muốn ghi đè làm mới toàn bộ file env về mặc định)
 yarn env:force
 ```
 
-> **Lưu ý nếu gặp lỗi `Authentication failed` khi kết nối cổng `5432` trên Windows:**
-> Nhiều máy Windows đã cài sẵn PostgreSQL local chiếm sẵn cổng `5432`, khiến kết nối đi nhầm vào Postgres cũ thay vì Docker container!
-> **Cách xử lý nhanh:** Đổi `POSTGRES_PORT=5433` trong cả `.env` (gốc) và `server/.env`, sau đó chạy lại `yarn db:down && yarn db:up`.
+> **Lưu ý về cổng PostgreSQL (`5433`):**
+> Mặc định `.env.example` và `docker-compose.yml` dùng cổng **`5433`** để tránh đụng với PostgreSQL cài sẵn trên máy (thường chiếm cổng `5432`).
+> Nếu cần đổi cổng khác, sửa `POSTGRES_PORT` trong cả `.env` (gốc) và `server/.env`, sau đó chạy lại `yarn db:down && yarn db:up`.
 
 ---
 
@@ -35,18 +36,24 @@ docker ps
 
 ---
 
-## Bước 3: Cài dependencies cho Server & Client (tách riêng)
+## Bước 3: Cài dependencies cho Root, Server & Client
 
 ```bash
+yarn install
 yarn server:install
 yarn client:install
+```
+
+*(Tùy chọn)* Cài đặt Git `pre-push` hook để tự động chạy kiểm tra CI trước mỗi lần `git push`:
+```bash
+yarn hooks:install
 ```
 
 ---
 
 ## Bước 4: Khởi tạo & thao tác Database bằng SQL thuần
 
-Chạy từ thư mục gốc (hoặc chạy trực tiếp trong thư mục `server/`):
+Chạy từ thư mục gốc:
 
 ```bash
 # 1. Tạo database (nếu chưa có)
@@ -58,12 +65,17 @@ yarn db:generate
 # 3. Reset sạch bảng & nạp master data (roles, program_modules, admin mặc định)
 yarn db:reset
 
-# 4. Nạp dữ liệu mẫu (teacher, studentA, studentB, khóa học, video, tài liệu, phân quyền)
+# 4. Nạp dữ liệu mẫu cho E2E & kiểm thử cơ bản (teacher, studentA, studentB, khóa học, video, tài liệu, phân quyền)
 yarn db:seed
 
-# 5. Sao lưu bản cũ ra server/db/dumps/backup_YYYYMMDD_HHmm.sql và đẩy hiện trạng DB hiện tại vào 01_schema.sql & 03_seed_data.sql (giữ nguyên 02_master_data.sql)
+# 5. (Tùy chọn) Nạp thêm dữ liệu demo phong phú chồng lên seed (chỉ dùng cho DB local)
+yarn db:demo
+
+# 6. Sao lưu bản cũ ra server/db/dumps/backup_YYYYMMDD_HHmm.sql và đẩy hiện trạng DB hiện tại vào 01_schema.sql & 03_seed_data.sql (giữ nguyên 02_master_data.sql)
 yarn db:dump
 ```
+
+> Lưu ý: `yarn db:demo` tạo thêm các khóa học/tài khoản `demo-*` và dùng Chromium của Playwright để sinh video mẫu trong `server/uploads/videos/`.
 
 ---
 
@@ -89,12 +101,34 @@ yarn client:build
 
 ---
 
-## Bước 6: Kiểm thử nhanh xác thực Cookie, Hồ sơ cá nhân & 3 Vai trò
+## Bước 6: Kiểm tra CI & E2E ở Local
 
-1. Vào `http://localhost:3000/login` → đăng nhập bằng 1 trong 4 tài khoản mẫu (Admin / Giáo viên / Học sinh A / Học sinh B).
+```bash
+# Chạy toàn bộ kiểm tra CI giống GitHub Actions (Server type-check + build + Jest, Client type-check + build)
+yarn check:ci
+
+# Chạy E2E Playwright (tự động dùng DB test chinese_learner_test)
+yarn e2e
+
+# Chạy cả CI + E2E
+yarn check:all
+```
+
+---
+
+## Bước 7: Kiểm thử nhanh xác thực Cookie, Hồ sơ, Thanh toán & 3 Vai trò
+
+1. Vào `http://localhost:3000/login` → đăng nhập bằng 1 trong 4 tài khoản mẫu (`Admin@123` / `Teacher@123` / `Student@123`):
+   - Admin: `admin@chineselearner.vn`
+   - Giáo viên: `teacher@chineselearner.vn`
+   - Học sinh A: `studentA@chineselearner.vn` (đã có quyền khóa **HSK 1**)
+   - Học sinh B: `studentB@chineselearner.vn` (chưa có quyền khóa trả phí)
 2. Nhấn **F5 tải lại trang**: phiên đăng nhập vẫn được duy trì tự động nhờ **HTTP-only Cookie** (`chinese_learner_token`).
-3. Bấm vào **tên tài khoản trên thanh Header** → mở trang `/profile` để kiểm thử **cập nhật họ tên, số điện thoại, giới thiệu** và **đổi mật khẩu**.
-4. Đăng nhập **Giáo viên** (`teacher@chineselearner.vn` / `Teacher@123`) → vào tab **Giáo viên**:
-   - Tạo khóa học, thêm link YouTube hoặc upload video `.mp4`, upload tài liệu `.doc/.docx/.ppt/.pptx`.
-   - Sang tab **4. Cấp quyền Học sinh** để bật/tắt quyền xem khóa học HSK 1 cho Học sinh A / Học sinh B.
-5. Bấm **Đăng xuất** → cookie được xóa sạch khỏi trình duyệt.
+3. Bấm vào **tên tài khoản trên thanh Header** → mở trang `/account` để kiểm thử **cập nhật họ tên, số điện thoại, giới thiệu**, **bật/tắt nhắc ôn tập** và **đổi mật khẩu**.
+4. Đăng nhập **Giáo viên** (`teacher@chineselearner.vn`) → vào trang `/teacher/courses`:
+   - Tạo/chỉnh sửa khóa học, chương/bài học, thêm link YouTube hoặc upload video `.mp4`, phụ đề, từ vựng, upload tài liệu `.doc/.docx/.ppt/.pptx`.
+   - Mở chế độ **Xem trước (Review)** khóa học của mình để kiểm tra toàn bộ bài học/video như góc nhìn học viên.
+   - Vào mục quản lý học viên của khóa để cấp/thu hồi quyền xem khóa học cho Học sinh A / Học sinh B.
+5. **Kiểm thử mua khóa học (PayOS giả lập ở local):**
+   - Mặc định `PAYMENT_GATEWAY=fake` trong `server/.env`. Khi học sinh bấm mua khóa học có giá, trang `/checkout/[orderId]` hiển thị QR mẫu và nút **"Giả lập: đã thanh toán"** để kích hoạt webhook giả lập và mở khóa ngay lập tức.
+6. Bấm **Đăng xuất** → cookie được xóa sạch khỏi trình duyệt.

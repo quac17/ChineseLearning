@@ -18,7 +18,7 @@ import {
   Skeleton,
 } from '@/components/ui';
 import { useAuth } from '@/context/AuthContext';
-import { useModule } from '@/context/ModuleContext';
+import { useModule, usePrograms } from '@/context/ModuleContext';
 import { apiRequest, buildMediaUrl } from '@/lib/api';
 import {
   DURATION_BUCKETS,
@@ -33,7 +33,7 @@ import {
   routes,
   type DurationBucket,
 } from '@/lib/courses';
-import { PROGRAMS, PROGRAM_ORDER, formatVnd } from '@/lib/programs';
+import { formatVnd } from '@/lib/programs';
 import { addRecentSearch, loadRecentSearches, saveRecentSearches } from '@/lib/recentSearches';
 import type { CourseItem, CourseLevel, ProgramModule } from '@/lib/types';
 import s from './catalog.module.css';
@@ -53,6 +53,7 @@ function Catalog() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const { setActiveModule } = useModule();
+  const { programs, getProgram } = usePrograms();
 
   const q = searchParams.get('q')?.trim() ?? '';
   const program = parseProgram(searchParams.get('program'));
@@ -155,7 +156,7 @@ function Catalog() {
 
   // Chips shown under the phone search box; each one removes its filter.
   const active = [
-    ...(program ? [{ key: 'program', label: PROGRAMS[program].name, remove: () => pickProgram(null) }] : []),
+    ...(program ? [{ key: 'program', label: getProgram(program).name, remove: () => pickProgram(null) }] : []),
     ...(onlyFree ? [{ key: 'free', label: 'Miễn phí', remove: () => setOnlyFree(false) }] : []),
     ...(onlyPaid ? [{ key: 'paid', label: 'Trả phí', remove: () => setOnlyPaid(false) }] : []),
     ...(withPreview ? [{ key: 'preview', label: 'Có học thử', remove: () => setWithPreview(false) }] : []),
@@ -215,7 +216,7 @@ function Catalog() {
       ? `${visible.length} kết quả cho “${q}”`
       : `Đang tìm “${q}”`
     : program
-      ? `Khoá học ${PROGRAMS[program].name}`
+      ? `Khoá học ${getProgram(program).name}`
       : 'Tất cả khoá học';
 
   return (
@@ -265,14 +266,14 @@ function Catalog() {
         <Link href={routes.catalog({ q })} className={s.chip} aria-current={!program ? 'true' : undefined}>
           Tất cả
         </Link>
-        {PROGRAM_ORDER.map((id) => (
+        {programs.map((p) => (
           <Link
-            key={id}
-            href={routes.catalog({ q, program: id })}
+            key={p.code}
+            href={routes.catalog({ q, program: p.code })}
             className={s.chip}
-            aria-current={program === id ? 'true' : undefined}
+            aria-current={program === p.code ? 'true' : undefined}
           >
-            {PROGRAMS[id].name}
+            {p.name}
           </Link>
         ))}
         {q && (
@@ -396,13 +397,13 @@ function Catalog() {
             <fieldset className={s.group}>
               <legend>Chương trình</legend>
               <Radio name="program" label="Tất cả" checked={!chosenProgram} onChange={() => pickProgram(null)} />
-              {PROGRAM_ORDER.map((id) => (
+              {programs.map((p) => (
                 <Radio
-                  key={id}
+                  key={p.code}
                   name="program"
-                  label={PROGRAMS[id].name}
-                  checked={chosenProgram === id}
-                  onChange={() => pickProgram(id)}
+                  label={p.name}
+                  checked={chosenProgram === p.code}
+                  onChange={() => pickProgram(p.code)}
                 />
               ))}
             </fieldset>
@@ -426,7 +427,8 @@ function Catalog() {
 }
 
 function CourseRow({ course }: { course: CourseItem }) {
-  const p = PROGRAMS[course.module];
+  const { getProgram } = usePrograms();
+  const p = getProgram(course.module);
   return (
     <Link href={routes.course(course.id)} className={s.row}>
       <div className={s.thumb} style={{ background: p.color }}>

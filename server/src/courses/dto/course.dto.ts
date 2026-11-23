@@ -54,8 +54,10 @@ export class CreateCourseDto extends CourseInfoFields {
   @IsString()
   description?: string;
 
-  @IsEnum(ProgramModule, { message: 'Chương trình phải thuộc easy, yct, hsk hoặc talk' })
-  module: ProgramModule;
+  @IsString({ message: 'Chương trình học không hợp lệ' })
+  @MinLength(1, { message: 'Vui lòng chọn chương trình học' })
+  @MaxLength(20, { message: 'Mã chương trình tối đa 20 ký tự' })
+  module: string;
 
   @IsOptional()
   @IsBoolean()
@@ -77,8 +79,10 @@ export class UpdateCourseDto extends CourseInfoFields {
   description?: string;
 
   @IsOptional()
-  @IsEnum(ProgramModule, { message: 'Chương trình phải thuộc easy, yct, hsk hoặc talk' })
-  module?: ProgramModule;
+  @IsString({ message: 'Chương trình học không hợp lệ' })
+  @MinLength(1, { message: 'Vui lòng chọn chương trình học' })
+  @MaxLength(20, { message: 'Mã chương trình tối đa 20 ký tự' })
+  module?: string;
 
   @IsOptional()
   @IsBoolean()
