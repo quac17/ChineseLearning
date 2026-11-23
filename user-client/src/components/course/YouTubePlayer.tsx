@@ -61,8 +61,8 @@ export function YouTubePlayer({
   youtubeId: string;
   title: string;
 }) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const hostRef = useRef<HTMLDivElement | null>(null);
+  const slotRef = useRef<HTMLDivElement | null>(null);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<any>(null);
 
   const [ready, setReady] = useState(false);
@@ -83,11 +83,7 @@ export function YouTubePlayer({
     setDuration(0);
 
     loadYouTubeIframeApi().then((YT) => {
-      if (!mounted || !YT || !hostRef.current) return;
-
-      hostRef.current.innerHTML = '';
-      const targetEl = document.createElement('div');
-      hostRef.current.appendChild(targetEl);
+      if (!mounted || !YT || !slotRef.current) return;
 
       const applyIframeAttrs = (p: any) => {
         const iframe = p?.getIframe?.();
@@ -96,10 +92,11 @@ export function YouTubePlayer({
           iframe.style.width = '100%';
           iframe.style.height = '100%';
           iframe.style.border = '0';
+          iframe.style.pointerEvents = 'none';
         }
       };
 
-      playerRef.current = new YT.Player(targetEl, {
+      playerRef.current = new YT.Player(slotRef.current, {
         videoId: youtubeId,
         host: 'https://www.youtube-nocookie.com',
         width: '100%',
@@ -204,25 +201,22 @@ export function YouTubePlayer({
   };
 
   const toggleFullscreen = () => {
-    const el = containerRef.current;
-    if (!el) return;
+    const stageEl = overlayRef.current?.parentElement;
+    if (!stageEl) return;
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
     } else {
-      el.requestFullscreen?.().catch(() => {});
+      stageEl.requestFullscreen?.().catch(() => {});
     }
   };
 
   return (
-    <div
-      className={s.wrap}
-      ref={containerRef}
-      onContextMenu={(e) => e.preventDefault()}
-    >
-      <div className={s.iframeHost} ref={hostRef} />
+    <>
+      <div className={s.iframeHost} ref={slotRef} />
 
       {/* Lớp overlay trong suốt chặn click vào tiêu đề, logo và nút Share của YouTube */}
       <div
+        ref={overlayRef}
         className={s.overlay}
         onClick={togglePlay}
         onDoubleClick={toggleFullscreen}
@@ -315,6 +309,6 @@ export function YouTubePlayer({
           ⛶
         </button>
       </div>
-    </div>
+    </>
   );
 }
