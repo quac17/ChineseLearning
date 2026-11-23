@@ -38,8 +38,7 @@ export class CoursesService {
     if (!course) return false;
     if (course.is_free) return true;
     if (!user) return false;
-    if (user.role === Role.ADMIN) return true;
-    if (user.role === Role.TEACHER && course.teacher_id === user.id) return true;
+    if (user.role === Role.ADMIN || (user.role === Role.TEACHER && course.teacher_id === user.id)) return true;
 
     const enrollment = await this.db.queryOne(
       `SELECT can_view FROM course_enrollments
@@ -141,12 +140,11 @@ export class CoursesService {
     user: AuthUser | null,
     enrolledCourseIds: Set<string>,
   ) {
-    const isAdminOrOwner =
+    const isAdminOrTeacher =
       Boolean(user) &&
-      (user.role === Role.ADMIN ||
-        (user.role === Role.TEACHER && course.teacher_id === user.id));
+      (user.role === Role.ADMIN || user.role === Role.TEACHER);
     const hasCourseAccess =
-      course.is_free || isAdminOrOwner || enrolledCourseIds.has(course.id);
+      course.is_free || isAdminOrTeacher || enrolledCourseIds.has(course.id);
 
     const lessons = (course.lessons || []).map((lesson: any) => {
       const canWatch = hasCourseAccess || lesson.is_free;
@@ -259,7 +257,7 @@ export class CoursesService {
     const where = ['c.is_published = TRUE'];
     const params: unknown[] = [];
 
-    if (moduleFilter && ['easy', 'yct', 'hsk', 'talk'].includes(moduleFilter)) {
+    if (moduleFilter && moduleFilter !== 'all') {
       params.push(moduleFilter);
       where.push(`c.module = $${params.length}`);
     }
@@ -387,7 +385,15 @@ export class CoursesService {
     return { id: row.id, offlineLearnerCount: row.offline_learner_count };
   }
 
+  private async assertProgramExists(code: string) {
+    const row = await this.db.queryOne('SELECT code FROM program_modules WHERE code = $1', [code]);
+    if (!row) {
+      throw new BadRequestException('Chương trình học không tồn tại.');
+    }
+  }
+
   async create(dto: CreateCourseDto, user: AuthUser) {
+    await this.assertProgramExists(dto.module);
     const id = generateId('course');
     const maxRow = await this.db.queryOne(
       'SELECT COALESCE(MAX(sort_order), -1)::int AS max_order FROM courses',
@@ -508,6 +514,7 @@ export class CoursesService {
       params.push(dto.description.trim() || null);
     }
     if (dto.module !== undefined) {
+      await this.assertProgramExists(dto.module);
       sets.push(`module = $${idx++}`);
       params.push(dto.module);
     }

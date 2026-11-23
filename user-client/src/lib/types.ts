@@ -1,9 +1,21 @@
 export type Role = 'ADMIN' | 'TEACHER' | 'STUDENT';
-export type ProgramModule = 'easy' | 'yct' | 'hsk' | 'talk';
+export type ProgramModule = string;
 export type ModuleSelection = 'all' | ProgramModule;
 export type VideoSourceType = 'UPLOAD' | 'YOUTUBE';
 /** Course level (Cấp độ). */
 export type CourseLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+
+export interface ProgramItem {
+  code: string;
+  name: string;
+  han: string;
+  cardDesc: string | null;
+  description: string | null;
+  color1: string;
+  color2: string;
+  sortOrder: number;
+  courseCount?: number;
+}
 
 export interface User {
   id: string;

@@ -1,5 +1,8 @@
+'use client';
+
 import Link from 'next/link';
-import { PROGRAMS, formatVnd } from '@/lib/programs';
+import { usePrograms } from '@/context/ModuleContext';
+import { formatVnd } from '@/lib/programs';
 import type { ProgramModule } from '@/lib/types';
 import { Badge, ProgressBar, Rating } from './Display';
 import s from './ui.module.css';
@@ -39,7 +42,8 @@ export function CourseCard({
   meta,
   progress,
 }: CourseCardProps) {
-  const p = PROGRAMS[program];
+  const { getProgram } = usePrograms();
+  const p = getProgram(program);
   const price = isFree ? 'Miễn phí' : priceVnd != null ? formatVnd(priceVnd) : null;
   return (
     <Link href={href} className={s.card}>

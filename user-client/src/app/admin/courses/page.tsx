@@ -16,8 +16,9 @@ import {
   useToast,
 } from '@/components/ui';
 import type { BadgeTone } from '@/components/ui';
+import { usePrograms } from '@/context/ModuleContext';
 import { apiRequest } from '@/lib/api';
-import { formatVnd, PROGRAM_ORDER, PROGRAMS } from '@/lib/programs';
+import { formatVnd } from '@/lib/programs';
 import type { CourseItem, ProgramModule } from '@/lib/types';
 import { AdminOnly } from '../AdminOnly';
 import s from '../admin.module.css';
@@ -48,6 +49,7 @@ export default function AdminCoursesPage() {
 }
 
 function Courses() {
+  const { programs } = usePrograms();
   const [courses, setCourses] = useState<CourseItem[] | null>(null);
   const [error, setError] = useState('');
   const [q, setQ] = useState('');
@@ -105,9 +107,9 @@ function Courses() {
         </label>
         <Select id="course-program" value={program} onChange={(e) => setProgram(e.target.value as '' | ProgramModule)}>
           <option value="">Mọi chương trình</option>
-          {PROGRAM_ORDER.map((p) => (
-            <option key={p} value={p}>
-              {PROGRAMS[p].name}
+          {programs.map((p) => (
+            <option key={p.code} value={p.code}>
+              {p.name}
             </option>
           ))}
         </Select>
