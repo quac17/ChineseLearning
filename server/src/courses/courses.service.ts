@@ -38,7 +38,8 @@ export class CoursesService {
     if (!course) return false;
     if (course.is_free) return true;
     if (!user) return false;
-    if (user.role === Role.ADMIN || user.role === Role.TEACHER) return true;
+    if (user.role === Role.ADMIN) return true;
+    if (user.role === Role.TEACHER && course.teacher_id === user.id) return true;
 
     const enrollment = await this.db.queryOne(
       `SELECT can_view FROM course_enrollments
@@ -140,11 +141,12 @@ export class CoursesService {
     user: AuthUser | null,
     enrolledCourseIds: Set<string>,
   ) {
-    const isAdminOrTeacher =
+    const isAdminOrOwner =
       Boolean(user) &&
-      (user.role === Role.ADMIN || user.role === Role.TEACHER);
+      (user.role === Role.ADMIN ||
+        (user.role === Role.TEACHER && course.teacher_id === user.id));
     const hasCourseAccess =
-      course.is_free || isAdminOrTeacher || enrolledCourseIds.has(course.id);
+      course.is_free || isAdminOrOwner || enrolledCourseIds.has(course.id);
 
     const lessons = (course.lessons || []).map((lesson: any) => {
       const canWatch = hasCourseAccess || lesson.is_free;
