@@ -85,8 +85,8 @@ export default function CourseEditorLayout({ children, params }: { children: Rea
               <h1 className={s.editorTitle}>{course.title}</h1>
               <StatusBadge published={course.isPublished} />
             </div>
-            <LinkButton href={`/courses/${course.id}`} variant="outline" size="sm" target="_blank" rel="noopener">
-              Xem như học viên
+            <LinkButton href={`/courses/${course.id}?review=1`} variant="outline" size="sm" target="_blank" rel="noopener">
+              Review khoá học
             </LinkButton>
           </div>
           <nav className={s.tabs} aria-label="Phần của khoá học">

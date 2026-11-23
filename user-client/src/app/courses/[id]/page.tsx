@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { Badge, EmptyState, LinkButton, Rating, Skeleton } from '@/components/ui';
 import { FileIcon, LockIcon, PlayIcon } from '@/components/course/icons';
@@ -57,6 +57,11 @@ export default function CoursePage() {
 }
 
 function CourseDetail({ course }: { course: CourseItem }) {
+  const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const isReviewMode =
+    searchParams.get('review') === '1' &&
+    (user?.role === 'TEACHER' || user?.role === 'ADMIN');
   const p = PROGRAMS[course.module];
   const lessons = sortedLessons(course);
   const hasDocs = course.documents.length > 0;
@@ -95,7 +100,11 @@ function CourseDetail({ course }: { course: CourseItem }) {
               {learnerText(course.learnerCount ?? 0, course.offlineLearnerCount) && (
                 <span>{learnerText(course.learnerCount ?? 0, course.offlineLearnerCount)}</span>
               )}
-              {!course.isFree && course.hasAccess && <Badge tone="owned">Bạn đã có quyền xem</Badge>}
+              {isReviewMode ? (
+                <Badge tone="owned">Chế độ Review · Mở khóa toàn bộ video</Badge>
+              ) : (
+                !course.isFree && course.hasAccess && <Badge tone="owned">Bạn đã có quyền xem</Badge>
+              )}
               <span>
                 {lessons.length} bài{hasDocs ? ` · ${course.documents.length} tài liệu` : ''}
               </span>
