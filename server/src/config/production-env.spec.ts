@@ -2,6 +2,8 @@ import { assertProductionEnv, checkProductionEnv } from './production-env';
 
 const good = {
   NODE_ENV: 'production',
+  FEATURE_PAYOS_ENABLED: 'true',
+  FEATURE_MAIL_ENABLED: 'true',
   JWT_SECRET: 'q'.repeat(40),
   DATABASE_URL: 'postgresql://chinese_learner:pw@localhost/chinese_learner_db?host=/cloudsql/x',
   COOKIE_SECURE: 'true',
@@ -68,6 +70,23 @@ describe('production configuration', () => {
 
   it('throws with every problem listed at once', () => {
     jest.spyOn(console, 'warn').mockImplementation(() => undefined);
-    expect(() => assertProductionEnv({ NODE_ENV: 'production' })).toThrow(/JWT_SECRET[\s\S]*COOKIE_SECURE[\s\S]*PAYMENT_GATEWAY/);
+    expect(() => assertProductionEnv({ NODE_ENV: 'production', FEATURE_PAYOS_ENABLED: 'true' })).toThrow(
+      /JWT_SECRET[\s\S]*COOKIE_SECURE[\s\S]*PAYMENT_GATEWAY/,
+    );
+  });
+
+  it('allows production without PayOS and SMTP when feature flags are off', () => {
+    const { errors } = checkProductionEnv({
+      NODE_ENV: 'production',
+      JWT_SECRET: 'q'.repeat(40),
+      DATABASE_URL: 'postgresql://chinese_learner:pw@localhost/chinese_learner_db?host=/cloudsql/x',
+      COOKIE_SECURE: 'true',
+      COOKIE_SAME_SITE: 'lax',
+      CORS_ORIGIN: 'https://tiengtrung365vn.com',
+      APP_URL: 'https://tiengtrung365vn.com',
+      STORAGE_BACKEND: 'gcs',
+      TRUST_PROXY: '1',
+    });
+    expect(errors).toEqual([]);
   });
 });

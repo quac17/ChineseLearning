@@ -7,6 +7,8 @@
  * console mailer again on its own.
  */
 
+import { isMailEnabled, isPayosEnabled } from '../common/feature-flags';
+
 type Env = Record<string, string | undefined>;
 
 export interface EnvReport {
@@ -59,7 +61,7 @@ export function checkProductionEnv(env: Env): EnvReport {
     errors.push('APP_URL must be the https origin of the web app (PayOS returns learners there).');
   }
 
-  if ((env.PAYMENT_GATEWAY || 'fake') !== 'payos') {
+  if (isPayosEnabled(env) && (env.PAYMENT_GATEWAY || 'fake') !== 'payos') {
     errors.push('PAYMENT_GATEWAY must be "payos" in production (the fake gateway is for local and e2e only).');
   }
 
@@ -69,11 +71,13 @@ export function checkProductionEnv(env: Env): EnvReport {
     );
   }
 
-  if ((env.MAIL_TRANSPORT || 'console').toLowerCase() !== 'smtp') {
-    errors.push('MAIL_TRANSPORT must be "smtp" in production (the console mailer only logs: no password reset email would arrive).');
-  } else {
-    const missing = ['SMTP_HOST', 'SMTP_USER', 'SMTP_PASS', 'MAIL_FROM'].filter((k) => !env[k]);
-    if (missing.length) errors.push(`MAIL_TRANSPORT=smtp needs ${missing.join(', ')}.`);
+  if (isMailEnabled(env)) {
+    if ((env.MAIL_TRANSPORT || 'console').toLowerCase() !== 'smtp') {
+      errors.push('MAIL_TRANSPORT must be "smtp" in production (the console mailer only logs: no password reset email would arrive).');
+    } else {
+      const missing = ['SMTP_HOST', 'SMTP_USER', 'SMTP_PASS', 'MAIL_FROM'].filter((k) => !env[k]);
+      if (missing.length) errors.push(`MAIL_TRANSPORT=smtp needs ${missing.join(', ')}.`);
+    }
   }
   if (env.MAIL_DEV_OUTBOX === 'true') {
     errors.push('MAIL_DEV_OUTBOX must not be "true" in production: it would expose password reset links.');
@@ -83,7 +87,7 @@ export function checkProductionEnv(env: Env): EnvReport {
     warnings.push('TRUST_PROXY is not set: behind Cloud Run every request looks like it comes from the proxy, so the per-IP password reset limit counts everyone together.');
   }
 
-  if (!env.REMINDER_CRON_SECRET) {
+  if (isMailEnabled(env) && !env.REMINDER_CRON_SECRET) {
     warnings.push('REMINDER_CRON_SECRET is not set: POST /api/reminders/run refuses every call, so no daily review reminder is sent.');
   }
 

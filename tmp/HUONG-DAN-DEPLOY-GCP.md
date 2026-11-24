@@ -123,6 +123,7 @@ gcloud artifacts repositories create chinese-learner-repo \
 ```bash
 gcloud sql instances create chinese-learner-pg \
   --database-version=POSTGRES_16 \
+  --edition=ENTERPRISE \
   --tier=db-f1-micro \
   --region=$REGION \
   --backup-start-time=18:00        # 01:00 giờ Việt Nam

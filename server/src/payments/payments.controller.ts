@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { AuthUser, CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
+import { PayosEnabledGuard } from '../common/feature-flags';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Role } from '../common/types/domain.types';
@@ -19,6 +20,7 @@ import { InvalidSignatureError } from './gateways/payment-gateway';
 import { PaymentsService } from './payments.service';
 
 @Controller('payments')
+@UseGuards(PayosEnabledGuard)
 export class PaymentsController {
   constructor(private readonly payments: PaymentsService) {}
 

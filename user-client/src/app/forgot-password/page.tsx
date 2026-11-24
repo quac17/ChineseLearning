@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
-import { Alert, Button, Field, Input } from '@/components/ui';
+import { Alert, Button, Field, Input, LinkButton } from '@/components/ui';
 import s from '@/components/auth/auth.module.css';
 import { apiRequest } from '@/lib/api';
+import { FEATURE_MAIL_ENABLED } from '@/lib/site';
 import { useOnline } from '@/lib/useOnline';
 
 /**
@@ -18,6 +19,24 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const online = useOnline();
+
+  if (!FEATURE_MAIL_ENABLED) {
+    return (
+      <div className={s.page}>
+        <section className={s.panel} aria-labelledby="disabled-mail-title">
+          <h1 id="disabled-mail-title" className={s.title}>
+            Tính năng tạm thời đang ẩn
+          </h1>
+          <p className={s.lead}>
+            Tính năng đặt lại mật khẩu qua email đang tạm ngưng. Vui lòng liên hệ quản trị viên để được hỗ trợ đặt lại mật khẩu.
+          </p>
+          <LinkButton href="/login" variant="ink" block>
+            Quay lại đăng nhập
+          </LinkButton>
+        </section>
+      </div>
+    );
+  }
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();

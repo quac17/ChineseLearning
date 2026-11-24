@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Badge } from '@/components/ui';
 import { usePrograms } from '@/context/ModuleContext';
 import { apiRequest } from '@/lib/api';
+import { FEATURE_PAYOS_ENABLED } from '@/lib/site';
 import type { CourseItem, ProgramModule } from '@/lib/types';
 import s from './teacher.module.css';
 
@@ -41,7 +42,7 @@ export const EDITOR_TABS: Array<{ id: EditorTab; label: string }> = [
   { id: 'documents', label: 'Tài liệu' },
   { id: 'students', label: 'Học viên' },
   { id: 'reviews', label: 'Đánh giá' },
-  { id: 'pricing', label: 'Giá & bán' },
+  ...(FEATURE_PAYOS_ENABLED ? [{ id: 'pricing' as const, label: 'Giá & bán' }] : []),
 ];
 
 /** /teacher/courses/:id/:tab */

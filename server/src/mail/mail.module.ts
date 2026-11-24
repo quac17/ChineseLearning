@@ -15,6 +15,10 @@ type Env = Pick<ConfigService, 'get'>;
  * fake payment gateway is refused.
  */
 export function mailerFactory(config: Env): Mailer {
+  if (config.get<string>('FEATURE_MAIL_ENABLED') !== 'true') {
+    new Logger('Mail').log('Tính năng gửi email đang tạm ẩn (FEATURE_MAIL_ENABLED != true).');
+    return new ConsoleMailer(false);
+  }
   const choice = (config.get<string>('MAIL_TRANSPORT') || 'console').toLowerCase();
   if (choice === 'smtp') {
     const host = config.get<string>('SMTP_HOST');
