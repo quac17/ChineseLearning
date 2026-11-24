@@ -13,6 +13,10 @@ import { PaymentsService } from './payments.service';
  * production so a misconfigured server never "sells" courses for free.
  */
 function gatewayFactory(config: ConfigService): PaymentGateway {
+  if (config.get<string>('FEATURE_PAYOS_ENABLED') !== 'true') {
+    new Logger('Payments').log('Tính năng thanh toán PayOS đang tạm ẩn (FEATURE_PAYOS_ENABLED != true).');
+    return new FakeGateway(config.get<string>('FAKE_PAYMENT_CHECKSUM_KEY') || 'chinese-learner-fake-checksum-key');
+  }
   const choice = (config.get<string>('PAYMENT_GATEWAY') || 'fake').toLowerCase();
   if (choice === 'payos') {
     const clientId = config.get<string>('PAYOS_CLIENT_ID');

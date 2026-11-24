@@ -11,7 +11,7 @@ import { formatVnd } from '@/lib/programs';
 import type { OrderItem, OrderStatus, ReviewReminderSettings } from '@/lib/types';
 import { useAuth } from '@/context/AuthContext';
 import { useModule, type ThemePreference } from '@/context/ModuleContext';
-import { SUPPORT_CONTACT } from '@/lib/site';
+import { FEATURE_MAIL_ENABLED, FEATURE_PAYOS_ENABLED, SUPPORT_CONTACT } from '@/lib/site';
 import s from './account.module.css';
 
 const ROLE_LABEL: Record<string, string> = { ADMIN: 'Quản trị viên', TEACHER: 'Giáo viên', STUDENT: 'Học viên' };
@@ -24,7 +24,7 @@ export default function AccountPage() {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
   const { open, show, close } = useOpenSection();
-  const reminder = useReviewReminder(user?.role === 'STUDENT');
+  const reminder = useReviewReminder(user?.role === 'STUDENT' && FEATURE_MAIL_ENABLED);
 
   // A link like /account#giao-dien: the sections only exist once the user has loaded.
   const ready = !loading && Boolean(user);
@@ -93,12 +93,12 @@ export default function AccountPage() {
           <SettingsRow href="#ho-so" onOpen={() => show('ho-so')}>
             {isStudent ? 'Hồ sơ và mục tiêu học' : 'Hồ sơ'}
           </SettingsRow>
-          {isStudent && (
+          {isStudent && FEATURE_PAYOS_ENABLED && (
             <SettingsRow href="#don-hang" onOpen={() => show('don-hang')}>
               Đơn hàng
             </SettingsRow>
           )}
-          {isStudent && (
+          {isStudent && FEATURE_MAIL_ENABLED && (
             <li className={s.switchItem}>
               <ReminderSwitch reminder={reminder} />
             </li>
@@ -133,12 +133,12 @@ export default function AccountPage() {
           <a href="#bao-mat" className={s.navItem}>
             Bảo mật
           </a>
-          {isStudent && (
+          {isStudent && FEATURE_MAIL_ENABLED && (
             <a href="#nhac-on-tap" className={s.navItem}>
               Nhắc ôn tập
             </a>
           )}
-          {isStudent && (
+          {isStudent && FEATURE_PAYOS_ENABLED && (
             <a href="#don-hang" className={s.navItem}>
               Đơn hàng
             </a>
@@ -181,7 +181,7 @@ export default function AccountPage() {
             <PasswordForm />
           </section>
 
-          {isStudent && (
+          {isStudent && FEATURE_MAIL_ENABLED && (
             <section {...sectionProps('nhac-on-tap')}>
               <h2 id="nhac-on-tap-title">Nhắc ôn tập</h2>
               <ReminderSwitch reminder={reminder} />
@@ -192,7 +192,7 @@ export default function AccountPage() {
             </section>
           )}
 
-          {isStudent && (
+          {isStudent && FEATURE_PAYOS_ENABLED && (
             <section {...sectionProps('don-hang')}>
               <h2 id="don-hang-title">Đơn hàng</h2>
               <Orders />

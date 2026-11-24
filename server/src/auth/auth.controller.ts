@@ -1,4 +1,5 @@
-import { Body, Controller, Get, HttpCode, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, NotFoundException, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { isMailEnabled } from '../common/feature-flags';
 import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
@@ -80,6 +81,9 @@ export class AuthController {
   @Post('forgot-password')
   @HttpCode(200)
   forgotPassword(@Body() dto: ForgotPasswordDto, @Req() req: Request) {
+    if (!isMailEnabled()) {
+      throw new NotFoundException('Tính năng gửi email đặt lại mật khẩu tạm thời đang ẩn.');
+    }
     return this.passwordResets.requestReset(dto.email, req.ip ?? null);
   }
 
@@ -87,6 +91,9 @@ export class AuthController {
   @Post('reset-password')
   @HttpCode(200)
   resetPassword(@Body() dto: ResetPasswordDto) {
+    if (!isMailEnabled()) {
+      throw new NotFoundException('Tính năng đặt lại mật khẩu qua email tạm thời đang ẩn.');
+    }
     return this.passwordResets.resetPassword(dto.token, dto.password);
   }
 

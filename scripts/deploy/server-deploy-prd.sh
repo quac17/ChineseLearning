@@ -19,15 +19,24 @@ require_var JWT_SECRET
 require_var CORS_ORIGIN
 require_var APP_URL
 require_var GCS_BUCKET
-require_var PAYOS_CLIENT_ID
-require_var PAYOS_API_KEY
-require_var PAYOS_CHECKSUM_KEY
-require_var MAIL_FROM
-require_var SMTP_HOST
-require_var SMTP_PORT
-require_var SMTP_USER
-require_var SMTP_PASS
-require_var REMINDER_CRON_SECRET
+
+PAYOS_ENABLED="${FEATURE_PAYOS_ENABLED:-false}"
+MAIL_ENABLED="${FEATURE_MAIL_ENABLED:-false}"
+
+if [ "$PAYOS_ENABLED" = "true" ]; then
+  require_var PAYOS_CLIENT_ID
+  require_var PAYOS_API_KEY
+  require_var PAYOS_CHECKSUM_KEY
+fi
+
+if [ "$MAIL_ENABLED" = "true" ]; then
+  require_var MAIL_FROM
+  require_var SMTP_HOST
+  require_var SMTP_PORT
+  require_var SMTP_USER
+  require_var SMTP_PASS
+  require_var REMINDER_CRON_SECRET
+fi
 
 PROJECT_ID="$GCP_PROJECT_ID"
 REGION="$GCP_REGION"
@@ -136,13 +145,22 @@ upsert_secret() {
     --member="serviceAccount:${SA_EMAIL}" --role="roles/secretmanager.secretAccessor" --quiet >/dev/null
 }
 
+SECRETS_ARG="JWT_SECRET=chinese-learner-jwt-secret:latest,DATABASE_URL=chinese-learner-database-url:latest"
 upsert_secret "chinese-learner-jwt-secret" "$JWT_SECRET"
 upsert_secret "chinese-learner-database-url" "$DATABASE_URL"
-upsert_secret "chinese-learner-payos-client-id" "$PAYOS_CLIENT_ID"
-upsert_secret "chinese-learner-payos-api-key" "$PAYOS_API_KEY"
-upsert_secret "chinese-learner-payos-checksum-key" "$PAYOS_CHECKSUM_KEY"
-upsert_secret "chinese-learner-smtp-pass" "$SMTP_PASS"
-upsert_secret "chinese-learner-reminder-cron-secret" "$REMINDER_CRON_SECRET"
+
+if [ "$PAYOS_ENABLED" = "true" ]; then
+  upsert_secret "chinese-learner-payos-client-id" "$PAYOS_CLIENT_ID"
+  upsert_secret "chinese-learner-payos-api-key" "$PAYOS_API_KEY"
+  upsert_secret "chinese-learner-payos-checksum-key" "$PAYOS_CHECKSUM_KEY"
+  SECRETS_ARG="${SECRETS_ARG},PAYOS_CLIENT_ID=chinese-learner-payos-client-id:latest,PAYOS_API_KEY=chinese-learner-payos-api-key:latest,PAYOS_CHECKSUM_KEY=chinese-learner-payos-checksum-key:latest"
+fi
+
+if [ "$MAIL_ENABLED" = "true" ]; then
+  upsert_secret "chinese-learner-smtp-pass" "$SMTP_PASS"
+  upsert_secret "chinese-learner-reminder-cron-secret" "$REMINDER_CRON_SECRET"
+  SECRETS_ARG="${SECRETS_ARG},SMTP_PASS=chinese-learner-smtp-pass:latest,REMINDER_CRON_SECRET=chinese-learner-reminder-cron-secret:latest"
+fi
 
 # 5. Build & Deploy Backend
 echo "→ Build Docker image Server..."
@@ -157,8 +175,8 @@ gcloud run deploy chinese-learner-server \
   --memory 1Gi \
   --timeout 3600 \
   --add-cloudsql-instances "$INSTANCE_CONN" \
-  --set-env-vars "^@^NODE_ENV=production@JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}@COOKIE_NAME=${COOKIE_NAME:-chinese_learner_token}@COOKIE_SECURE=${COOKIE_SECURE:-true}@COOKIE_SAME_SITE=${COOKIE_SAME_SITE:-lax}@CORS_ORIGIN=${CORS_ORIGIN}@APP_URL=${APP_URL}@API_PUBLIC_URL=${API_PUBLIC_URL:-}@PAYMENT_GATEWAY=payos@STORAGE_BACKEND=gcs@GCS_BUCKET=${GCS_BUCKET}@GCS_SIGNED_URL_TTL_MIN=${GCS_SIGNED_URL_TTL_MIN:-15}@GCS_UPLOAD_URL_TTL_MIN=${GCS_UPLOAD_URL_TTL_MIN:-30}@MAX_VIDEO_SIZE_MB=${MAX_VIDEO_SIZE_MB:-2000}@MAX_DOC_SIZE_MB=${MAX_DOC_SIZE_MB:-30}@MAIL_TRANSPORT=smtp@MAIL_FROM=${MAIL_FROM}@SMTP_HOST=${SMTP_HOST}@SMTP_PORT=${SMTP_PORT}@SMTP_USER=${SMTP_USER}@MAIL_DEV_OUTBOX=false@TRUST_PROXY=${TRUST_PROXY:-1}" \
-  --set-secrets "JWT_SECRET=chinese-learner-jwt-secret:latest,DATABASE_URL=chinese-learner-database-url:latest,PAYOS_CLIENT_ID=chinese-learner-payos-client-id:latest,PAYOS_API_KEY=chinese-learner-payos-api-key:latest,PAYOS_CHECKSUM_KEY=chinese-learner-payos-checksum-key:latest,SMTP_PASS=chinese-learner-smtp-pass:latest,REMINDER_CRON_SECRET=chinese-learner-reminder-cron-secret:latest"
+  --set-env-vars "^@^NODE_ENV=production@FEATURE_PAYOS_ENABLED=${PAYOS_ENABLED}@FEATURE_MAIL_ENABLED=${MAIL_ENABLED}@JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}@COOKIE_NAME=${COOKIE_NAME:-chinese_learner_token}@COOKIE_SECURE=${COOKIE_SECURE:-true}@COOKIE_SAME_SITE=${COOKIE_SAME_SITE:-lax}@CORS_ORIGIN=${CORS_ORIGIN}@APP_URL=${APP_URL}@API_PUBLIC_URL=${API_PUBLIC_URL:-}@PAYMENT_GATEWAY=${PAYMENT_GATEWAY:-fake}@STORAGE_BACKEND=gcs@GCS_BUCKET=${GCS_BUCKET}@GCS_SIGNED_URL_TTL_MIN=${GCS_SIGNED_URL_TTL_MIN:-15}@GCS_UPLOAD_URL_TTL_MIN=${GCS_UPLOAD_URL_TTL_MIN:-30}@MAX_VIDEO_SIZE_MB=${MAX_VIDEO_SIZE_MB:-2000}@MAX_DOC_SIZE_MB=${MAX_DOC_SIZE_MB:-30}@MAIL_TRANSPORT=${MAIL_TRANSPORT:-console}@MAIL_FROM=${MAIL_FROM:-}@SMTP_HOST=${SMTP_HOST:-}@SMTP_PORT=${SMTP_PORT:-587}@SMTP_USER=${SMTP_USER:-}@MAIL_DEV_OUTBOX=false@TRUST_PROXY=${TRUST_PROXY:-1}" \
+  --set-secrets "$SECRETS_ARG"
 
 API_URL="$(gcloud run services describe chinese-learner-server --region "$REGION" --format="value(status.url)")"
 echo "✔ Deploy Backend thành công: ${API_URL}"
