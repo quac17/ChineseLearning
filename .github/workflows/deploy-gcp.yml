@@ -64,6 +64,16 @@ jobs:
           GCS_BUCKET="${{ vars.GCS_BUCKET || format('{0}-chinese-learner-media', env.PROJECT_ID) }}"
           RUNTIME_SA="${{ vars.GCP_RUNTIME_SA || format('chinese-learner-server@{0}.iam.gserviceaccount.com', env.PROJECT_ID) }}"
           CLOUD_SQL="${{ vars.CLOUD_SQL_CONNECTION || format('{0}:{1}:chinese-learner-pg', env.PROJECT_ID, env.REGION) }}"
+          PAYOS_ENABLED="${{ vars.FEATURE_PAYOS_ENABLED || 'false' }}"
+          MAIL_ENABLED="${{ vars.FEATURE_MAIL_ENABLED || 'false' }}"
+
+          SECRETS_ARG="JWT_SECRET=chinese-learner-jwt-secret:latest,DATABASE_URL=chinese-learner-database-url:latest"
+          if [ "$PAYOS_ENABLED" = "true" ]; then
+            SECRETS_ARG="${SECRETS_ARG},PAYOS_CLIENT_ID=chinese-learner-payos-client-id:latest,PAYOS_API_KEY=chinese-learner-payos-api-key:latest,PAYOS_CHECKSUM_KEY=chinese-learner-payos-checksum-key:latest"
+          fi
+          if [ "$MAIL_ENABLED" = "true" ]; then
+            SECRETS_ARG="${SECRETS_ARG},SMTP_PASS=chinese-learner-smtp-pass:latest,REMINDER_CRON_SECRET=chinese-learner-reminder-cron-secret:latest"
+          fi
 
           gcloud run deploy chinese-learner-server \
             --image "$IMAGE" \
@@ -73,8 +83,8 @@ jobs:
             --memory 1Gi \
             --timeout 3600 \
             --add-cloudsql-instances "$CLOUD_SQL" \
-            --set-env-vars "^@^NODE_ENV=production@JWT_EXPIRES_IN=7d@COOKIE_NAME=chinese_learner_token@COOKIE_SECURE=true@COOKIE_SAME_SITE=${COOKIE_SAME_SITE}@CORS_ORIGIN=${CORS_ORIGIN}@APP_URL=${APP_URL}@API_PUBLIC_URL=${API_PUBLIC_URL}@PAYMENT_GATEWAY=payos@STORAGE_BACKEND=gcs@GCS_BUCKET=${GCS_BUCKET}@GCS_SIGNED_URL_TTL_MIN=15@GCS_UPLOAD_URL_TTL_MIN=30@MAX_VIDEO_SIZE_MB=2000@MAX_DOC_SIZE_MB=30@MAIL_TRANSPORT=smtp@MAIL_FROM=${{ vars.MAIL_FROM || 'Tiếng Trung 365 <no-reply@tiengtrung365vn.com>' }}@SMTP_HOST=${{ vars.SMTP_HOST || 'smtp.resend.com' }}@SMTP_PORT=${{ vars.SMTP_PORT || '465' }}@SMTP_USER=${{ vars.SMTP_USER || 'resend' }}@MAIL_DEV_OUTBOX=false@TRUST_PROXY=1" \
-            --set-secrets "JWT_SECRET=chinese-learner-jwt-secret:latest,DATABASE_URL=chinese-learner-database-url:latest,PAYOS_CLIENT_ID=chinese-learner-payos-client-id:latest,PAYOS_API_KEY=chinese-learner-payos-api-key:latest,PAYOS_CHECKSUM_KEY=chinese-learner-payos-checksum-key:latest,SMTP_PASS=chinese-learner-smtp-pass:latest,REMINDER_CRON_SECRET=chinese-learner-reminder-cron-secret:latest"
+            --set-env-vars "^@^NODE_ENV=production@FEATURE_PAYOS_ENABLED=${PAYOS_ENABLED}@FEATURE_MAIL_ENABLED=${MAIL_ENABLED}@JWT_EXPIRES_IN=7d@COOKIE_NAME=chinese_learner_token@COOKIE_SECURE=true@COOKIE_SAME_SITE=${COOKIE_SAME_SITE}@CORS_ORIGIN=${CORS_ORIGIN}@APP_URL=${APP_URL}@API_PUBLIC_URL=${API_PUBLIC_URL}@PAYMENT_GATEWAY=${{ vars.PAYMENT_GATEWAY || 'fake' }}@STORAGE_BACKEND=gcs@GCS_BUCKET=${GCS_BUCKET}@GCS_SIGNED_URL_TTL_MIN=15@GCS_UPLOAD_URL_TTL_MIN=30@MAX_VIDEO_SIZE_MB=2000@MAX_DOC_SIZE_MB=30@MAIL_TRANSPORT=${{ vars.MAIL_TRANSPORT || 'console' }}@MAIL_FROM=${{ vars.MAIL_FROM || 'Tiếng Trung 365 <no-reply@tiengtrung365vn.com>' }}@SMTP_HOST=${{ vars.SMTP_HOST || '' }}@SMTP_PORT=${{ vars.SMTP_PORT || '465' }}@SMTP_USER=${{ vars.SMTP_USER || '' }}@MAIL_DEV_OUTBOX=false@TRUST_PROXY=1" \
+            --set-secrets "$SECRETS_ARG"
 
   deploy-client:
     name: Build & Deploy Frontend (chinese-learner-client)
@@ -104,6 +114,8 @@ jobs:
             --build-arg "NEXT_PUBLIC_API_URL=${API_URL}" \
             --build-arg "NEXT_PUBLIC_SUPPORT_CONTACT=${{ vars.NEXT_PUBLIC_SUPPORT_CONTACT || '' }}" \
             --build-arg "NEXT_PUBLIC_REFUND_POLICY=${{ vars.NEXT_PUBLIC_REFUND_POLICY || '' }}" \
+            --build-arg "NEXT_PUBLIC_FEATURE_PAYOS_ENABLED=${{ vars.FEATURE_PAYOS_ENABLED || 'false' }}" \
+            --build-arg "NEXT_PUBLIC_FEATURE_MAIL_ENABLED=${{ vars.FEATURE_MAIL_ENABLED || 'false' }}" \
             -t "$IMAGE" -t "$LATEST" ./user-client
           docker push "$IMAGE"
           docker push "$LATEST"
