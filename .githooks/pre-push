@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+set -eu
+
+echo "[pre-push] Running server unit tests (Jest)..."
+yarn server:test --ci
+
+if [ -f e2e/playwright.config.ts ]; then
+  echo "[pre-push] Running E2E tests (Playwright)..."
+  yarn e2e
+fi
+
+echo "[pre-push] All checks passed."
