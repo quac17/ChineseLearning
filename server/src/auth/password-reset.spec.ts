@@ -173,19 +173,24 @@ describe('PasswordResetService.resetPassword', () => {
 });
 
 describe('mailerFactory', () => {
-  it('refuses the console mailer in production', () => {
-    expect(() => mailerFactory(config({ NODE_ENV: 'production' }))).toThrow('MAIL_TRANSPORT=smtp');
-    expect(() => mailerFactory(config({ NODE_ENV: 'production', MAIL_TRANSPORT: 'console' }))).toThrow();
+  it('refuses the console mailer in production when mail is enabled', () => {
+    expect(() => mailerFactory(config({ NODE_ENV: 'production', FEATURE_MAIL_ENABLED: 'true' }))).toThrow('MAIL_TRANSPORT=smtp');
+    expect(() =>
+      mailerFactory(config({ NODE_ENV: 'production', FEATURE_MAIL_ENABLED: 'true', MAIL_TRANSPORT: 'console' })),
+    ).toThrow();
   });
 
   it('needs every SMTP setting', () => {
-    expect(() => mailerFactory(config({ MAIL_TRANSPORT: 'smtp', SMTP_HOST: 'smtp.example.com' }))).toThrow('SMTP_USER');
+    expect(() =>
+      mailerFactory(config({ FEATURE_MAIL_ENABLED: 'true', MAIL_TRANSPORT: 'smtp', SMTP_HOST: 'smtp.example.com' })),
+    ).toThrow('SMTP_USER');
   });
 
   it('builds an SMTP mailer in production when configured', () => {
     const mailer = mailerFactory(
       config({
         NODE_ENV: 'production',
+        FEATURE_MAIL_ENABLED: 'true',
         MAIL_TRANSPORT: 'smtp',
         SMTP_HOST: 'smtp.example.com',
         SMTP_PORT: '465',
@@ -200,7 +205,7 @@ describe('mailerFactory', () => {
   it('keeps an outbox only when MAIL_DEV_OUTBOX=true', async () => {
     const plain = mailerFactory(config()) as ConsoleMailer;
     expect(plain.hasOutbox).toBe(false);
-    const withOutbox = mailerFactory(config({ MAIL_DEV_OUTBOX: 'true' })) as ConsoleMailer;
+    const withOutbox = mailerFactory(config({ FEATURE_MAIL_ENABLED: 'true', MAIL_DEV_OUTBOX: 'true' })) as ConsoleMailer;
     await withOutbox.send({ to: 'Lan@Example.com', subject: 's', text: 't', html: 'h' });
     expect(withOutbox.mailsTo('lan@example.com')).toHaveLength(1);
   });

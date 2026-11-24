@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { FEATURE_PAYOS_ENABLED } from '@/lib/site';
 import { DashboardShell } from './DashboardShell';
 import { MobileTabBar } from './MobileTabBar';
 import { SiteFooter } from './SiteFooter';
@@ -17,10 +18,10 @@ const ADMIN_NAV = [
   { href: '/admin/users', label: 'Người dùng' },
   { href: '/admin/programs', label: 'Chương trình' },
   { href: '/admin/courses', label: 'Khoá học' },
-  { href: '/admin/prices', label: 'Giá khoá học' },
+  ...(FEATURE_PAYOS_ENABLED ? [{ href: '/admin/prices', label: 'Giá khoá học' }] : []),
   { href: '/admin/ratings', label: 'Đánh giá & học viên' },
   { href: '/admin/reviews', label: 'Kiểm duyệt đánh giá' },
-  { href: '/admin/orders', label: 'Đơn hàng' },
+  ...(FEATURE_PAYOS_ENABLED ? [{ href: '/admin/orders', label: 'Đơn hàng' }] : []),
 ];
 
 /** Learner pages rebuilt on the new design: they lay out their own width. */

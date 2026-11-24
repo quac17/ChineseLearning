@@ -1,12 +1,14 @@
 import { Body, Controller, Get, Headers, HttpCode, Post, Put, Query, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthUser, CurrentUser } from '../common/decorators/current-user.decorator';
+import { MailEnabledGuard } from '../common/feature-flags';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { ReminderSettingsDto } from './dto/reminder.dto';
 import { RemindersService } from './reminders.service';
 import { isValidCronSecret } from './review-reminder';
 
 @Controller('reminders')
+@UseGuards(MailEnabledGuard)
 export class RemindersController {
   private readonly cronSecret: string | undefined;
 

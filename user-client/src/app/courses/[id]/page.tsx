@@ -28,7 +28,7 @@ import {
 } from '@/lib/courses';
 import { usePrograms } from '@/context/ModuleContext';
 import { formatVnd } from '@/lib/programs';
-import { REFUND_POLICY } from '@/lib/site';
+import { FEATURE_PAYOS_ENABLED, REFUND_POLICY } from '@/lib/site';
 import type { CourseItem, LessonItem, ReviewSummary } from '@/lib/types';
 import s from './course.module.css';
 
@@ -370,7 +370,7 @@ function BuyBox({ course }: { course: CourseItem }) {
               <p className={s.note}>Khoá học chưa có bài giảng.</p>
             )}
           </>
-        ) : isOnSale(course) ? (
+        ) : FEATURE_PAYOS_ENABLED && isOnSale(course) ? (
           <>
             <p className={s.price}>{formatVnd(course.priceVnd!)}</p>
             <BuyButton courseId={course.id} block />

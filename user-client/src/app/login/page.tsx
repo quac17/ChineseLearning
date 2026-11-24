@@ -8,6 +8,7 @@ import { readNext, withNext } from '@/components/auth/useNext';
 import s from '@/components/auth/auth.module.css';
 import { useAuth } from '@/context/AuthContext';
 import { routes } from '@/lib/courses';
+import { FEATURE_MAIL_ENABLED } from '@/lib/site';
 import { useOnline } from '@/lib/useOnline';
 
 /**
@@ -97,9 +98,11 @@ export default function LoginPage() {
               required
             />
           </Field>
-          <Link href="/forgot-password" className={s.forgot}>
-            Quên mật khẩu?
-          </Link>
+          {FEATURE_MAIL_ENABLED && (
+            <Link href="/forgot-password" className={s.forgot}>
+              Quên mật khẩu?
+            </Link>
+          )}
         </div>
         <Button type="submit" variant="ink" block loading={submitting} disabled={!online || !email || !password}>
           Đăng nhập

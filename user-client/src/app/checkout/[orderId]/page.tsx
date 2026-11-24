@@ -9,7 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { apiRequest } from '@/lib/api';
 import { routes } from '@/lib/courses';
 import { formatVnd } from '@/lib/programs';
-import { SUPPORT_CONTACT } from '@/lib/site';
+import { FEATURE_PAYOS_ENABLED, SUPPORT_CONTACT } from '@/lib/site';
 import type { OrderItem } from '@/lib/types';
 import s from '../checkout.module.css';
 
@@ -32,9 +32,26 @@ export default function CheckoutPage() {
   }, [orderId]);
 
   useEffect(() => {
-    if (authLoading || !user) return;
+    if (!FEATURE_PAYOS_ENABLED || authLoading || !user) return;
     load();
   }, [authLoading, user, load]);
+
+  if (!FEATURE_PAYOS_ENABLED) {
+    return (
+      <div className={s.page}>
+        <EmptyState
+          title="Tính năng thanh toán tạm thời đang ẩn"
+          action={
+            <LinkButton href={routes.catalog()} variant="ink">
+              Xem danh sách khoá học
+            </LinkButton>
+          }
+        >
+          Vui lòng liên hệ giáo viên phụ trách hoặc quản trị viên để được mở khoá khoá học cho tài khoản của bạn.
+        </EmptyState>
+      </div>
+    );
+  }
 
   // Poll while unpaid. The page never decides the outcome itself: the server
   // marks the order paid from the gateway's signed webhook (or reconciliation).

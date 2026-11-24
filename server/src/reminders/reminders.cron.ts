@@ -25,6 +25,7 @@ export class RemindersCron implements OnApplicationBootstrap {
   ) {}
 
   onApplicationBootstrap() {
+    if (this.config.get<string>('FEATURE_MAIL_ENABLED') !== 'true') return;
     if (this.config.get<string>('REMINDER_CRON_ENABLED') !== 'true') return;
     const expression = this.config.get<string>('REMINDER_CRON') || DEFAULT_REMINDER_CRON;
     const job = new CronJob(
