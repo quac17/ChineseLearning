@@ -23,8 +23,11 @@ try {
   const jestFlags = isWindows ? '--runInBand' : '--ci';
   run(`[3/4] Server: Unit tests (jest ${jestFlags})`, `yarn --cwd server test ${jestFlags}`);
 
+  // Use .next-e2e (already in tsconfig.json and .gitignore) so check:ci / git push
+  // never hits EPERM on .next/trace when `yarn client:dev` is running on Windows.
   run('[4/4] Client: TypeScript check + Next.js build', 'yarn --cwd user-client tsc --noEmit && yarn --cwd user-client build', {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api',
+    NEXT_DIST_DIR: process.env.NEXT_DIST_DIR || '.next-e2e',
   });
 
   if (runE2e) {

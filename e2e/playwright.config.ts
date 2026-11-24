@@ -51,7 +51,13 @@ export default defineConfig({
     {
       command: clientCommand,
       cwd: `${REPO_ROOT}/user-client`,
-      env: { NEXT_PUBLIC_API_URL: API_URL, NEXT_DIST_DIR: '.next-e2e', NEXT_TELEMETRY_DISABLED: '1' },
+      env: {
+        NEXT_PUBLIC_API_URL: API_URL,
+        NEXT_PUBLIC_FEATURE_PAYOS_ENABLED: 'true',
+        NEXT_PUBLIC_FEATURE_MAIL_ENABLED: 'true',
+        NEXT_DIST_DIR: '.next-e2e',
+        NEXT_TELEMETRY_DISABLED: '1',
+      },
       url: WEB_URL,
       reuseExistingServer: !isCI,
       timeout: 240_000,

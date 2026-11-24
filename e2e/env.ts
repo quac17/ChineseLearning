@@ -63,6 +63,9 @@ export function serverEnv(): Record<string, string> {
     JWT_SECRET: process.env.JWT_SECRET || 'e2e-only-not-a-secret',
     COOKIE_SECURE: 'false',
     COOKIE_SAME_SITE: 'lax',
+    // E2E exercises payment & mail flows against fake gateway + console outbox even while hidden in prod/dev.
+    FEATURE_PAYOS_ENABLED: 'true',
+    FEATURE_MAIL_ENABLED: 'true',
     // Fake gateway: specs sign PayOS-style webhooks with this key. Never real PayOS.
     PAYMENT_GATEWAY: 'fake',
     FAKE_PAYMENT_CHECKSUM_KEY: FAKE_CHECKSUM_KEY,

@@ -58,3 +58,39 @@ ensure_artifact_repo() {
     echo "✓ Artifact Registry '${repo}' đã tồn tại."
   fi
 }
+
+ensure_cloudbuild_permissions() {
+  local project_id="$1"
+  local project_number=""
+  local attempt
+
+  # Dùng --billing-project để tính quota vào project riêng thay vì project mặc định dùng chung của gcloud CLI (tránh lỗi 429)
+  for attempt in 1 2 3; do
+    if project_number="$(gcloud projects describe "$project_id" --billing-project="$project_id" --format="value(projectNumber)" 2>/dev/null)" && [ -n "$project_number" ]; then
+      break
+    fi
+    if project_number="$(gcloud projects describe "$project_id" --format="value(projectNumber)" 2>/dev/null)" && [ -n "$project_number" ]; then
+      break
+    fi
+    echo "⏳ Đang thử lại lấy thông tin project (lần ${attempt}/3)..."
+    sleep 3
+  done
+
+  if [ -z "$project_number" ]; then
+    echo "⚠ Không đọc được projectNumber do giới hạn tạm thời của Cloud Resource Manager; tiếp tục dùng quyền Cloud Build đã cấp trước đó."
+    return 0
+  fi
+
+  local compute_sa="${project_number}-compute@developer.gserviceaccount.com"
+  echo "→ Cấp quyền Cloud Build cho ${compute_sa}..."
+  gcloud projects add-iam-policy-binding "$project_id" \
+    --billing-project="$project_id" \
+    --member="serviceAccount:${compute_sa}" \
+    --role="roles/cloudbuild.builds.builder" \
+    --quiet >/dev/null || true
+  gcloud projects add-iam-policy-binding "$project_id" \
+    --billing-project="$project_id" \
+    --member="serviceAccount:${compute_sa}" \
+    --role="roles/storage.objectAdmin" \
+    --quiet >/dev/null || true
+}

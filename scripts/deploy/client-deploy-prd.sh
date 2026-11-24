@@ -24,11 +24,13 @@ gcloud config set run/region "$REGION" >/dev/null
 
 echo "→ Bật các API GCP cần thiết cho Frontend..."
 gcloud services enable \
+  cloudresourcemanager.googleapis.com \
   run.googleapis.com \
   artifactregistry.googleapis.com \
   cloudbuild.googleapis.com
 
 ensure_artifact_repo "$REPO" "$REGION"
+ensure_cloudbuild_permissions "$PROJECT_ID"
 
 CB_TMP="$(mktemp)"
 trap 'rm -f "$CB_TMP"' EXIT
@@ -43,6 +45,10 @@ steps:
       - 'NEXT_PUBLIC_SUPPORT_CONTACT=${NEXT_PUBLIC_SUPPORT_CONTACT:-}'
       - '--build-arg'
       - 'NEXT_PUBLIC_REFUND_POLICY=${NEXT_PUBLIC_REFUND_POLICY:-}'
+      - '--build-arg'
+      - 'NEXT_PUBLIC_FEATURE_PAYOS_ENABLED=${FEATURE_PAYOS_ENABLED:-false}'
+      - '--build-arg'
+      - 'NEXT_PUBLIC_FEATURE_MAIL_ENABLED=${FEATURE_MAIL_ENABLED:-false}'
       - '-t'
       - '${IMAGE}'
       - '.'
