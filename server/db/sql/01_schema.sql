@@ -108,11 +108,13 @@ CREATE TABLE IF NOT EXISTS lessons (
   file_size INTEGER,
   section_id VARCHAR(64),
   duration_minutes INTEGER,
+  quiz_mode VARCHAR(20) NOT NULL DEFAULT 'AUTO'::character varying,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT lessons_pkey PRIMARY KEY (id),
   CONSTRAINT lessons_duration_minutes_check CHECK (duration_minutes IS NULL OR duration_minutes BETWEEN 1 AND 600),
   CONSTRAINT lessons_source_type_check CHECK (((source_type)::text = ANY ((ARRAY['UPLOAD'::character varying, 'YOUTUBE'::character varying])::text[]))),
+  CONSTRAINT lessons_quiz_mode_check CHECK (quiz_mode IN ('AUTO', 'MANUAL')),
   CONSTRAINT lessons_course_id_fkey FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
   CONSTRAINT lessons_section_id_fkey FOREIGN KEY (section_id) REFERENCES course_sections(id) ON DELETE SET NULL
 );
@@ -211,11 +213,37 @@ CREATE TABLE IF NOT EXISTS lesson_vocabulary (
   meaning_vi VARCHAR(255) NOT NULL,
   example_zh TEXT,
   example_vi TEXT,
+  audio_override BOOLEAN NOT NULL DEFAULT false,
+  audio_storage_key TEXT,
+  audio_mime_type VARCHAR(120),
+  audio_original_name VARCHAR(255),
   sort_order INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT lesson_vocabulary_pkey PRIMARY KEY (id),
   CONSTRAINT lesson_vocabulary_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE
+);
+
+-- Manual quiz questions configured per lesson when lessons.quiz_mode = 'MANUAL'.
+-- Supports all 5 quiz kinds: choice, listen, order, fill, match.
+CREATE TABLE IF NOT EXISTS lesson_quiz_questions (
+  id VARCHAR(64) NOT NULL,
+  lesson_id VARCHAR(64) NOT NULL,
+  kind VARCHAR(20) NOT NULL,
+  vocabulary_id VARCHAR(64),
+  prompt TEXT,
+  payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+  audio_override BOOLEAN NOT NULL DEFAULT false,
+  audio_storage_key TEXT,
+  audio_mime_type VARCHAR(120),
+  audio_original_name VARCHAR(255),
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT lesson_quiz_questions_pkey PRIMARY KEY (id),
+  CONSTRAINT lesson_quiz_questions_kind_check CHECK (kind IN ('choice', 'listen', 'order', 'fill', 'match')),
+  CONSTRAINT lesson_quiz_questions_lesson_id_fkey FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE,
+  CONSTRAINT lesson_quiz_questions_vocabulary_id_fkey FOREIGN KEY (vocabulary_id) REFERENCES lesson_vocabulary(id) ON DELETE SET NULL
 );
 
 -- What each learner has watched: last position (uploaded videos) and when a
@@ -377,6 +405,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_payment_events_key ON public.payment_events
 CREATE INDEX IF NOT EXISTS idx_payment_events_order ON public.payment_events USING btree (order_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_lesson_progress_user_course ON public.lesson_progress USING btree (user_id, course_id, updated_at);
 CREATE INDEX IF NOT EXISTS idx_lesson_vocabulary_lesson ON public.lesson_vocabulary USING btree (lesson_id, sort_order);
+CREATE INDEX IF NOT EXISTS idx_lesson_quiz_questions_lesson ON public.lesson_quiz_questions USING btree (lesson_id, sort_order);
 CREATE INDEX IF NOT EXISTS idx_vocab_reviews_user_due ON public.vocab_reviews USING btree (user_id, due_at);
 CREATE INDEX IF NOT EXISTS idx_lesson_notes_user_lesson ON public.lesson_notes USING btree (user_id, lesson_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_lesson_questions_lesson ON public.lesson_questions USING btree (lesson_id, created_at);

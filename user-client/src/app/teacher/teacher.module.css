@@ -512,7 +512,179 @@
   margin-top: 4px;
   font-size: 12px;
   color: var(--muted);
-  max-width: 180px;
+  max-width: 200px;
+  overflow-wrap: anywhere;
+}
+
+/* Vocabulary audio override & Manual quiz editor */
+.audioCell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 190px;
+}
+.audioRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.audioFileRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.audioPickLabel {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+  font: 700 12px var(--font-sans);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.audioPickLabel:hover:not(:disabled) {
+  background: var(--surface);
+}
+.audioPickLabel:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.recStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.recDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: recPulse 1s ease-in-out infinite;
+}
+@keyframes recPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .recDot {
+    animation: none;
+  }
+}
+.recStopBtn {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: var(--bg);
+  font: 700 12px var(--font-sans);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.audioRemoveBtn {
+  border: 0;
+  background: transparent;
+  color: var(--error);
+  font: 700 12px var(--font-sans);
+  cursor: pointer;
+  padding: 4px;
+}
+.audioRemoveBtn:hover {
+  text-decoration: underline;
+}
+.quizModeGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.quizModeCard {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--card);
+}
+.quizModeActive {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+  background: var(--surface);
+}
+.quizList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.quizCard {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--card);
+}
+.quizCardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+.quizAudioBox {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.quizOptionRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+.quizFillGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+.quizMatchRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+.quizPreview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 15px;
 }
 
 /* Students and pricing */
@@ -587,7 +759,9 @@
     grid-column: 2;
     justify-content: flex-start;
   }
-  .twoCols {
+  .twoCols,
+  .quizModeGrid,
+  .quizFillGrid {
     grid-template-columns: 1fr;
   }
 }

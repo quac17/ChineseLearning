@@ -15,6 +15,7 @@ import { useAuth } from '@/context/AuthContext';
 import { buildMediaUrl, formatFileSize } from '@/lib/api';
 import { BuyButton } from '@/components/course/BuyButton';
 import { courseOutline, hasSections, isOnSale, lessonDuration, previewLesson, routes, sectionHeading, sortedLessons } from '@/lib/courses';
+import { practiceRoutes } from '@/lib/practice';
 import { formatVnd } from '@/lib/programs';
 import { PHONE_QUERY, useMediaQuery } from '@/lib/useMediaQuery';
 import type { CourseItem, LessonItem } from '@/lib/types';
@@ -240,6 +241,13 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
                   ) : (
                     <div className={s.study}>
                       {lesson.description?.trim() && <p>{lesson.description.trim()}</p>}
+                      {!hasVocab && lesson.canWatch && lesson.quizMode === 'MANUAL' && (lesson.quizQuestionCount ?? 0) > 0 && (
+                        <div>
+                          <LinkButton href={practiceRoutes.quiz({ lessonId: lesson.id })} variant="outline" size="sm">
+                            Làm Quiz bài này ({lesson.quizQuestionCount} câu)
+                          </LinkButton>
+                        </div>
+                      )}
                       {hasVocab && (
                         <section aria-labelledby="study-vocab">
                           <h2 id="study-vocab" className={s.studyHead}>
@@ -293,7 +301,16 @@ function Player({ course, lessons, index }: { course: CourseItem; lessons: Lesso
                   ) : tab === 'qa' && lesson.canWatch ? (
                     questions
                   ) : (
-                    <p>{lesson.description?.trim() || 'Bài học này chưa có mô tả.'}</p>
+                    <div>
+                      <p>{lesson.description?.trim() || 'Bài học này chưa có mô tả.'}</p>
+                      {lesson.canWatch && lesson.quizMode === 'MANUAL' && (lesson.quizQuestionCount ?? 0) > 0 && !hasVocab && (
+                        <div style={{ marginTop: 12 }}>
+                          <LinkButton href={practiceRoutes.quiz({ lessonId: lesson.id })} variant="outline" size="sm">
+                            Làm Quiz bài này ({lesson.quizQuestionCount} câu)
+                          </LinkButton>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               </>

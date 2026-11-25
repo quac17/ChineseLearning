@@ -562,8 +562,20 @@ export class LessonsService {
     }
 
     await this.coursesService.assertCanManageCourse(lesson.course_id, user);
+    const [vocabAudios, quizAudios] = await Promise.all([
+      this.db.queryAll(
+        'SELECT audio_storage_key FROM lesson_vocabulary WHERE lesson_id = $1 AND audio_storage_key IS NOT NULL',
+        [id],
+      ),
+      this.db.queryAll(
+        'SELECT audio_storage_key FROM lesson_quiz_questions WHERE lesson_id = $1 AND audio_storage_key IS NOT NULL',
+        [id],
+      ),
+    ]);
     await this.storage.deleteFile(lesson.storage_key);
     await this.storage.deleteFile(lesson.subtitle_key);
+    for (const a of vocabAudios) await this.storage.deleteFile(a.audio_storage_key);
+    for (const a of quizAudios) await this.storage.deleteFile(a.audio_storage_key);
     await this.db.query('DELETE FROM lessons WHERE id = $1', [id]);
     return { deleted: true, id };
   }

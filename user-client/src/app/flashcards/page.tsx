@@ -6,7 +6,7 @@ import { PracticeHub, PracticeShell, SetState, usePracticeSet, usePracticeSource
 import s from '@/components/practice/practice.module.css';
 import { useAuth } from '@/context/AuthContext';
 import { practiceRoutes, saveReviews, type PracticeSource, type PracticeWord } from '@/lib/practice';
-import { speakChinese } from '@/lib/speech';
+import { playWordAudio } from '@/lib/speech';
 
 export default function FlashcardsPage() {
   return (
@@ -156,7 +156,14 @@ function Deck({
       </button>
       <p className={s.hint}>Bấm vào thẻ hoặc phím Space để lật. Phím ← chưa nhớ, → đã nhớ.</p>
       <div className={s.row} style={{ justifyContent: 'center' }}>
-        <Button variant="subtle" size="sm" onClick={() => speakChinese(word.hanzi) || toast.show('Thiết bị này chưa có giọng đọc tiếng Trung.')}>
+        <Button
+          variant="subtle"
+          size="sm"
+          onClick={async () => {
+            const ok = await playWordAudio({ audioPath: word.audioPath, text: word.hanzi });
+            if (!ok) toast.show('Thiết bị này chưa có giọng đọc tiếng Trung.');
+          }}
+        >
           Nghe phát âm
         </Button>
       </div>

@@ -4,6 +4,8 @@ export type ModuleSelection = 'all' | ProgramModule;
 export type VideoSourceType = 'UPLOAD' | 'YOUTUBE';
 /** Course level (Cấp độ). */
 export type CourseLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+export type QuizMode = 'AUTO' | 'MANUAL';
+export type QuizQuestionKind = 'choice' | 'listen' | 'order' | 'fill' | 'match';
 
 export interface ProgramItem {
   code: string;
@@ -57,6 +59,8 @@ export interface LessonItem {
   fileSize?: number | null;
   /** Number of words in the lesson's vocabulary (shown even when locked). */
   vocabularyCount?: number;
+  quizMode?: QuizMode;
+  quizQuestionCount?: number;
   createdAt: string;
 }
 
@@ -285,7 +289,70 @@ export interface VocabularyItem {
   meaningVi: string;
   exampleZh: string | null;
   exampleVi: string | null;
+  audioOverride: boolean;
+  hasAudio: boolean;
+  audioOriginalName: string | null;
+  /** Media API path when audioOverride is enabled and an audio file exists; null = built-in TTS. */
+  audioPath: string | null;
   sortOrder: number;
+}
+
+export interface ChoiceQuizPayload {
+  options: string[];
+  correctIndex: number;
+  explanation?: string;
+}
+
+export interface ListenQuizPayload {
+  ttsText: string;
+  options: string[];
+  correctIndex: number;
+  explanation?: string;
+}
+
+export interface OrderQuizPayload {
+  pieces: string[];
+  meaningVi?: string;
+}
+
+export interface FillQuizPayload {
+  before: string;
+  after: string;
+  answerHanzi: string;
+  answerPinyin?: string;
+  meaningVi?: string;
+}
+
+export interface MatchQuizPayload {
+  pairs: Array<{ left: string; right: string }>;
+}
+
+export type QuizQuestionPayload =
+  | ChoiceQuizPayload
+  | ListenQuizPayload
+  | OrderQuizPayload
+  | FillQuizPayload
+  | MatchQuizPayload;
+
+/** One manual quiz question configured by a teacher (GET/PUT /lessons/:lessonId/quiz). */
+export interface LessonQuizQuestionItem {
+  id: string;
+  lessonId: string;
+  kind: QuizQuestionKind;
+  vocabularyId: string | null;
+  prompt: string | null;
+  payload: QuizQuestionPayload;
+  audioOverride: boolean;
+  hasAudio: boolean;
+  audioOriginalName: string | null;
+  audioPath: string | null;
+  sortOrder: number;
+}
+
+export interface LessonQuizConfig {
+  lessonId: string;
+  quizMode: QuizMode;
+  questions: LessonQuizQuestionItem[];
 }
 
 /** A private note on a lesson (GET /notes/lessons/:lessonId). */
