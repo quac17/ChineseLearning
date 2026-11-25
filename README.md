@@ -62,8 +62,10 @@ yarn db:generate    # Tạo schema & các bảng (01_schema.sql)
 yarn db:reset       # Reset toàn bộ bảng và nạp master data (01_schema.sql + 02_master_data.sql)
 yarn db:seed        # Nạp dữ liệu mẫu (03_seed_data.sql)
 yarn db:demo        # Genarated thêm data mẫu
-yarn db:dump        # Sao lưu bản cũ ra server/db/dumps/backup_YYYYMMDD_HHmm.sql rồi đẩy hiện trạng DB vào 01_schema.sql & 03_seed_data.sql (giữ nguyên master)
-yarn db:down        # Tắt container PostgreSQL
+yarn db:dump          # Sao lưu bản cũ ra server/db/dumps/backup_YYYYMMDD_HHmm.sql rồi đẩy hiện trạng DB vào 01_schema.sql & 03_seed_data.sql (giữ nguyên master)
+yarn db:down          # Tắt container PostgreSQL
+yarn db:deploy_prd    # Khởi tạo / cập nhật DB Production trên GCP Cloud SQL (đọc .env.prd)
+yarn db:migration_prd # Đẩy toàn bộ thay đổi trong server/db/migrations_prd/*.sql lên DB Production (Cloud SQL)
 ```
 
 ### 2. Backend (`server/`) — chạy riêng ở Terminal 1
