@@ -3,10 +3,14 @@ import { API_URL, REPO_ROOT, WEB_PORT, WEB_URL, serverEnv } from './env';
 
 const isCI = Boolean(process.env.CI);
 
-// Local runs reuse `next dev`; CI builds once and serves the production build.
+// Clean .next-e2e before starting so leftover `next build` output (from check:ci)
+// never corrupts `next dev` webpack chunks ("Cannot find module './vendor-chunks/next.js'").
+const cleanDist = `node -e "require('fs').rmSync('.next-e2e',{recursive:true,force:true})"`;
+
+// Local runs use `next dev`; CI builds once and serves the production build.
 const clientCommand = isCI
-  ? `yarn build && yarn next start -p ${WEB_PORT}`
-  : `yarn next dev -p ${WEB_PORT}`;
+  ? `${cleanDist} && yarn build && yarn next start -p ${WEB_PORT}`
+  : `${cleanDist} && yarn next dev -p ${WEB_PORT}`;
 
 export default defineConfig({
   testDir: './specs',
@@ -15,7 +19,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 1 : 0,
-  workers: isCI ? 2 : undefined,
+  // Cap local workers so concurrent cold route compilations in `next dev` do not thrash webpack.
+  workers: 2,
+  timeout: isCI ? 30_000 : 60_000,
   reporter: isCI ? [['github'], ['html', { open: 'never', outputFolder: '../playwright-report' }]] : 'list',
   // Locally `next dev` compiles each route on first visit, which can take
   // longer than the 5s default; CI serves a production build.
