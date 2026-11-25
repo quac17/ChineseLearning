@@ -18,9 +18,9 @@ export default defineConfig({
   globalSetup: './global-setup.ts',
   fullyParallel: true,
   forbidOnly: isCI,
-  retries: isCI ? 1 : 0,
-  // Cap local workers so concurrent cold route compilations in `next dev` do not thrash webpack.
-  workers: 2,
+  retries: 1,
+  // On Windows `next dev`, a single worker avoids concurrent cold route compiles racing on vendor-chunks.
+  workers: isCI ? 2 : process.platform === 'win32' ? 1 : 2,
   timeout: isCI ? 30_000 : 60_000,
   reporter: isCI ? [['github'], ['html', { open: 'never', outputFolder: '../playwright-report' }]] : 'list',
   // Locally `next dev` compiles each route on first visit, which can take
