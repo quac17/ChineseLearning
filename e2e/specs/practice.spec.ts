@@ -1,6 +1,7 @@
 import { Page, expect, request, test } from '@playwright/test';
 import { API_URL } from '../env';
-import { SEED, anonymousApi } from '../fixtures/auth';
+import { SEED, anonymousApi, apiAs } from '../fixtures/auth';
+import { createPaidCourse } from '../fixtures/data';
 import { newStudent } from '../fixtures/payments';
 
 // Seed: lesson-hsk1-b1 (free) has 9 words, lesson-hsk1-b2 (paid) has 10.
@@ -61,6 +62,44 @@ test.describe('practice API', () => {
     expect(refused.status()).toBe(403);
     expect((await api.post(`${API_URL}/practice/reviews`, { data: { results: [{ vocabularyId: a.id, outcome: 'maybe' }] } })).status()).toBe(400);
   });
+
+  test('manual lesson quiz is gated by lesson access and playable by authorized learners', async ({ page }) => {
+    const teacher = await apiAs('teacher');
+    const { lessonId } = await createPaidCourse(teacher);
+
+    const putRes = await teacher.put(`lessons/${lessonId}/quiz`, {
+      data: {
+        quizMode: 'MANUAL',
+        questions: [
+          {
+            kind: 'listen',
+            prompt: 'Nghe và chọn nghĩa đúng',
+            payload: {
+              ttsText: '谢谢',
+              options: ['cảm ơn', 'xin chào', 'tạm biệt'],
+              correctIndex: 0,
+            },
+          },
+        ],
+      },
+    });
+    expect(putRes.status(), await putRes.text()).toBe(200);
+
+    // Unauthorized learner cannot load the paid lesson's manual quiz.
+    const anon = await anonymousApi();
+    expect((await anon.get(`practice/words?lessonId=${lessonId}`)).status()).toBe(403);
+
+    // Owner teacher can open and complete the manual listening quiz.
+    const teacherCtx = await page.context().browser()!.newContext({ storageState: 'e2e/.auth/teacher.json' });
+    const teacherPage = await teacherCtx.newPage();
+    await teacherPage.goto(`/quiz?lesson=${lessonId}`);
+    await expect(teacherPage.getByText('Dạng 5 · Nghe và chọn đáp án')).toBeVisible();
+    await teacherPage.getByRole('button', { name: 'cảm ơn', exact: true }).click();
+    await expect(teacherPage.getByRole('status').filter({ hasText: /Chính xác/ })).toBeVisible();
+    await teacherPage.getByRole('button', { name: 'Xem kết quả' }).click();
+    await expect(teacherPage.getByText('Bạn đúng 1 / 1 câu.')).toBeVisible();
+    await teacherCtx.close();
+  });
 });
 
 test.describe('practice in the browser', () => {
@@ -83,7 +122,7 @@ test.describe('practice in the browser', () => {
     await expect(page.getByRole('heading', { name: 'Hôm nay: 1 từ cần ôn' })).toBeVisible();
   });
 
-  test('quiz: all four question types can be answered right', async ({ page }) => {
+  test('quiz: all five question types can be answered right', async ({ page }) => {
     await newStudent(page.request);
     const set = await (await page.request.get(`${API_URL}/practice/words?lessonId=${SEED.hsk1FreeLesson}`)).json();
     const words: Word[] = set.words;
@@ -146,6 +185,14 @@ async function answerRight(page: Page, words: Word[]) {
     const word = words.find((w) => w.exampleZh?.replace(/\s/g, '') === `${before}${w.hanzi}${after}`)!;
     await page.getByLabel('Từ còn thiếu').fill(word.pinyin); // pinyin is accepted too
     await page.getByRole('button', { name: 'Kiểm tra' }).click();
+    return;
+  }
+
+  if (type.startsWith('Dạng 5')) {
+    const playBtn = page.locator('button[data-vocabulary-id]');
+    const vocabId = await playBtn.getAttribute('data-vocabulary-id');
+    const meaning = words.find((w) => w.id === vocabId)!.meaningVi;
+    await page.getByRole('button', { name: meaning, exact: true }).click();
     return;
   }
 

@@ -17,8 +17,9 @@ export default function globalSetup() {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
   const serverDir = path.join(REPO_ROOT, 'server');
+  const tsNodeBin = path.join(serverDir, 'node_modules', 'ts-node', 'dist', 'bin.js');
   for (const cmd of ['init', 'reset', 'seed']) {
-    execFileSync('npx', ['ts-node', 'db/scripts/db-cli.ts', cmd], {
+    execFileSync(process.execPath, [tsNodeBin, 'db/scripts/db-cli.ts', cmd], {
       cwd: serverDir,
       env,
       stdio: process.env.CI ? 'inherit' : 'pipe',

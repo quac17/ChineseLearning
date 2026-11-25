@@ -279,10 +279,10 @@ function Listen({ q, locked, onAnswer }: { q: Extract<Question, { kind: 'listen'
 
   return (
     <>
-      <p className={s.type}>Dạng 2 · Nghe và chọn đáp án</p>
+      <p className={s.type}>Dạng 5 · Nghe và chọn đáp án</p>
       <p className={s.question}>{q.prompt || 'Nghe phát âm và chọn đáp án đúng'}</p>
       <div className={s.listenBar}>
-        <Button type="button" variant="ink" onClick={() => void play(false)}>
+        <Button type="button" variant="ink" data-vocabulary-id={q.word?.id} onClick={() => void play(false)}>
           <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M11 5L6 9H3v6h3l5 4z" fill="currentColor" />
             <path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" />
@@ -331,7 +331,7 @@ function Order({ q, locked, onAnswer }: { q: Extract<Question, { kind: 'order' }
 
   return (
     <>
-      <p className={s.type}>Dạng 3 · Sắp xếp thành câu</p>
+      <p className={s.type}>Dạng 2 · Sắp xếp thành câu</p>
       <p className={s.question}>
         {q.prompt || (q.meaningVi ? `Xếp thành câu “${q.meaningVi}”` : 'Xếp các từ thành câu đúng')}
       </p>
@@ -395,7 +395,7 @@ function Fill({ q, locked, onAnswer }: { q: Extract<Question, { kind: 'fill' }>;
   };
   return (
     <>
-      <p className={s.type}>Dạng 4 · Điền từ</p>
+      <p className={s.type}>Dạng 3 · Điền từ</p>
       <p className={s.question}>{q.prompt || 'Điền từ còn thiếu'}</p>
       <p className={`han ${s.question}`} lang="zh-CN" style={{ fontWeight: 600 }}>
         {q.before}
@@ -464,7 +464,7 @@ function Match({ q, onAnswer }: { q: Extract<Question, { kind: 'match' }>; onAns
 
   return (
     <>
-      <p className={s.type}>Dạng 5 · Nối cặp</p>
+      <p className={s.type}>Dạng 4 · Nối cặp</p>
       <p className={s.question}>{q.prompt || 'Nối chữ Hán với nghĩa'}</p>
       <div className={s.pairs}>
         <div className={s.pairCol}>
