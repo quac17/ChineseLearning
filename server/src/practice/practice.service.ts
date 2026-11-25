@@ -1,9 +1,11 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { AuthUser } from '../common/decorators/current-user.decorator';
-import { generateId, Role } from '../common/types/domain.types';
+import { generateId, QuizMode, QuizQuestionKind, Role } from '../common/types/domain.types';
 import { DatabaseService } from '../database/database.service';
+import { audioVersionParam } from '../vocabulary/audio-upload';
 import { SaveReviewsDto } from './dto/practice.dto';
 import { nextReview } from './leitner';
+import { QuizQuestionPayload } from './lesson-quiz.rules';
 
 /**
  * Which lessons a user may practise: the same rule as watching the video
@@ -33,28 +35,46 @@ export interface PracticeWord {
   meaningVi: string;
   exampleZh: string | null;
   exampleVi: string | null;
+  /** Access-checked custom audio API path when audioOverride is enabled; null = use built-in TTS. */
+  audioPath: string | null;
   /** Leitner box (1–5) and next review, for logged-in learners who have seen the word. */
   box: number | null;
   dueAt: string | null;
+}
+
+export interface PracticeManualQuizQuestion {
+  id: string;
+  kind: QuizQuestionKind;
+  vocabularyId: string | null;
+  prompt: string | null;
+  payload: QuizQuestionPayload;
+  /** Resolved custom audio path (question override first, else linked vocabulary override, else null = TTS). */
+  audioPath: string | null;
+  /** Fallback text for browser TTS when audioPath is null. */
+  ttsText: string | null;
 }
 
 @Injectable()
 export class PracticeService {
   constructor(private readonly db: DatabaseService) {}
 
-  /** Lessons with words the viewer can practise, grouped by course, plus today's due count. */
+  /** Lessons with words or manual quiz questions the viewer can practise, grouped by course, plus today's due count. */
   async decks(user: AuthUser | null) {
     const rows = await this.db.queryAll(
       `SELECT c.id AS course_id, c.title AS course_title, c.module, c.sort_order AS course_sort,
               l.id AS lesson_id, l.title AS lesson_title, l.sort_order AS lesson_sort,
-              count(v.id)::int AS word_count,
-              count(r.id) FILTER (WHERE r.due_at <= now())::int AS due_count
+              l.quiz_mode,
+              count(DISTINCT v.id)::int AS word_count,
+              count(DISTINCT r.id) FILTER (WHERE r.due_at <= now())::int AS due_count,
+              (SELECT count(*)::int FROM lesson_quiz_questions q WHERE q.lesson_id = l.id) AS quiz_count
        FROM lessons l
        JOIN courses c ON c.id = l.course_id
-       JOIN lesson_vocabulary v ON v.lesson_id = l.id
+       LEFT JOIN lesson_vocabulary v ON v.lesson_id = l.id
        LEFT JOIN vocab_reviews r ON r.vocabulary_id = v.id AND r.user_id = $1
        WHERE ${WATCHABLE}
        GROUP BY c.id, l.id
+       HAVING count(DISTINCT v.id) > 0
+           OR (l.quiz_mode = 'MANUAL' AND EXISTS (SELECT 1 FROM lesson_quiz_questions q WHERE q.lesson_id = l.id))
        ORDER BY c.sort_order, c.created_at, l.sort_order, l.created_at`,
       [user?.id ?? null, user?.role === Role.ADMIN],
     );
@@ -68,6 +88,8 @@ export class PracticeService {
         title: r.lesson_title,
         wordCount: r.word_count,
         dueCount: r.due_count,
+        quizMode: r.quiz_mode === QuizMode.MANUAL ? QuizMode.MANUAL : QuizMode.AUTO,
+        quizCount: r.quiz_count ?? 0,
       });
     }
     return {
@@ -79,18 +101,22 @@ export class PracticeService {
   /**
    * Words of one lesson, or all words due today (`due`, logged in only).
    * `pool` holds other words of the same courses, for quiz distractors.
+   * For a single lesson in MANUAL quiz mode, also returns `manualQuestions`.
    */
   async words(user: AuthUser | null, opts: { lessonId?: string; due?: boolean }) {
     const params = [user?.id ?? null, user?.role === Role.ADMIN];
     let filter: string;
     let title: string;
+    let quizMode: QuizMode = QuizMode.AUTO;
+    let manualQuestions: PracticeManualQuizQuestion[] = [];
+
     if (opts.due) {
       if (!user) throw new UnauthorizedException('Đăng nhập để ôn các từ đến hạn.');
       filter = 'r.due_at <= now()';
       title = 'Từ cần ôn hôm nay';
     } else if (opts.lessonId) {
       const lesson = await this.db.queryOne(
-        `SELECT l.id, l.title, c.title AS course_title FROM lessons l JOIN courses c ON c.id = l.course_id
+        `SELECT l.id, l.title, l.quiz_mode, c.title AS course_title FROM lessons l JOIN courses c ON c.id = l.course_id
          WHERE l.id = $3 AND ${WATCHABLE}`,
         [...params, opts.lessonId],
       );
@@ -102,6 +128,7 @@ export class PracticeService {
       params.push(opts.lessonId);
       filter = 'l.id = $3';
       title = `${lesson.course_title} · ${lesson.title}`;
+      quizMode = lesson.quiz_mode === QuizMode.MANUAL ? QuizMode.MANUAL : QuizMode.AUTO;
     } else {
       throw new BadRequestException('Chọn một bài học để luyện tập.');
     }
@@ -127,6 +154,10 @@ export class PracticeService {
       meaningVi: r.meaning_vi,
       exampleZh: r.example_zh,
       exampleVi: r.example_vi,
+      audioPath:
+        r.audio_override && r.audio_storage_key
+          ? `/lessons/${encodeURIComponent(r.lesson_id)}/vocabulary/${encodeURIComponent(r.id)}/audio${audioVersionParam(r.audio_storage_key)}`
+          : null,
       box: r.box ?? null,
       dueAt: r.due_at ?? null,
     }));
@@ -141,7 +172,46 @@ export class PracticeService {
           [user?.id ?? null, user?.role === Role.ADMIN, courseIds, words.map((w) => w.id)],
         )
       : [];
-    return { title, words, pool };
+
+    if (opts.lessonId && quizMode === QuizMode.MANUAL) {
+      const qRows = await this.db.queryAll(
+        `SELECT q.*,
+                v.hanzi AS vocab_hanzi,
+                v.audio_override AS vocab_audio_override,
+                v.audio_storage_key AS vocab_audio_storage_key
+         FROM lesson_quiz_questions q
+         LEFT JOIN lesson_vocabulary v ON v.id = q.vocabulary_id
+         WHERE q.lesson_id = $1
+         ORDER BY q.sort_order ASC, q.created_at ASC`,
+        [opts.lessonId],
+      );
+      manualQuestions = qRows.map((q) => {
+        const questionAudioPath =
+          q.audio_override && q.audio_storage_key
+            ? `/lessons/${encodeURIComponent(q.lesson_id)}/quiz/${encodeURIComponent(q.id)}/audio${audioVersionParam(q.audio_storage_key)}`
+            : null;
+        const vocabAudioPath =
+          q.vocabulary_id && q.vocab_audio_override && q.vocab_audio_storage_key
+            ? `/lessons/${encodeURIComponent(q.lesson_id)}/vocabulary/${encodeURIComponent(q.vocabulary_id)}/audio${audioVersionParam(q.vocab_audio_storage_key)}`
+            : null;
+        const payload = q.payload ?? {};
+        const ttsText =
+          (typeof payload.ttsText === 'string' && payload.ttsText.trim()) ||
+          (typeof q.vocab_hanzi === 'string' && q.vocab_hanzi.trim()) ||
+          null;
+        return {
+          id: q.id,
+          kind: q.kind,
+          vocabularyId: q.vocabulary_id ?? null,
+          prompt: q.prompt ?? null,
+          payload,
+          audioPath: questionAudioPath ?? vocabAudioPath,
+          ttsText,
+        };
+      });
+    }
+
+    return { title, words, pool, quizMode, manualQuestions };
   }
 
   /** Records flashcard/quiz results and moves each word between Leitner boxes. */

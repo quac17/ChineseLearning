@@ -188,19 +188,27 @@ export function PracticeHub({ focus }: { focus?: 'flashcards' | 'quiz' | 'writin
                     <span className={s.lessonName}>
                       {l.title}
                       <span>
-                        {l.wordCount} từ{user && l.dueCount > 0 ? ` · ${l.dueCount} cần ôn` : ''}
+                        {l.wordCount > 0 ? `${l.wordCount} từ` : ''}
+                        {l.quizMode === 'MANUAL' && (l.quizCount ?? 0) > 0
+                          ? `${l.wordCount > 0 ? ' · ' : ''}${l.quizCount} câu quiz`
+                          : ''}
+                        {user && l.dueCount > 0 ? ` · ${l.dueCount} cần ôn` : ''}
                       </span>
                     </span>
                     <span className={s.row}>
-                      <LinkButton href={practiceRoutes.flashcards(src)} variant={focus === 'flashcards' || !focus ? 'ink' : 'outline'} size="sm">
-                        Flashcard
-                      </LinkButton>
+                      {l.wordCount > 0 && (
+                        <LinkButton href={practiceRoutes.flashcards(src)} variant={focus === 'flashcards' || !focus ? 'ink' : 'outline'} size="sm">
+                          Flashcard
+                        </LinkButton>
+                      )}
                       <LinkButton href={practiceRoutes.quiz(src)} variant={focus === 'quiz' ? 'ink' : 'outline'} size="sm">
                         Quiz
                       </LinkButton>
-                      <LinkButton href={practiceRoutes.writing(src)} variant={focus === 'writing' ? 'ink' : 'outline'} size="sm">
-                        Luyện viết
-                      </LinkButton>
+                      {l.wordCount > 0 && (
+                        <LinkButton href={practiceRoutes.writing(src)} variant={focus === 'writing' ? 'ink' : 'outline'} size="sm">
+                          Luyện viết
+                        </LinkButton>
+                      )}
                     </span>
                   </li>
                 );

@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   IsArray,
+  IsBoolean,
   IsOptional,
   IsString,
   MaxLength,
@@ -44,6 +45,11 @@ export class VocabularyItemDto {
   @IsString()
   @MaxLength(500, { message: 'Nghĩa câu ví dụ tối đa 500 ký tự' })
   exampleVi?: string;
+
+  /** When true (and an audio file is uploaded), learners hear the uploaded audio instead of browser TTS. */
+  @IsOptional()
+  @IsBoolean()
+  audioOverride?: boolean;
 }
 
 /** The whole list of a lesson, in order ("Lưu từ vựng" saves everything at once). */

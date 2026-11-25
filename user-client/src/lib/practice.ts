@@ -1,5 +1,5 @@
 import { apiRequest } from './api';
-import type { ProgramModule } from './types';
+import type { ProgramModule, QuizMode, QuizQuestionKind, QuizQuestionPayload } from './types';
 
 /** GET /practice/decks */
 export interface PracticeDecks {
@@ -8,7 +8,14 @@ export interface PracticeDecks {
     courseId: string;
     courseTitle: string;
     module: ProgramModule;
-    lessons: Array<{ lessonId: string; title: string; wordCount: number; dueCount: number }>;
+    lessons: Array<{
+      lessonId: string;
+      title: string;
+      wordCount: number;
+      dueCount: number;
+      quizMode?: QuizMode;
+      quizCount?: number;
+    }>;
   }>;
 }
 
@@ -23,15 +30,28 @@ export interface PracticeWord {
   meaningVi: string;
   exampleZh: string | null;
   exampleVi: string | null;
+  audioPath?: string | null;
   box: number | null;
   dueAt: string | null;
 }
 
-/** GET /practice/words: the session's words plus other words of the course (quiz distractors). */
+export interface PracticeManualQuizQuestion {
+  id: string;
+  kind: QuizQuestionKind;
+  vocabularyId: string | null;
+  prompt: string | null;
+  payload: QuizQuestionPayload;
+  audioPath: string | null;
+  ttsText: string | null;
+}
+
+/** GET /practice/words: the session's words plus other words of the course (quiz distractors) and manual quiz questions. */
 export interface PracticeSet {
   title: string;
   words: PracticeWord[];
   pool: Array<{ id: string; hanzi: string; pinyin: string; meaningVi: string }>;
+  quizMode?: QuizMode;
+  manualQuestions?: PracticeManualQuizQuestion[];
 }
 
 export type ReviewOutcome = 'remembered' | 'forgot' | 'quiz_correct' | 'quiz_wrong';
@@ -76,7 +96,7 @@ export function shuffle<T>(items: T[]): T[] {
 export function looseAnswer(text: string): string {
   return text
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
+    .replace(/[\u0300-\u036f]/g, '')
     .replace(/ü/g, 'u')
     .replace(/[0-9\s'’·.,，。!?！？]/g, '')
     .toLowerCase();

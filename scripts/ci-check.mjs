@@ -31,7 +31,7 @@ try {
   });
 
   if (runE2e) {
-    run('[5/5] E2E: Playwright suite', 'yarn e2e');
+    run('[5/5] E2E: Playwright suite', 'yarn e2e', { CI: '1' });
   } else {
     console.log('\n(Bỏ qua E2E mặc định để push nhanh. Dùng `RUN_E2E=1 git push` hoặc `yarn check:all` để chạy cả E2E.)');
   }
