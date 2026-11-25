@@ -185,6 +185,16 @@
   font-weight: 800;
   line-height: 1.4;
 }
+.listenBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
 .options {
   list-style: none;
   margin: 0;

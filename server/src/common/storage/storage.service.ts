@@ -7,7 +7,7 @@ import * as crypto from 'crypto';
 import { Readable, Writable } from 'stream';
 
 export type StorageBackend = 'local' | 'gcs';
-export type StorageFolder = 'videos' | 'documents' | 'subtitles' | 'covers';
+export type StorageFolder = 'videos' | 'documents' | 'subtitles' | 'covers' | 'audio';
 
 /** A short-lived link to one object; never stored in the DB, never logged. */
 export interface SignedUrl {

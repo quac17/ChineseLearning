@@ -23,6 +23,7 @@ const TABLES_IN_ORDER = [
   'lessons',
   'course_documents',
   'lesson_vocabulary',
+  'lesson_quiz_questions',
   'course_enrollments',
   'orders',
   'payment_events',

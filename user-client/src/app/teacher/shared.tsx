@@ -32,13 +32,14 @@ export function useManagedCourses() {
   return { courses, setCourses, error, reload };
 }
 
-export type EditorTab = 'info' | 'lessons' | 'vocabulary' | 'documents' | 'students' | 'reviews' | 'pricing';
+export type EditorTab = 'info' | 'lessons' | 'vocabulary' | 'quiz' | 'documents' | 'students' | 'reviews' | 'pricing';
 
 /** Course editor tabs, in board order (docs/design/canvas/Teacher*). One route each. */
 export const EDITOR_TABS: Array<{ id: EditorTab; label: string }> = [
   { id: 'info', label: 'Thông tin' },
   { id: 'lessons', label: 'Bài giảng' },
   { id: 'vocabulary', label: 'Từ vựng' },
+  { id: 'quiz', label: 'Quiz' },
   { id: 'documents', label: 'Tài liệu' },
   { id: 'students', label: 'Học viên' },
   { id: 'reviews', label: 'Đánh giá' },

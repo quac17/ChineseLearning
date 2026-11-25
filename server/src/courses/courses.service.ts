@@ -56,7 +56,8 @@ export class CoursesService {
     const [lessonsRows, docsRows, enrollRows, sectionRows, reviewRows] = await Promise.all([
       this.db.queryAll(
         `SELECT l.*,
-                (SELECT count(*)::int FROM lesson_vocabulary v WHERE v.lesson_id = l.id) AS vocabulary_count
+                (SELECT count(*)::int FROM lesson_vocabulary v WHERE v.lesson_id = l.id) AS vocabulary_count,
+                (SELECT count(*)::int FROM lesson_quiz_questions q WHERE q.lesson_id = l.id) AS quiz_question_count
          FROM lessons l
          WHERE l.course_id = ANY($1::varchar[])
          ORDER BY l.sort_order ASC, l.created_at ASC`,
@@ -173,6 +174,8 @@ export class CoursesService {
         originalFileName: lesson.original_file_name,
         fileSize: lesson.file_size,
         vocabularyCount: lesson.vocabulary_count ?? 0,
+        quizMode: lesson.quiz_mode === 'MANUAL' ? 'MANUAL' : 'AUTO',
+        quizQuestionCount: lesson.quiz_question_count ?? 0,
         createdAt: lesson.created_at,
       };
     });
@@ -576,11 +579,23 @@ export class CoursesService {
       }
     }
 
-    const [lessons, docs] = await Promise.all([
+    const [lessons, docs, vocabAudios, quizAudios] = await Promise.all([
       this.db.queryAll('SELECT storage_key, subtitle_key FROM lessons WHERE course_id = $1', [id]),
       this.db.queryAll('SELECT storage_key FROM course_documents WHERE course_id = $1', [
         id,
       ]),
+      this.db.queryAll(
+        `SELECT v.audio_storage_key FROM lesson_vocabulary v
+         JOIN lessons l ON l.id = v.lesson_id
+         WHERE l.course_id = $1 AND v.audio_storage_key IS NOT NULL`,
+        [id],
+      ),
+      this.db.queryAll(
+        `SELECT q.audio_storage_key FROM lesson_quiz_questions q
+         JOIN lessons l ON l.id = q.lesson_id
+         WHERE l.course_id = $1 AND q.audio_storage_key IS NOT NULL`,
+        [id],
+      ),
     ]);
 
     const course = await this.db.queryOne('SELECT cover_key FROM courses WHERE id = $1', [id]);
@@ -589,6 +604,8 @@ export class CoursesService {
       await this.storage.deleteFile(l.subtitle_key);
     }
     for (const d of docs) await this.storage.deleteFile(d.storage_key);
+    for (const a of vocabAudios) await this.storage.deleteFile(a.audio_storage_key);
+    for (const a of quizAudios) await this.storage.deleteFile(a.audio_storage_key);
     await this.storage.deleteFile(course?.cover_key);
 
     await this.db.query('DELETE FROM courses WHERE id = $1', [id]);

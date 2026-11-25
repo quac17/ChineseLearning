@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Alert, LinkButton, Skeleton, useToast } from '@/components/ui';
 import { practiceRoutes } from '@/lib/practice';
 import { apiRequest } from '@/lib/api';
-import { canSpeakChinese, speakChinese } from '@/lib/speech';
+import { canSpeakChinese, playWordAudio, speakChinese } from '@/lib/speech';
 import type { VocabularyItem } from '@/lib/types';
 import s from './vocabulary.module.css';
 
@@ -35,6 +35,11 @@ export function VocabularyList({ lessonId }: { lessonId: string }) {
     return () => window.speechSynthesis.removeEventListener?.('voiceschanged', onVoices);
   }, []);
 
+  const sayWord = async (w: VocabularyItem) => {
+    const ok = await playWordAudio({ audioPath: w.audioPath, text: w.hanzi });
+    if (!ok) toast.show('Thiết bị này chưa có giọng đọc tiếng Trung.');
+  };
+
   const say = (text: string) => {
     if (!speakChinese(text)) toast.show('Thiết bị này chưa có giọng đọc tiếng Trung.');
   };
@@ -60,11 +65,11 @@ export function VocabularyList({ lessonId }: { lessonId: string }) {
               <span className={`han ${s.hanzi}`} lang="zh-CN">
                 {w.hanzi}
               </span>
-              {voice && (
+              {(voice || w.audioPath) && (
                 <button
                   type="button"
                   className={s.speak}
-                  onClick={() => say(w.hanzi)}
+                  onClick={() => void sayWord(w)}
                   aria-label={`Nghe phát âm ${w.hanzi}`}
                 >
                   <SpeakerIcon />

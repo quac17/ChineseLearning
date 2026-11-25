@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Alert, Button, Checkbox, Dialog, EmptyState, Select, Skeleton, Textarea, useToast } from '@/components/ui';
 import { apiRequest } from '@/lib/api';
-import { speakChinese } from '@/lib/speech';
+import { playWordAudio, stopAudio } from '@/lib/speech';
 import type { VocabularyItem } from '@/lib/types';
 import { move } from '../../../shared';
+import { AudioRecorder } from '../../../AudioRecorder';
 import s from '../../../teacher.module.css';
 import { useEditorCourse } from '../editor';
 import { parseSheet, type WordDraft } from './sheet';
@@ -15,14 +16,40 @@ interface Row extends WordDraft {
   key: number;
   /** Server id of a saved word. Sent back on save so learners keep their review progress. */
   id?: string;
+  audioOverride: boolean;
+  hasAudio: boolean;
+  audioOriginalName: string | null;
+  audioPath: string | null;
+  /** Audio file selected for a not-yet-saved row; uploaded automatically on save. */
+  pendingAudioFile?: File | null;
+  pendingAudioUrl?: string | null;
 }
 
 let nextKey = 1;
-const toRow = (w: WordDraft): Row => ({ ...w, key: nextKey++ });
+const toRow = (w: WordDraft): Row => ({
+  ...w,
+  key: nextKey++,
+  audioOverride: false,
+  hasAudio: false,
+  audioOriginalName: null,
+  audioPath: null,
+  pendingAudioFile: null,
+  pendingAudioUrl: null,
+});
 const emptyRow = (): Row => toRow({ hanzi: '', pinyin: '', meaningVi: '', exampleZh: '', exampleVi: '' });
 const fromItem = (v: VocabularyItem): Row => ({
-  ...toRow({ hanzi: v.hanzi, pinyin: v.pinyin, meaningVi: v.meaningVi, exampleZh: v.exampleZh ?? '', exampleVi: v.exampleVi ?? '' }),
+  ...toRow({
+    hanzi: v.hanzi,
+    pinyin: v.pinyin,
+    meaningVi: v.meaningVi,
+    exampleZh: v.exampleZh ?? '',
+    exampleVi: v.exampleVi ?? '',
+  }),
   id: v.id,
+  audioOverride: Boolean(v.audioOverride),
+  hasAudio: Boolean(v.hasAudio),
+  audioOriginalName: v.audioOriginalName ?? null,
+  audioPath: v.audioPath ?? null,
 });
 
 const sameWords = (a: Row[], b: Row[]) =>
@@ -34,7 +61,9 @@ const sameWords = (a: Row[], b: Row[]) =>
       r.pinyin === b[i].pinyin &&
       r.meaningVi === b[i].meaningVi &&
       r.exampleZh === b[i].exampleZh &&
-      r.exampleVi === b[i].exampleVi,
+      r.exampleVi === b[i].exampleVi &&
+      r.audioOverride === b[i].audioOverride &&
+      !r.pendingAudioFile,
   );
 
 /** "jiao4", "ni3 hao3": the API turns tone numbers into marks on save. */
@@ -132,9 +161,12 @@ function WordEditor({
   const [loadError, setLoadError] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [uploadingKey, setUploadingKey] = useState<number | null>(null);
   const [showErrors, setShowErrors] = useState(false);
   const [pasting, setPasting] = useState(false);
   const focusKey = useRef<number | null>(null);
+  const rowsRef = useRef<Row[]>(rows);
+  rowsRef.current = rows;
 
   const load = useCallback(async () => {
     try {
@@ -150,6 +182,15 @@ function WordEditor({
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    return () => {
+      stopAudio();
+      rowsRef.current.forEach((r) => {
+        if (r.pendingAudioUrl) URL.revokeObjectURL(r.pendingAudioUrl);
+      });
+    };
+  }, []);
 
   const dirty = saved !== null && !sameWords(rows, saved);
   useEffect(() => onDirtyChange(dirty), [dirty, onDirtyChange]);
@@ -169,6 +210,111 @@ function WordEditor({
 
   const update = (key: number, field: keyof WordDraft, value: string) =>
     setRows((all) => all.map((r) => (r.key === key ? { ...r, [field]: value } : r)));
+
+  const toggleAudioOverride = (key: number, checked: boolean) => {
+    setRows((all) =>
+      all.map((r) =>
+        r.key === key
+          ? {
+              ...r,
+              audioOverride: checked,
+              audioPath: checked && r.hasAudio && r.id ? `/lessons/${encodeURIComponent(lessonId)}/vocabulary/${encodeURIComponent(r.id)}/audio` : null,
+            }
+          : r,
+      ),
+    );
+  };
+
+  const handlePickAudio = async (row: Row, file: File | null) => {
+    if (!file) return;
+    if (row.id) {
+      setUploadingKey(row.key);
+      setError('');
+      try {
+        const fd = new FormData();
+        fd.append('file', file);
+        const updated = await apiRequest<VocabularyItem>(
+          `/lessons/${encodeURIComponent(lessonId)}/vocabulary/${encodeURIComponent(row.id)}/audio`,
+          { method: 'POST', body: fd },
+        );
+        const patch = (r: Row): Row =>
+          r.id === updated.id
+            ? {
+                ...r,
+                audioOverride: updated.audioOverride,
+                hasAudio: updated.hasAudio,
+                audioOriginalName: updated.audioOriginalName,
+                audioPath: updated.audioPath,
+                pendingAudioFile: null,
+                pendingAudioUrl: null,
+              }
+            : r;
+        setRows((all) => all.map(patch));
+        setSaved((all) => (all ? all.map(patch) : all));
+        toast.show(`Đã lưu bản ghi âm cho “${row.hanzi || 'từ vựng'}”`);
+      } catch (err) {
+        setError((err as Error).message || 'Không lưu được bản ghi âm.');
+      } finally {
+        setUploadingKey(null);
+      }
+      return;
+    }
+
+    // Unsaved row: hold locally for preview and upload automatically on "Lưu từ vựng".
+    if (row.pendingAudioUrl) URL.revokeObjectURL(row.pendingAudioUrl);
+    const url = URL.createObjectURL(file);
+    setRows((all) =>
+      all.map((r) =>
+        r.key === row.key
+          ? {
+              ...r,
+              audioOverride: true,
+              pendingAudioFile: file,
+              pendingAudioUrl: url,
+            }
+          : r,
+      ),
+    );
+    toast.show('Đã ghi âm xong, bấm "Lưu từ vựng" để lưu');
+  };
+
+  const handleRemoveAudio = async (row: Row) => {
+    if (row.pendingAudioFile) {
+      if (row.pendingAudioUrl) URL.revokeObjectURL(row.pendingAudioUrl);
+      setRows((all) =>
+        all.map((r) =>
+          r.key === row.key ? { ...r, pendingAudioFile: null, pendingAudioUrl: null, audioOverride: false } : r,
+        ),
+      );
+      return;
+    }
+    if (!row.id || !row.hasAudio) return;
+    setUploadingKey(row.key);
+    setError('');
+    try {
+      const updated = await apiRequest<VocabularyItem>(
+        `/lessons/${encodeURIComponent(lessonId)}/vocabulary/${encodeURIComponent(row.id)}/audio`,
+        { method: 'DELETE' },
+      );
+      const patch = (r: Row): Row =>
+        r.id === updated.id
+          ? {
+              ...r,
+              audioOverride: updated.audioOverride,
+              hasAudio: updated.hasAudio,
+              audioOriginalName: updated.audioOriginalName,
+              audioPath: updated.audioPath,
+            }
+          : r;
+      setRows((all) => all.map(patch));
+      setSaved((all) => (all ? all.map(patch) : all));
+      toast.show('Đã xoá tệp âm thanh ghi đè, quay về thư viện có sẵn');
+    } catch (err) {
+      setError((err as Error).message || 'Không xoá được tệp âm thanh.');
+    } finally {
+      setUploadingKey(null);
+    }
+  };
 
   const addRow = () => {
     const row = emptyRow();
@@ -190,7 +336,7 @@ function WordEditor({
     setBusy(true);
     setError('');
     try {
-      const items = await apiRequest<VocabularyItem[]>(`/lessons/${lessonId}/vocabulary`, {
+      let items = await apiRequest<VocabularyItem[]>(`/lessons/${lessonId}/vocabulary`, {
         method: 'PUT',
         body: JSON.stringify({
           items: kept.map((r) => ({
@@ -200,9 +346,33 @@ function WordEditor({
             meaningVi: r.meaningVi.trim(),
             exampleZh: r.exampleZh.trim() || undefined,
             exampleVi: r.exampleVi.trim() || undefined,
+            audioOverride: r.audioOverride,
           })),
         }),
       });
+
+      // Upload queued audio files for newly created rows (indices match server sort_order).
+      const pendingUploads = kept
+        .map((r, idx) => ({ file: r.pendingAudioFile, url: r.pendingAudioUrl, item: items[idx] }))
+        .filter((x): x is { file: File; url: string | null | undefined; item: VocabularyItem } =>
+          Boolean(x.file && x.item),
+        );
+
+      if (pendingUploads.length > 0) {
+        const updatedById = new Map<string, VocabularyItem>();
+        for (const u of pendingUploads) {
+          const fd = new FormData();
+          fd.append('file', u.file);
+          const up = await apiRequest<VocabularyItem>(
+            `/lessons/${encodeURIComponent(lessonId)}/vocabulary/${encodeURIComponent(u.item.id)}/audio`,
+            { method: 'POST', body: fd },
+          );
+          updatedById.set(up.id, up);
+          if (u.url) URL.revokeObjectURL(u.url);
+        }
+        items = items.map((it) => updatedById.get(it.id) ?? it);
+      }
+
       const next = items.map(fromItem);
       setSaved(next);
       setRows(next);
@@ -216,9 +386,13 @@ function WordEditor({
     }
   };
 
-  const speak = (text: string) => {
-    if (!text.trim()) return;
-    if (!speakChinese(text)) toast.show('Thiết bị này chưa có giọng đọc tiếng Trung.');
+  const previewAudio = async (row: Row) => {
+    const ok = await playWordAudio({
+      localUrl: row.audioOverride ? row.pendingAudioUrl : null,
+      audioPath: row.audioOverride && row.hasAudio ? row.audioPath : null,
+      text: row.hanzi,
+    });
+    if (!ok) toast.show('Thiết bị này chưa có giọng đọc tiếng Trung hoặc chưa có tệp âm thanh.');
   };
 
   return (
@@ -260,6 +434,7 @@ function WordEditor({
                 <th scope="col">Nghĩa tiếng Việt</th>
                 <th scope="col">Câu ví dụ (không bắt buộc)</th>
                 <th scope="col">Nghĩa câu ví dụ</th>
+                <th scope="col">Âm thanh</th>
                 <th scope="col">
                   <span className="sr-only">Thao tác</span>
                 </th>
@@ -269,6 +444,7 @@ function WordEditor({
               {rows.map((r, i) => {
                 const n = i + 1;
                 const toneHint = hasToneNumbers(r.pinyin);
+                const audioBusy = uploadingKey === r.key;
                 return (
                   <tr key={r.key}>
                     <td>
@@ -327,12 +503,47 @@ function WordEditor({
                       />
                     </td>
                     <td>
+                      <div className={s.audioCell}>
+                        <div className={s.audioRow}>
+                          <Button
+                            variant="subtle"
+                            size="sm"
+                            iconOnly
+                            aria-label={`Nghe từ ${n}`}
+                            onClick={() => void previewAudio(r)}
+                          >
+                            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                              <path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor" />
+                            </svg>
+                          </Button>
+                          <Checkbox
+                            label="Ghi đè âm thanh"
+                            checked={r.audioOverride}
+                            onChange={(e) => toggleAudioOverride(r.key, e.target.checked)}
+                          />
+                        </div>
+                        {r.audioOverride ? (
+                          <AudioRecorder
+                            hasAudio={Boolean(r.hasAudio || r.pendingAudioFile)}
+                            pendingLocal={Boolean(r.pendingAudioFile)}
+                            busy={audioBusy}
+                            emptyHint="Chưa ghi âm — tạm dùng thư viện có sẵn"
+                            onRecorded={(file) => handlePickAudio(r, file)}
+                            onRemove={() => handleRemoveAudio(r)}
+                            onError={(msg) => {
+                              setError(msg);
+                              toast.show(msg);
+                            }}
+                          />
+                        ) : (
+                          <span className={s.cellHint}>
+                            Dùng thư viện có sẵn{r.hasAudio ? ' (đã có bản ghi âm lưu sẵn)' : ''}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td>
                       <span className={s.order}>
-                        <Button variant="subtle" size="sm" iconOnly aria-label={`Nghe từ ${n}`} onClick={() => speak(r.hanzi)}>
-                          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor" />
-                          </svg>
-                        </Button>
                         <Button variant="subtle" size="sm" iconOnly aria-label={`Đưa từ ${n} lên`} disabled={i === 0} onClick={() => setRows((all) => move(all, i, i - 1))}>
                           ↑
                         </Button>
@@ -346,7 +557,16 @@ function WordEditor({
                         >
                           ↓
                         </Button>
-                        <Button variant="subtle" size="sm" iconOnly aria-label={`Xoá từ ${n}`} onClick={() => setRows((all) => all.filter((x) => x.key !== r.key))}>
+                        <Button
+                          variant="subtle"
+                          size="sm"
+                          iconOnly
+                          aria-label={`Xoá từ ${n}`}
+                          onClick={() => {
+                            if (r.pendingAudioUrl) URL.revokeObjectURL(r.pendingAudioUrl);
+                            setRows((all) => all.filter((x) => x.key !== r.key));
+                          }}
+                        >
                           ×
                         </Button>
                       </span>
@@ -360,9 +580,9 @@ function WordEditor({
       )}
 
       <div className={s.cardHead}>
-        <p className={s.note} style={{ maxWidth: '70ch' }}>
+        <p className={s.note} style={{ maxWidth: '72ch' }}>
           Từ vựng của bài tự sinh flashcard, quiz và bài luyện viết cho học viên. Gõ pinyin có dấu, hoặc số thanh 1–4 sau âm tiết
-          (“jiao4” thành “jiào”). Phát âm dùng giọng đọc tiếng Trung của trình duyệt.
+          (“jiao4” thành “jiào”). Mặc định phát âm dùng thư viện giọng đọc có sẵn; bật “Ghi đè âm thanh” để ghi âm trực tiếp bằng micro.
         </p>
         <div className={s.rowActions}>
           {dirty && <span className={s.note}>Có thay đổi chưa lưu</span>}

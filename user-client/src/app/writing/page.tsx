@@ -6,7 +6,7 @@ import { Alert, Button, LinkButton, Skeleton, useToast } from '@/components/ui';
 import { PracticeHub, PracticeShell, SetState, usePracticeSet, usePracticeSource } from '@/components/practice/shared';
 import s from '@/components/practice/practice.module.css';
 import { practiceRoutes, type PracticeSet, type PracticeSource, type PracticeWord } from '@/lib/practice';
-import { speakChinese } from '@/lib/speech';
+import { playWordAudio } from '@/lib/speech';
 
 /**
  * Stroke data for Hanzi Writer, from the hanzi-writer-data package on jsDelivr
@@ -190,7 +190,13 @@ function Writing({ set, src }: { set: PracticeSet; src: PracticeSource }) {
             <Button
               variant="subtle"
               size="sm"
-              onClick={() => speakChinese(item.char) || toast.show('Thiết bị này chưa có giọng đọc tiếng Trung.')}
+              onClick={async () => {
+                const ok = await playWordAudio({
+                  audioPath: item.word.hanzi === item.char ? item.word.audioPath : null,
+                  text: item.char,
+                });
+                if (!ok) toast.show('Thiết bị này chưa có giọng đọc tiếng Trung.');
+              }}
             >
               Nghe phát âm
             </Button>
