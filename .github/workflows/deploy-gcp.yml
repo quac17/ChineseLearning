@@ -80,6 +80,36 @@ jobs:
             SECRETS_ARG="${SECRETS_ARG},SMTP_PASS=chinese-learner-smtp-pass:latest,REMINDER_CRON_SECRET=chinese-learner-reminder-cron-secret:latest"
           fi
 
+          ENV_TMP="$(mktemp)"
+          trap 'rm -f "$ENV_TMP"' EXIT
+          cat > "$ENV_TMP" <<EOF
+          NODE_ENV: "production"
+          FEATURE_PAYOS_ENABLED: "${PAYOS_ENABLED}"
+          FEATURE_MAIL_ENABLED: "${MAIL_ENABLED}"
+          JWT_EXPIRES_IN: "7d"
+          COOKIE_NAME: "chinese_learner_token"
+          COOKIE_SECURE: "true"
+          COOKIE_SAME_SITE: "${COOKIE_SAME_SITE}"
+          CORS_ORIGIN: "${CORS_ORIGIN}"
+          APP_URL: "${APP_URL}"
+          API_PUBLIC_URL: "${API_PUBLIC_URL}"
+          PAYMENT_GATEWAY: "${{ vars.PAYMENT_GATEWAY || 'fake' }}"
+          STORAGE_BACKEND: "gcs"
+          GCS_BUCKET: "${GCS_BUCKET}"
+          GCS_SIGNED_URL_TTL_MIN: "15"
+          GCS_UPLOAD_URL_TTL_MIN: "30"
+          MAX_VIDEO_SIZE_MB: "2000"
+          MAX_DOC_SIZE_MB: "30"
+          MAX_AUDIO_SIZE_MB: "${{ vars.MAX_AUDIO_SIZE_MB || '10' }}"
+          MAIL_TRANSPORT: "${{ vars.MAIL_TRANSPORT || 'console' }}"
+          MAIL_FROM: "${{ vars.MAIL_FROM || 'Tiếng Trung 365 <no-reply@tiengtrung365vn.com>' }}"
+          SMTP_HOST: "${{ vars.SMTP_HOST || '' }}"
+          SMTP_PORT: "${{ vars.SMTP_PORT || '465' }}"
+          SMTP_USER: "${{ vars.SMTP_USER || '' }}"
+          MAIL_DEV_OUTBOX: "false"
+          TRUST_PROXY: "1"
+          EOF
+
           gcloud run deploy chinese-learner-server \
             --image "$IMAGE" \
             --region "${{ env.REGION }}" \
@@ -88,7 +118,7 @@ jobs:
             --memory 1Gi \
             --timeout 3600 \
             --add-cloudsql-instances "$CLOUD_SQL" \
-            --set-env-vars "^@^NODE_ENV=production@FEATURE_PAYOS_ENABLED=${PAYOS_ENABLED}@FEATURE_MAIL_ENABLED=${MAIL_ENABLED}@JWT_EXPIRES_IN=7d@COOKIE_NAME=chinese_learner_token@COOKIE_SECURE=true@COOKIE_SAME_SITE=${COOKIE_SAME_SITE}@CORS_ORIGIN=${CORS_ORIGIN}@APP_URL=${APP_URL}@API_PUBLIC_URL=${API_PUBLIC_URL}@PAYMENT_GATEWAY=${{ vars.PAYMENT_GATEWAY || 'fake' }}@STORAGE_BACKEND=gcs@GCS_BUCKET=${GCS_BUCKET}@GCS_SIGNED_URL_TTL_MIN=15@GCS_UPLOAD_URL_TTL_MIN=30@MAX_VIDEO_SIZE_MB=2000@MAX_DOC_SIZE_MB=30@MAX_AUDIO_SIZE_MB=${{ vars.MAX_AUDIO_SIZE_MB || '10' }}@MAIL_TRANSPORT=${{ vars.MAIL_TRANSPORT || 'console' }}@MAIL_FROM=${{ vars.MAIL_FROM || 'Tiếng Trung 365 <no-reply@tiengtrung365vn.com>' }}@SMTP_HOST=${{ vars.SMTP_HOST || '' }}@SMTP_PORT=${{ vars.SMTP_PORT || '465' }}@SMTP_USER=${{ vars.SMTP_USER || '' }}@MAIL_DEV_OUTBOX=false@TRUST_PROXY=1" \
+            --env-vars-file "$ENV_TMP" \
             --set-secrets "$SECRETS_ARG"
 
   deploy-client:

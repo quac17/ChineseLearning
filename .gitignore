@@ -26,6 +26,7 @@ user-client/out/
 server/.env
 user-client/.env
 user-client/.env.local
+*sa-key*.json
 
 # Uploaded media (local storage)
 server/uploads/*
